@@ -1,0 +1,40 @@
+<resources>
+    <string name="app_name">Anti Corruption</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string-array name="District">
+        <item>Amritsar</item>
+        <item>Barnala</item>
+        <item>Bathinda</item>
+        <item>Faridkot</item>
+        <item>Fatehgarh Sahib</item>
+        <item>Firozpur</item>
+        <item>Fazilka</item>
+        <item>Gurdaspur</item>
+        <item>Hoshiarpur</item>
+        <item>Jalandhar</item>
+        <item>Kapurthala</item>
+        <item>Ludhiana</item>
+        <item>Sri Muktsar Sahib</item>
+        <item>Pathankot</item>
+        <item>Patiala</item>
+        <item>Rupnagar</item>
+        <item>Sahibzada Ajit Singh Nagar</item>
+        <item>Sangrur</item>
+        <item>Shahid Bhagat Singh Nagar</item>
+        <item>Taran Taran</item>
+    </string-array>
+
+    <string-array name="Question">
+        <item>What is your Hobby?</item>
+        <item>What is your Favourite Color?</item>
+        <item>What is your Favourite Food?</item>
+        <item>When is your Birthday?</item>
+    </string-array>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="user_doesnot_exists">User does not exists</string>
+    <string name="open">open</string>
+    <string name="close">close</string>
+    <string name="audio">Audio</string>
+    <string name="video">Video</string>
+</resources>

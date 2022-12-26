@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Users"
+        android:id="@+id/users"
+        android:icon="@drawable/ic_baseline_home_24"
+        />
+    <item android:title="Change Password"
+        android:id="@+id/password"
+        android:icon="@drawable/ic_baseline_control_point_24"
+        />
+    <item android:title="Change Security Question"
+        android:id="@+id/security"
+        android:icon="@drawable/ic_baseline_edit_note_24"
+        />
+
+    <item android:title="Logout"
+        android:id="@+id/logout"
+        android:icon="@drawable/ic_baseline_tips_and_updates_24"
+        />
+
+</menu>

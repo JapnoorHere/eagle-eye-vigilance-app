@@ -1,0 +1,93 @@
+package com.japnoor.anticorruption
+
+import android.os.AsyncTask
+import android.os.Bundle
+import androidx.fragment.app.Fragment
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.japnoor.anticorruption.databinding.FragmentVerifySecurityorPassworduserBinding
+
+private const val ARG_PARAM1 = "param1"
+private const val ARG_PARAM2 = "param2"
+
+
+class VerifySecurityorPassworduser : Fragment() {
+    // TODO: Rename and change types of parameters
+    private var param1: String? = null
+    private var param2: String? = null
+    lateinit var homeScreen: HomeScreen
+     var answer = ""
+     var question = ""
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        homeScreen=activity as HomeScreen
+
+        arguments?.let {
+            param1 = it.getString(ARG_PARAM1)
+            param2 = it.getString(ARG_PARAM2)
+        }
+    }
+
+    override fun onCreateView(
+        inflater: LayoutInflater, container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
+        getAnswer()
+        getQuestion()
+        var binding=FragmentVerifySecurityorPassworduserBinding.inflate(layoutInflater,container,false)
+
+        binding.Question.setText(question)
+        binding.btnSave.setOnClickListener {
+            if(binding.etAnswer.text.isNullOrEmpty()){
+                binding.etAnswer.error="Enter Answer"
+            }
+             else if(!(binding.etAnswer.text.toString().equals(answer))){
+                 binding.etAnswer.error="Wrong Answer"
+            }
+            else{
+                homeScreen.navController.navigate(R.id.changePasswordUser)
+            }
+
+        }
+
+        return binding.root
+    }
+
+    fun getAnswer(){
+        class Get():AsyncTask<Void,Void,Void>(){
+            override fun doInBackground(vararg p0: Void?): Void? {
+             answer=   Datbase.getDatabase(requireContext()).dao().getAnswer(homeScreen.signUpEntity?.id)
+                return null
+            }
+
+            override fun onPostExecute(result: Void?) {
+                super.onPostExecute(result)
+            }
+        }
+
+        Get().execute()
+    }
+
+
+
+    fun getQuestion(){
+        class Get():AsyncTask<Void,Void,Void>(){
+            override fun doInBackground(vararg p0: Void?): Void? {
+                question=   Datbase.getDatabase(requireContext()).dao().getQuestion(homeScreen.signUpEntity?.id)
+                return null
+            }
+
+            override fun onPostExecute(result: Void?) {
+                super.onPostExecute(result)
+            }
+        }
+
+        Get().execute()
+    }
+
+
+    }
+

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#7D4169E1"
+    android:orientation="vertical"
+    tools:context=".NotificationsFragment">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="5dp"
+        android:text="Here are some sites which you can follow to prevent Corruption in your local areas!"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        android:textStyle="italic" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/line" />
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="340dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:background="@drawable/how_to_stop_corruption"
+        app:cardCornerRadius="10dp">
+
+        <ImageView
+            android:id="@+id/img1"
+            android:layout_width="390dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:src="@drawable/how_to_stop_corruption" />
+    </androidx.cardview.widget.CardView>
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="340dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:layout_margin="8dp"
+        android:background="@drawable/how_to_stop_corruption"
+        app:cardCornerRadius="10dp">
+
+        <ImageView
+            android:id="@+id/img2"
+            android:layout_width="390dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:src="@drawable/briberymoney" />
+    </androidx.cardview.widget.CardView>
+    <androidx.cardview.widget.CardView
+        android:layout_width="340dp"
+        android:layout_height="200dp"
+        android:layout_gravity="center"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/how_to_stop_corruption"
+        app:cardCornerRadius="10dp">
+
+        <ImageView
+            android:id="@+id/img3"
+            android:layout_width="390dp"
+            android:layout_height="220dp"
+            android:layout_gravity="center"
+            android:src="@drawable/stepcorruption" />
+    </androidx.cardview.widget.CardView>
+
+
+</LinearLayout>
+</ScrollView>
+</layout>

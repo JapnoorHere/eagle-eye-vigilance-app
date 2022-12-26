@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph.xml"
+    app:startDestination="@id/homeFragment">
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.japnoor.anticorruption.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_clickedComplaintFagment"
+            app:destination="@id/clickedComplaintFagment"
+            app:enterAnim="@android:anim/slide_in_left" />
+
+        <action
+            android:id="@+id/action_homeFragment_to_userTotalDemandFragment"
+            app:destination="@id/userTotalDemandFragment"
+            app:enterAnim="@android:anim/slide_in_left" />
+
+    </fragment>
+    <fragment
+        android:id="@+id/addComplaintFragment"
+        android:name="com.japnoor.anticorruption.AddComplaintFragment"
+        android:label="AddComplaintFragment" />
+    <fragment
+        android:id="@+id/clickedComplaintFagment"
+        android:name="com.japnoor.anticorruption.ClickedComplaintFagment"
+        android:label="ClickedComplaintFagment" />
+    <fragment
+        android:id="@+id/demandLetterFragment"
+        android:name="com.japnoor.anticorruption.DemandLetterFragment"
+        android:label="DemandLetterFragment" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.japnoor.anticorruption.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+
+    <fragment
+        android:id="@+id/userTotalDemandFragment"
+        android:name="com.japnoor.anticorruption.UserTotalDemandFragment"
+        android:label="fragment_user_total_demand"
+        tools:layout="@layout/fragment_user_total_demand" />
+    <fragment
+        android:id="@+id/forgotSecurityQuestionUser"
+        android:name="com.japnoor.anticorruption.ChangeSecurityQuestionUser"
+        android:label="ForgotSecurityQuestionUser" />
+    <fragment
+        android:id="@+id/verifySecurityorPassworduser"
+        android:name="com.japnoor.anticorruption.VerifySecurityorPassworduser"
+        android:label="VerifySecurityorPassworduser" />
+    <fragment
+        android:id="@+id/changePasswordUser"
+        android:name="com.japnoor.anticorruption.ChangePasswordUser"
+        android:label="fragment_change_password_user"
+        tools:layout="@layout/fragment_change_password_user" />
+</navigation>
