@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/user_home_nav_graph.xml"
+    app:startDestination="@id/homeFragment">
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.japnoor.anticorruption.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_homeFragment_to_userComplaints"
+            app:destination="@id/userComplaints" />
+        <action
+            android:id="@+id/action_homeFragment_to_userTotalDemandFragment"
+            app:destination="@id/userTotalDemandFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/addComplaintFragment"
+        android:name="com.japnoor.anticorruption.AddComplaintFragment"
+        android:label="fragment_add_complaint"
+        tools:layout="@layout/fragment_add_complaint" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.japnoor.anticorruption.ProfileFragment"
+        android:label="fragment_profile"
+        tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/userComplaints"
+        android:name="com.japnoor.anticorruption.UserComplaints"
+        android:label="UserComplaints" />
+    <fragment
+        android:id="@+id/addDemandLetterFragment"
+        android:name="com.japnoor.anticorruption.AddDemandLetterFragment"
+        android:label="AddDemandLetterFragment" />
+    <fragment
+        android:id="@+id/userTotalDemandFragment"
+        android:name="com.japnoor.anticorruption.UserTotalDemandFragment"
+        android:label="UserTotalDemandFragment" />
+</navigation>

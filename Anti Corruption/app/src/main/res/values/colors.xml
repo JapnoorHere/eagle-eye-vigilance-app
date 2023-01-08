@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="resolved">#3BAAFF</color>
+    <color name="resolved1">#7D3BAAFF</color>
+    <color name="accepted">#FF9800</color>
+    <color name="accepted1">#7DFF9800</color>
+    <color name="rejected">#ff0000</color>
+    <color name="rejected1">#7DFF0000</color>
 </resources>
