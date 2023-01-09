@@ -59,7 +59,7 @@ class UserDemandAdapter(var context: HomeScreen, var demandlist: ArrayList<Deman
                 holder.binding.inpriority.setImageResource(0)
             }
         }
-        holder.binding.tvcomno.setText("Dem No : ")
+        holder.binding.icon.setImageResource(R.drawable.imageitem)
     }
 
     override fun getItemCount(): Int {

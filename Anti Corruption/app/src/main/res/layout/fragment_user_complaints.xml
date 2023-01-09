@@ -1,24 +1,67 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
 
-    <FrameLayout
+    <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
-
-    <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/recyclerView"
-        />
+        android:orientation="vertical"
+        >
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:text="My Complaints"
+            android:textAlignment="center"
+            android:textColor="@color/black"
+            android:textSize="25sp"
+            android:textStyle="bold" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:background="@color/black" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:orientation="vertical"
+            android:layout_height="wrap_content">
 
-        <ProgressBar
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:visibility="gone"
-            android:id="@+id/progressbar"
-            android:layout_gravity="center"
-            />
-    </FrameLayout>
+
+
+            <com.facebook.shimmer.ShimmerFrameLayout
+                android:id="@+id/shimmer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" >
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <include layout="@layout/shimmer_layout">
+                    </include><include layout="@layout/shimmer_layout">
+                </include><include layout="@layout/shimmer_layout">
+                </include><include layout="@layout/shimmer_layout">
+                </include><include layout="@layout/shimmer_layout">
+                </include><include layout="@layout/shimmer_layout">
+                </include>
+                </LinearLayout>
+            </com.facebook.shimmer.ShimmerFrameLayout>
+            <ScrollView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:visibility="gone"
+                    android:layout_height="match_parent"
+                    android:id="@+id/recyclerView"
+                    />
+            </ScrollView>
+        </LinearLayout>
+
+    </LinearLayout>
 
 </layout>

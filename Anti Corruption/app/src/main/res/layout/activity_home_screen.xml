@@ -13,6 +13,7 @@
             android:orientation="vertical"
             tools:context=".HomeScreen">
 
+
             <fragment
                 android:id="@+id/navController"
                 android:name="androidx.navigation.fragment.NavHostFragment"

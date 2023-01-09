@@ -90,10 +90,11 @@ class AddDemandLetterFragment : Fragment() {
                 binding.District.setError("Enter District")
                 binding.District.requestFocus()
             }
-            else if (imageUri.toString().isNullOrEmpty()){
+            else if (imageUri==null){
                 Toast.makeText(homeScreen,"Upload an Image",Toast.LENGTH_LONG).show()
             }
             else{
+                binding.addImage.isClickable=false
                 binding.progressbar.visibility=View.VISIBLE
                 binding.btnSubmit.visibility=View.GONE
                 uploadDemandLetterAndImage()
@@ -121,7 +122,14 @@ class AddDemandLetterFragment : Fragment() {
         }
 
         binding.addImage.setOnClickListener {
+            if(imageUri==null)
             chooseImage()
+            else if(imageUri!=null){
+                imageUri=null
+                binding.addImage.setText("  Add Image")
+                binding.addImage.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_image_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+                binding.addImage.setBackgroundResource(R.drawable.upload_photo)
+            }
 
 
         }
@@ -165,10 +173,17 @@ class AddDemandLetterFragment : Fragment() {
                 var resultcode=result.resultCode
                 var imageData=result.data
 
-                if(resultcode== RESULT_OK  && imageData!=null )
+                if(resultcode== RESULT_OK  && imageData!=null ) {
 
-                    imageUri=imageData.data
-                println("Image - > " + imageUri)
+                    imageUri = imageData.data
+                    println("Image - > " + imageUri)
+
+                    if (imageUri != null) {
+                        binding.addImage.setText("  Image Selected")
+                        binding.addImage.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_image_24),null,resources.getDrawable(R.drawable.ic_baseline_cancel_24),null)
+                        binding.addImage.setBackgroundResource(R.drawable.upload_photo1)
+                    }
+                }
 
             })
 

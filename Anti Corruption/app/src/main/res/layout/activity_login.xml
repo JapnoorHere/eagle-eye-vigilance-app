@@ -107,6 +107,10 @@
                         />
                 </com.google.android.material.textfield.TextInputLayout>
 
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    >
                 <Button
                     android:id="@+id/btnLogin"
                     android:layout_width="wrap_content"
@@ -117,7 +121,14 @@
                     android:backgroundTint="#4169e1"
                     android:text="Login"
                     android:textStyle="bold" />
-
+                    <ProgressBar
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:visibility="gone"
+                        android:id="@+id/progressbar"
+                        />
+                </FrameLayout>
                 <TextView
                     android:id="@+id/tvForgotPassword"
                     android:layout_width="wrap_content"

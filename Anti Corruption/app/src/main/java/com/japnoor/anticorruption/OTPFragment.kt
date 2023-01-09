@@ -130,6 +130,8 @@ class OTPFragment : Fragment() {
             ) {
                 Toast.makeText(signUp, "Enter OTP", Toast.LENGTH_LONG).show()
             } else if (otp.equals(random.toString())) {
+                binding.btnVerify.visibility=View.GONE
+                binding.progressbar.visibility=View.VISIBLE
                 auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener {
                     if (it.isSuccessful) {
                         var user = auth.currentUser
@@ -147,8 +149,8 @@ class OTPFragment : Fragment() {
                                 ).show()
                             }
                         }
-//                                binding.btnSignup.visibility= View.VISIBLE
-//                                binding.progressbar.visibility=View.GONE
+                                binding.btnVerify.visibility= View.VISIBLE
+                                binding.progressbar.visibility=View.GONE
                         var intent = Intent(signUp, HomeScreen::class.java)
                         intent.putExtra("uid", id.toString())
                         startActivity(intent)

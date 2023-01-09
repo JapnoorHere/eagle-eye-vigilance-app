@@ -1,6 +1,7 @@
 package com.japnoor.anticorruption
 
 import android.os.Bundle
+import android.view.View
 import android.widget.MediaController
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
@@ -14,12 +15,19 @@ class VideoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding= ActivityVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+
        var video=intent.getStringExtra("video")
        binding.videoview.setVideoURI(video?.toUri())
        binding.videoview.start()
+
        var mediaController = MediaController(this)
        binding.videoview.setMediaController(mediaController)
        mediaController.setAnchorView(binding.videoview)
+
+        binding.btn.setOnClickListener{
+            finish()
+        }
 
 
     }

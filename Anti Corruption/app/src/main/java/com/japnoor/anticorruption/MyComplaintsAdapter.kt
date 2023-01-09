@@ -56,6 +56,13 @@ class MyComplaintsAdapter(var context: HomeScreen, var complaintsList: ArrayList
             }
 
         }
+
+        if(complaintsList[position].audioUrl.isNullOrEmpty()){
+            holder.binding.icon.setImageResource(R.drawable.videoitem)
+        }
+        else if(complaintsList[position].videoUrl.isNullOrEmpty()){
+            holder.binding.icon.setImageResource(R.drawable.audioitem)
+        }
         holder.itemView.setOnClickListener{
                userComplaintClick.onClick(complaintsList[position])
         }

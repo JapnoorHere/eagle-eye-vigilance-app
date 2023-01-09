@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.firebase.auth.FirebaseAuth
@@ -41,11 +42,15 @@ class LoginActivity : AppCompatActivity() {
                 binding.etPassword.requestFocus()
                 binding.etPassword.error = "Enter Password"
             } else {
+                binding.progressbar.visibility=View.VISIBLE
+                binding.btnLogin.visibility=View.GONE
                 auth.signInWithEmailAndPassword(
                     binding.etUsername.text.toString(),
                     binding.etPassword.text.toString()
                 ).addOnCompleteListener(this) {
                     if (it.isSuccessful) {
+                        binding.progressbar.visibility=View.GONE
+                        binding.btnLogin.visibility=View.VISIBLE
                         Toast.makeText(this, "Login Successful", Toast.LENGTH_LONG).show()
                         var intent = Intent(this, HomeScreen::class.java)
                         intent.putExtra("uid",auth.currentUser?.uid)
@@ -53,6 +58,8 @@ class LoginActivity : AppCompatActivity() {
                         finish()
                     }
                     else {
+                        binding.progressbar.visibility=View.GONE
+                        binding.btnLogin.visibility=View.VISIBLE
                         Toast.makeText(this, it.exception.toString(), Toast.LENGTH_LONG).show()
                     }
                 }

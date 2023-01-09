@@ -1,9 +1,12 @@
 package com.japnoor.anticorruption
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -30,34 +33,37 @@ import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
+import com.sun.mail.imap.protocol.INTERNALDATE
 import java.util.*
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
-class UserComplaints : Fragment(),UserComplaintClick {
+class UserComplaints : Fragment(), UserComplaintClick {
     private var param1: String? = null
     private var param2: String? = null
 
-    lateinit var arrayAdapter : ArrayAdapter<String>
-    var complaintsList : ArrayList<Complaints> = ArrayList()
+    lateinit var arrayAdapter: ArrayAdapter<String>
+    var complaintsList: ArrayList<Complaints> = ArrayList()
     lateinit var myComplaintsAdapter: MyComplaintsAdapter
     lateinit var firebaseStorage: FirebaseStorage
-   lateinit var storegeref : StorageReference
+    lateinit var storegeref: StorageReference
+
+    lateinit var dialogBindEdit : EditUserComplaintDialogBinding
 
 
-    lateinit var activityResulLauncher : ActivityResultLauncher<Intent>
-    lateinit var activityResulLauncher2 : ActivityResultLauncher<Intent>
-    var audioUrl : String=""
-    var audioUri : Uri? =null
+    lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
+    lateinit var activityResulLauncher2: ActivityResultLauncher<Intent>
+    var audioUrl: String = ""
+    var audioUri: Uri? = null
 
-    var videoUrl : String=""
-    var videoUri : Uri? =null
+    var videoUrl: String = ""
+    var videoUri: Uri? = null
 
     lateinit var database: FirebaseDatabase
-    lateinit var compRef : DatabaseReference
+    lateinit var compRef: DatabaseReference
 
-    lateinit var binding :FragmentUserComplaintsBinding
+    lateinit var binding: FragmentUserComplaintsBinding
 
     lateinit var homeScreen: HomeScreen
 
@@ -79,30 +85,41 @@ class UserComplaints : Fragment(),UserComplaintClick {
         savedInstanceState: Bundle?
     ): View? {
 
-        firebaseStorage=FirebaseStorage.getInstance()
-        storegeref=firebaseStorage.reference
+        firebaseStorage = FirebaseStorage.getInstance()
+        storegeref = firebaseStorage.reference
         homeScreen = activity as HomeScreen
-        database=FirebaseDatabase.getInstance()
-        compRef=database.reference.child("Complaints")
+        database = FirebaseDatabase.getInstance()
+        compRef = database.reference.child("Complaints")
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
+
+       binding.shimmer.startShimmer()
+
+
         compRef.addValueEventListener(object : ValueEventListener, UserComplaintClick {
             override fun onDataChange(snapshot: DataSnapshot) {
                 complaintsList.clear()
-                    for(eachComplaint in snapshot.children){
+                for (eachComplaint in snapshot.children) {
 
-                        val complaint=eachComplaint.getValue(Complaints::class.java)
+                    val complaint = eachComplaint.getValue(Complaints::class.java)
 
-                        if(complaint!=null && complaint.userId.equals(homeScreen.id)){
-                            complaintsList.add(complaint)
-                        }
-                        myComplaintsAdapter= MyComplaintsAdapter(homeScreen,complaintsList,this)
-                        binding.recyclerView.layoutManager=LinearLayoutManager(homeScreen)
-                        binding.recyclerView.adapter=myComplaintsAdapter
-
+                    if (complaint != null && complaint.userId.equals(homeScreen.id)) {
+                        complaintsList.add(complaint)
                     }
 
+
+                    myComplaintsAdapter = MyComplaintsAdapter(homeScreen, complaintsList, this)
+                    binding.recyclerView.layoutManager = LinearLayoutManager(homeScreen)
+                    binding.recyclerView.adapter = myComplaintsAdapter
+                    binding.shimmer.visibility=View.GONE
+                    binding.shimmer.stopShimmer()
+                    binding.recyclerView.visibility=View.VISIBLE
+
+                }
+
+
             }
+
             override fun onCancelled(error: DatabaseError) {
                 TODO("Not yet implemented")
             }
@@ -110,12 +127,13 @@ class UserComplaints : Fragment(),UserComplaintClick {
 
             override fun onClick(complaints: Complaints) {
                 var dialog = Dialog(requireContext())
-                if (complaints.status.equals( "1")) {
+                if (complaints.status.equals("1")) {
                     var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
-                        WindowManager.LayoutParams.WRAP_CONTENT)
+                        WindowManager.LayoutParams.WRAP_CONTENT
+                    )
 
                     dialogBind.Framelayout.setBackgroundResource(R.color.accepted1)
                     dialogBind.stamp.setImageResource(R.drawable.accpeted_stamp)
@@ -126,39 +144,21 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     dialogBind.tvDistrict.setText(complaints.complaintDistrict)
 
                     dialogBind.fabAdd1.setOnClickListener {
-                           dialog.dismiss()
+                        dialog.dismiss()
                     }
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(audioUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+                        var intent=Intent(homeScreen,AudioActivity::class.java)
+                        intent.putExtra("audio",fileUri.toString())
+                        homeScreen.startActivity(intent)
 
-                        startActivity(intent)
                     }
-
                     dialogBind.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
 
-                        var intent=Intent(homeScreen,VideoActivity::class.java)
-                        intent.putExtra("video",fileUri.toString())
+                        var intent = Intent(homeScreen, VideoActivity::class.java)
+                        intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
-
-//                        val intent = Intent(Intent.ACTION_VIEW)
-//                        intent.setDataAndType(
-//                            fileUri,
-//                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-//                                MimeTypeMap.getFileExtensionFromUrl(videoUrl)
-//                            )
-//                        )
-//                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
-//
-//                        startActivity(intent)
                     }
 
 
@@ -173,9 +173,8 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     }
 
 
-                 dialog.show()
-                }
-                else if (complaints.status.equals( "2")) {
+                    dialog.show()
+                } else if (complaints.status.equals("2")) {
                     var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
@@ -183,7 +182,7 @@ class UserComplaints : Fragment(),UserComplaintClick {
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
                     dialogBind.stamp.setImageResource(R.drawable.resolved_stamp)
-                     dialogBind.Framelayout.setBackgroundResource(R.color.resolved1)
+                    dialogBind.Framelayout.setBackgroundResource(R.color.resolved1)
                     dialogBind.tvSummary.setText(complaints.complaintSummary)
                     dialogBind.tvDetails.setText(complaints.complaintDetails)
                     dialogBind.tvAgainst.setText(complaints.complaintAgainst)
@@ -191,35 +190,21 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     dialogBind.tvDistrict.setText(complaints.complaintDistrict)
 
                     dialogBind.fabAdd1.setOnClickListener {
-                       dialog.dismiss()
+                        dialog.dismiss()
                     }
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(audioUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+                        var intent=Intent(homeScreen,AudioActivity::class.java)
+                        intent.putExtra("audio",fileUri.toString())
+                        homeScreen.startActivity(intent)
 
-                        startActivity(intent)
                     }
-
                     dialogBind.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
 
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(videoUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
-
-                        startActivity(intent)
+                        var intent = Intent(homeScreen, VideoActivity::class.java)
+                        intent.putExtra("video", fileUri.toString())
+                        homeScreen.startActivity(intent)
                     }
 
 
@@ -234,9 +219,8 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     }
 
 
-                 dialog.show()
-                }
-                else if (complaints.status.equals( "3")) {
+                    dialog.show()
+                } else if (complaints.status.equals("3")) {
                     var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
@@ -256,31 +240,18 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     }
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(audioUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+                        var intent=Intent(homeScreen,AudioActivity::class.java)
+                        intent.putExtra("audio",fileUri.toString())
+                        homeScreen.startActivity(intent)
 
-                        startActivity(intent)
                     }
 
                     dialogBind.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
 
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(videoUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
-
-                        startActivity(intent)
+                        var intent = Intent(homeScreen, VideoActivity::class.java)
+                        intent.putExtra("video", fileUri.toString())
+                        homeScreen.startActivity(intent)
                     }
 
 
@@ -295,80 +266,82 @@ class UserComplaints : Fragment(),UserComplaintClick {
                     }
 
 
-                 dialog.show()
-                }
-                else {
-                    var dialogBind = EditUserComplaintDialogBinding.inflate(layoutInflater)
-                    dialog.setContentView(dialogBind.root)
+                    dialog.show()
+                } else {
+                     dialogBindEdit = EditUserComplaintDialogBinding.inflate(layoutInflater)
+                    dialog.setContentView(dialogBindEdit.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.MATCH_PARENT
                     )
 
-                    dialogBind.compSumm.setText(complaints.complaintSummary)
-                    dialogBind.comDetails.setText(complaints.complaintDetails)
-                    dialogBind.compAgainst.setText(complaints.complaintAgainst)
-                    dialogBind.comDate.setText(complaints.complaintDate)
-                    dialogBind.District.setText(complaints.complaintDistrict)
+                    dialogBindEdit.compSumm.setText(complaints.complaintSummary)
+                    dialogBindEdit.comDetails.setText(complaints.complaintDetails)
+                    dialogBindEdit.compAgainst.setText(complaints.complaintAgainst)
+                    dialogBindEdit.comDate.setText(complaints.complaintDate)
+                    dialogBindEdit.District.setText(complaints.complaintDistrict)
                     var districts = resources.getStringArray(R.array.District)
                     arrayAdapter =
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
-                    dialogBind.District.setAdapter(arrayAdapter)
-                    dialogBind.fabAdd1.setOnClickListener {
-                        uploadComplaintandAudio(dialogBind, complaints)
-                        dialog.dismiss()
+                    dialogBindEdit.District.setAdapter(arrayAdapter)
+                    dialogBindEdit.fabAdd1.setOnClickListener {
+                        if (audioUri == null && videoUri == null) {
+                            update(dialogBindEdit,complaints,dialog)
+                        } else {
+                            dialogBindEdit.progressbar.visibility = View.VISIBLE
+                            uploadComplaintandAudio(dialogBindEdit, complaints, dialog)
+                        }
                     }
-                    dialogBind.audio.setOnClickListener {
+                    dialogBindEdit.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(audioUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+                        var intent=Intent(homeScreen,AudioActivity::class.java)
+                        intent.putExtra("audio",fileUri.toString())
+                        homeScreen.startActivity(intent)
 
-                        startActivity(intent)
                     }
 
-                    dialogBind.video.setOnClickListener {
+                    dialogBindEdit.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
 
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.setDataAndType(
-                            fileUri,
-                            MimeTypeMap.getSingleton().getMimeTypeFromExtension(
-                                MimeTypeMap.getFileExtensionFromUrl(videoUrl)
-                            )
-                        )
-                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
-
-                        startActivity(intent)
+                        var intent = Intent(homeScreen, VideoActivity::class.java)
+                        intent.putExtra("video", fileUri.toString())
+                        homeScreen.startActivity(intent)
                     }
-
-
                     if (complaints.audioUrl.isNullOrEmpty()) {
-                        dialogBind.audioUpload.visibility = View.GONE
-                        dialogBind.audio.visibility = View.GONE
+                        dialogBindEdit.audioUpload.visibility = View.GONE
+                        dialogBindEdit.audio.visibility = View.GONE
                     }
 
                     if (complaints.videoUrl.isNullOrEmpty()) {
-                        dialogBind.videoUpload.visibility = View.GONE
-                        dialogBind.video.visibility = View.GONE
+                        dialogBindEdit.videoUpload.visibility = View.GONE
+                        dialogBindEdit.video.visibility = View.GONE
                     }
 
-                    dialogBind.audioUpload.setOnClickListener {
+                    dialogBindEdit.audioUpload.setOnClickListener {
+                        if(audioUri==null) {
+                            chooseAudio()
+                        }
+                            else if(audioUri!=null){
+                                audioUri=null
+                            dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg)
+                            dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
 
-                        chooseAudio()
+                        }
                     }
 
-                    dialogBind.videoUpload.setOnClickListener {
+                    dialogBindEdit.videoUpload.setOnClickListener {
+                        if(videoUri==null) {
+                            chooseVideo()
+                        }
+                        else if(videoUri!=null){
+                            videoUri=null
+                            dialogBindEdit.videoUpload.setBackgroundResource(R.drawable.buttonbg)
+                            dialogBindEdit.videoUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
 
-                        chooseVideo()
+                        }
                     }
 
-                    dialogBind.fabAdd2.setOnClickListener {
+                    dialogBindEdit.fabAdd2.setOnClickListener {
                         var bottomSheet = BottomSheetDialog(requireContext())
                         bottomSheet.setContentView(R.layout.dialog_delete_users)
                         bottomSheet.show()
@@ -387,9 +360,9 @@ class UserComplaints : Fragment(),UserComplaintClick {
                             complaints?.videoName?.let { it1 ->
                                 storegeref.child("videos").child(it1).delete()
                             }
-                            homeScreen.navController.navigate(R.id.homeFragment)
                             bottomSheet.dismiss()
                             dialog.dismiss()
+                            homeScreen.navController.navigate(R.id.homeFragment)
                         }
                     }
 
@@ -410,145 +383,227 @@ class UserComplaints : Fragment(),UserComplaintClick {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode==1 && grantResults.isNotEmpty() && grantResults[0]== PackageManager.PERMISSION_GRANTED){
+        if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             var intent = Intent()
-            intent.type="audio/*"
-            intent.action= Intent.ACTION_GET_CONTENT
+            intent.type = "audio/*"
+            intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
         }
     }
 
 
-
-    fun chooseAudio(){
-        if(ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
-        }
-        else{
+    fun chooseAudio() {
+        if (ContextCompat.checkSelfPermission(
+                homeScreen,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                homeScreen,
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                1
+            )
+        } else {
             var intent = Intent()
-            intent.type="audio/*"
-            intent.action= Intent.ACTION_GET_CONTENT
+            intent.type = "audio/*"
+            intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
         }
     }
-    fun chooseVideo(){
-        if(ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
-        }
-        else{
+
+    fun chooseVideo() {
+        if (ContextCompat.checkSelfPermission(
+                homeScreen,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                homeScreen,
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                1
+            )
+        } else {
             var intent = Intent()
-            intent.type="video/*"
-            intent.action= Intent.ACTION_GET_CONTENT
+            intent.type = "video/*"
+            intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher2.launch(intent)
         }
     }
 
-    fun registerActivityforResult(){
+    fun registerActivityforResult() {
 
-        activityResulLauncher=registerForActivityResult(
+        activityResulLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
             ActivityResultCallback { result ->
-                var resultcode=result.resultCode
-                var audioData=result.data
+                var resultcode = result.resultCode
+                var audioData = result.data
 
-                if(resultcode== Activity.RESULT_OK && audioData!=null )
-                    audioUri=audioData.data
+                if (resultcode == Activity.RESULT_OK && audioData != null)
+                    audioUri = audioData.data
+                if(audioUri!=null){
+                    dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg1)
+                    dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
+                }
+            })
+    }
+
+    fun registerActivityforResult2() {
+
+        activityResulLauncher2 = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            ActivityResultCallback { result ->
+                var resultcode = result.resultCode
+                var videoData = result.data
+
+                if (resultcode == Activity.RESULT_OK && videoData != null) {
+                    videoUri = videoData.data
+                    if(videoUri!=null){
+                        dialogBindEdit.videoUpload.setBackgroundResource(R.drawable.buttonbg1)
+                        dialogBindEdit.videoUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
+                    }
+                }
             })
 
 
     }
 
-    fun registerActivityforResult2(){
-
-        activityResulLauncher2=registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult(),
-            ActivityResultCallback { result ->
-                var resultcode=result.resultCode
-                var videoData=result.data
-
-                if(resultcode== Activity.RESULT_OK && videoData!=null )
-                    videoUri=videoData.data
-            })
+    fun update(dialogBind: EditUserComplaintDialogBinding,
+                    complaints: Complaints,
+                    dialog: Dialog){
+        var compMap = mutableMapOf<String, Any>()
+        compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+        compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
+        compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
+        compMap["complaintDistrict"] = dialogBind.District.text.toString()
+        println("id->" + complaints.complaintId)
+        compRef.child(complaints.complaintId).updateChildren(compMap)
+            .addOnCompleteListener {
+                if (it.isSuccessful) {
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(
+                        requireContext(),
+                        it.exception.toString(),
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            }
 
 
     }
 
-    fun uploadComplaintandAudio(dialogBind : EditUserComplaintDialogBinding,complaints: Complaints){
+    fun uploadComplaintandAudio(
+        dialogBind: EditUserComplaintDialogBinding,
+        complaints: Complaints,
+        dialog: Dialog
+    ) {
 
-        var audioName= complaints.audioName
-        var videoName= complaints.videoName
+        var audioName = complaints.audioName
+        var videoName = complaints.videoName
 
-        val audioreference=storegeref.child("audios").child(audioName)
-        val videoreference=storegeref.child("videos").child(videoName)
+        val audioreference = storegeref.child("audios").child(audioName)
+        val videoreference = storegeref.child("videos").child(videoName)
 
-        audioUri?.let{ uri ->
+
+        audioUri?.let { uri ->
             audioreference.putFile(uri).addOnSuccessListener {
-                var myUploadAudioRef=storegeref.child("audios").child(audioName)
+                var myUploadAudioRef = storegeref.child("audios").child(audioName)
 
                 myUploadAudioRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
                     var complaintDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var cid = compRef.push().key
-                    audioUrl=it.toString()
+                    audioUrl = it.toString()
 
-                    var compMap= mutableMapOf<String,Any>()
-                    compMap["complaintSummary"]=dialogBind.compSumm.text.toString()
-                    compMap["complaintAgainst"]=dialogBind.compAgainst.text.toString()
-                    compMap["complaintDetails"]=dialogBind.comDetails.text.toString()
-                    compMap["complaintDistrict"]=dialogBind.District.text.toString()
-                    compMap["audioName"]=audioName
-                    compMap["audioUrl"]=audioUrl
-                    compMap["videoName"]=videoName
-                    compMap["videoUrl"]=videoUrl
+                    var compMap = mutableMapOf<String, Any>()
+                    compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
+                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
+                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["audioName"] = audioName
+                    compMap["audioUrl"] = audioUrl
+                    compMap["videoName"] = videoName
+                    compMap["videoUrl"] = videoUrl
                     println("id->" + complaints.complaintId)
-                    compRef.child(complaints.complaintId).updateChildren(compMap).addOnCompleteListener {
-                        if(it.isSuccessful){
-                            Toast.makeText(requireContext(),"Updated Successfully",Toast.LENGTH_LONG).show()
+                    compRef.child(complaints.complaintId).updateChildren(compMap)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Updated Successfully",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                dialogBind.progressbar.visibility = View.GONE
+                                dialog.dismiss()
+                                audioUri=null
+                                videoUri=null
+                            } else {
+                                Toast.makeText(
+                                    requireContext(),
+                                    it.exception.toString(),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                dialogBind.progressbar.visibility = View.GONE
+                                audioUri=null
+                                videoUri=null
+                            }
                         }
-                        else{
-                            Toast.makeText(requireContext(),it.exception.toString(),Toast.LENGTH_LONG).show()
-                        }
-                    }
                     println("Url 2-> " + audioUrl)
                 }
-            }.addOnFailureListener{
+            }.addOnFailureListener {
 
             }
         }
-        videoUri?.let{ uri ->
+
+
+        videoUri?.let { uri ->
             videoreference.putFile(uri).addOnSuccessListener {
-                var myUploadVideoRef=storegeref.child("videos").child(videoName)
+                var myUploadVideoRef = storegeref.child("videos").child(videoName)
 
                 myUploadVideoRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
                     var complaintDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var cid = compRef.push().key
-                    videoUrl=it.toString()
+                    videoUrl = it.toString()
 
-                    var compMap= mutableMapOf<String,Any>()
-                    compMap["complaintSummary"]=dialogBind.compSumm.text.toString()
-                    compMap["complaintAgainst"]=dialogBind.compAgainst.text.toString()
-                    compMap["complaintDetails"]=dialogBind.comDetails.text.toString()
-                    compMap["complaintDistrict"]=dialogBind.District.text.toString()
-                    compMap["audioName"]=audioName
-                    compMap["audioUrl"]=audioUrl
-                    compMap["videoName"]=videoName
-                    compMap["videoUrl"]=videoUrl
+                    var compMap = mutableMapOf<String, Any>()
+                    compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
+                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
+                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["audioName"] = audioName
+                    compMap["audioUrl"] = audioUrl
+                    compMap["videoName"] = videoName
+                    compMap["videoUrl"] = videoUrl
                     println("id->" + complaints.complaintId)
-                    compRef.child(complaints.complaintId).updateChildren(compMap).addOnCompleteListener {
-                        if(it.isSuccessful){
-                            Toast.makeText(requireContext(),"Updated Successfully",Toast.LENGTH_LONG).show()
+                    compRef.child(complaints.complaintId).updateChildren(compMap)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                dialogBind.progressbar.visibility = View.GONE
+                                dialog.dismiss()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Updated Successfully",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                audioUri=null
+                                videoUri=null
+                            } else {
+                                dialogBind.progressbar.visibility = View.GONE
+                                Toast.makeText(
+                                    requireContext(),
+                                    it.exception.toString(),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                audioUri=null
+                                videoUri=null
+                            }
                         }
-                        else{
-                            Toast.makeText(requireContext(),it.exception.toString(),Toast.LENGTH_LONG).show()
-                        }
-                    }
                     println("Url 2-> " + audioUrl)
                 }
-            }.addOnFailureListener{
+            }.addOnFailureListener {
 
             }
         }
-
     }
 }

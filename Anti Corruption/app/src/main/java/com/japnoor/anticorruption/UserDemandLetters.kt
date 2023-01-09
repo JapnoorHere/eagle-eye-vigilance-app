@@ -6,7 +6,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
-import android.text.format.DateFormat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -20,19 +19,16 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.EditUserDemandDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserDemandLettersBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -46,6 +42,8 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
     lateinit var arrayAdapter: ArrayAdapter<String>
     lateinit var database : FirebaseDatabase
     lateinit var demRef : DatabaseReference
+
+    lateinit var dialogBindEdit : EditUserDemandDialogBinding
 
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storegeref: StorageReference
@@ -83,6 +81,9 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
         demRef=database.reference.child("Demand Letter")
 
         binding = FragmentUserDemandLettersBinding.inflate(layoutInflater, container, false)
+        binding.shimmer.startShimmer()
+
+
         // Inflate the layout for this fragment
         demRef.addValueEventListener(object : ValueEventListener, UserComplaintClick, UserDemandClick {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -96,6 +97,10 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     userDemandAdapter = UserDemandAdapter(homeScreen, demandList, this)
                     binding.recyclerView.layoutManager = LinearLayoutManager(homeScreen)
                     binding.recyclerView.adapter = userDemandAdapter
+                    binding.shimmer.stopShimmer()
+                    binding.shimmer.visibility=View.GONE
+                    binding.recyclerView.visibility=View.VISIBLE
+
                 }
 
             }
@@ -224,28 +229,32 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
 
                     dialog.show()
                 } else {
-                    var dialogBind = EditUserDemandDialogBinding.inflate(layoutInflater)
-                    dialog.setContentView(dialogBind.root)
+                    dialogBindEdit = EditUserDemandDialogBinding.inflate(layoutInflater)
+                    dialog.setContentView(dialogBindEdit.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.MATCH_PARENT
                     )
 
-                    dialogBind.Summ.setText(demandLetter.demandSubject)
-                    dialogBind.Details.setText(demandLetter.demandDetails)
-                    dialogBind.Date.setText(demandLetter.demandDate)
-                    dialogBind.District.setText(demandLetter.demandDistrict)
+                    dialogBindEdit.Summ.setText(demandLetter.demandSubject)
+                    dialogBindEdit.Details.setText(demandLetter.demandDetails)
+                    dialogBindEdit.Date.setText(demandLetter.demandDate)
+                    dialogBindEdit.District.setText(demandLetter.demandDistrict)
 
                     var districts = resources.getStringArray(R.array.District)
                     arrayAdapter =
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
-                    dialogBind.District.setAdapter(arrayAdapter)
-                    dialogBind.fabAdd1.setOnClickListener {
-                        uploadDemandLetterAndImage(dialogBind, demandLetter)
-                        dialog.dismiss()
+                    dialogBindEdit.District.setAdapter(arrayAdapter)
+                    dialogBindEdit.fabAdd1.setOnClickListener {
+                        if (imageUri == null) {
+                            update(demandLetter,dialogBindEdit,dialog)
+                        } else {
+                            dialogBindEdit.progressbar.visibility = View.VISIBLE
+                            uploadDemandLetterAndImage(dialogBindEdit, demandLetter, dialog)
+                        }
                     }
 
-                    dialogBind.image.setOnClickListener {
+                    dialogBindEdit.image.setOnClickListener {
                         val fileUri: Uri = demandLetter.imageUrl.toUri()
 
                         val intent = Intent(Intent.ACTION_VIEW)
@@ -255,11 +264,18 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         startActivity(intent)
                     }
 
-                    dialogBind.audioUpload.setOnClickListener {
-                        chooseImage()
-                    }
+                    dialogBindEdit.audioUpload.setOnClickListener {
+                        if(imageUri==null) {
+                            chooseImage()
+                        }
+                        else if(imageUri!=null){
+                            imageUri=null
+                            dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg)
+                            dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
 
-                    dialogBind.fabAdd2.setOnClickListener {
+                        }                    }
+
+                    dialogBindEdit.fabAdd2.setOnClickListener {
                         var bottomSheet = BottomSheetDialog(requireContext())
                         bottomSheet.setContentView(R.layout.dialog_delete_users)
                         bottomSheet.show()
@@ -326,17 +342,40 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                 var resultcode=result.resultCode
                 var imageData=result.data
 
-                if(resultcode== Activity.RESULT_OK && imageData!=null )
+                if(resultcode== Activity.RESULT_OK && imageData!=null ) {
 
-                    imageUri=imageData.data
-                println("Image - > " + imageUri)
+                    imageUri = imageData.data
+                    println("Image - > " + imageUri)
+                    if(imageUri!=null){
+                        dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg1)
+                        dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
+                    }
+                }
 
             })
 
 
     }
 
-    fun uploadDemandLetterAndImage(dialogBind : EditUserDemandDialogBinding,demandLetter: DemandLetter){
+    fun update(demandLetter : DemandLetter,dialogBind : EditUserDemandDialogBinding,dialog : Dialog){
+        var demMap= mutableMapOf<String,Any>()
+        demMap["demandSubject"]=dialogBind.Summ.text.toString()
+        demMap["demandDetails"]=dialogBind.Details.text.toString()
+        demMap["demandDistrict"]=dialogBind.District.text.toString()
+        demRef.child(demandLetter.demandId).updateChildren(demMap).addOnCompleteListener {
+            if(it.isSuccessful){
+                dialogBind.progressbar.visibility = View.GONE
+                dialog.dismiss()
+            }
+            else{
+                Toast.makeText(requireContext(),it.exception.toString(), Toast.LENGTH_LONG).show()
+                dialogBind.progressbar.visibility = View.GONE
+                dialog.dismiss()
+            }
+        }
+    }
+
+    fun uploadDemandLetterAndImage(dialogBind : EditUserDemandDialogBinding,demandLetter: DemandLetter,dialog : Dialog){
 
 
 
@@ -360,9 +399,17 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     demRef.child(demandLetter.demandId).updateChildren(demMap).addOnCompleteListener {
                         if(it.isSuccessful){
                             Toast.makeText(requireContext(),"Updated Successfully", Toast.LENGTH_LONG).show()
-                        }
+
+                            dialogBind.progressbar.visibility = View.GONE
+                            dialog.dismiss()
+                            imageUri=null
+                             }
+
                         else{
                             Toast.makeText(requireContext(),it.exception.toString(), Toast.LENGTH_LONG).show()
+                            dialogBind.progressbar.visibility = View.GONE
+                            dialog.dismiss()
+                            imageUri=null
                         }
                     }
                 }

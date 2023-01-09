@@ -1,6 +1,7 @@
 package com.japnoor.anticorruption
 
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -74,11 +75,10 @@ class AddComplaintFragment : Fragment() {
         }
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
-
-
 
         firebaseStorage=FirebaseStorage.getInstance()
         storegeref=firebaseStorage.reference
@@ -90,22 +90,34 @@ class AddComplaintFragment : Fragment() {
         binding = FragmentAddComplaintBinding.inflate(layoutInflater, container, false)
 
         binding.addAudio.setOnClickListener {
-            chooseAudio()
-            if(!(audioUri.toString().isNullOrEmpty()))
-            binding.addVideo.isClickable=false
-            else
-            binding.addVideo.isClickable=true
+            if(videoUri==null&&audioUri==null){
+                chooseAudio()
+            }
+            else if(audioUri!=null){
+                    audioUri=null
+                    binding.addAudio.setText("  Add Audio")
+                    binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_mic_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+                    binding.addAudio.setBackgroundResource(R.drawable.upload_photo)
+
+            }
+            else{
+                Toast.makeText(homeScreen," Either You choose video or audio",Toast.LENGTH_LONG).show()
+            }
         }
         binding.addVideo.setOnClickListener {
-            chooseVideo()
-            if(!(videoUri.toString().isNullOrEmpty()))
-            binding.addAudio.isClickable=false
-            else
-            binding.addAudio.isClickable=true
+            if(audioUri==null&&videoUri==null){
+                chooseVideo()
+            }
+            else if(videoUri!=null){
+                videoUri=null
+                binding.addVideo.setText(" Add Video")
+                binding.addVideo.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_videocam_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+                binding.addVideo.setBackgroundResource(R.drawable.upload_photo)
+            }
+            else{
+                Toast.makeText(homeScreen," Either You can choose video or audio",Toast.LENGTH_LONG).show()
+            }
         }
-
-
-
 
 
         binding.btnSubmit.setOnClickListener {
@@ -122,11 +134,13 @@ class AddComplaintFragment : Fragment() {
                 binding.District.requestFocus()
                 binding.District.error = "Cannot be empty"
             }
-            else if(audioUri.toString().isNullOrEmpty() && videoUri.toString().isNullOrEmpty())
+            else if(audioUri==null && videoUri==null)
             {
                 Toast.makeText(homeScreen, "Upload Video or Audio", Toast.LENGTH_LONG).show()
             }
             else {
+                binding.addAudio.isClickable=false
+                binding.addVideo.isClickable=false
                 binding.progressbar.visibility=View.VISIBLE
                 binding.btnSubmit.visibility=View.GONE
                 uploadComplaintandAudio()
@@ -176,10 +190,12 @@ class AddComplaintFragment : Fragment() {
             ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
         }
         else{
+
             var intent = Intent()
             intent.type="audio/*"
             intent.action= Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
+
         }
     }
     fun chooseVideo(){
@@ -204,6 +220,11 @@ class AddComplaintFragment : Fragment() {
 
                 if(resultcode== Activity.RESULT_OK && audioData!=null )
                     audioUri=audioData.data
+                if(audioUri!=null){
+                    binding.addAudio.setText("  Audio Selected")
+                    binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_mic_24),null,resources.getDrawable(R.drawable.ic_baseline_cancel_24),null)
+                    binding.addAudio.setBackgroundResource(R.drawable.upload_photo1)
+                }
             })
 
 
@@ -219,6 +240,13 @@ class AddComplaintFragment : Fragment() {
 
                 if(resultcode== Activity.RESULT_OK && videoData!=null )
                     videoUri=videoData.data
+                if(videoUri!=null) {
+                    binding.addVideo.setText("  Video Selected")
+                    binding.addVideo.setCompoundDrawablesWithIntrinsicBounds(
+                        resources.getDrawable(R.drawable.ic_baseline_videocam_24), null, resources.getDrawable(R.drawable.ic_baseline_cancel_24),
+                        null)
+                    binding.addVideo.setBackgroundResource(R.drawable.upload_photo1)
+                }
             })
 
 

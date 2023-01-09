@@ -78,10 +78,10 @@ class HomeScreen : AppCompatActivity() {
             builder.setTitle("Logout")
             builder.setMessage("Are you sure you want to logout?")
             builder.setPositiveButton("Yes") { dialog, which ->
-                FirebaseAuth.getInstance().signOut()
                 var intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
                 finish()
+                FirebaseAuth.getInstance().signOut()
                 Toast.makeText(this, "Logout Successful", Toast.LENGTH_LONG).show()
             }
             builder.setNegativeButton("No") { dialog, which ->
