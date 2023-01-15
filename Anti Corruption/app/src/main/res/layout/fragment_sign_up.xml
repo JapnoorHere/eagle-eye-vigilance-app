@@ -32,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Name"
-                android:inputType="textEmailAddress"
+                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM "
                 />
         </com.google.android.material.textfield.TextInputLayout>
 
@@ -51,28 +51,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Email"
+                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM 1234567890 .@_"
                 android:inputType="textEmailAddress"
                 />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="20dp"
-            android:layout_alignParentStart="true"
-            android:layout_marginRight="20dp"
-            android:background="@drawable/edit_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            >
-            <EditText
-                android:maxLines="1"
-                android:id="@+id/etphone"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:hint="Phone"
-                android:inputType="textEmailAddress"
-                />
-        </com.google.android.material.textfield.TextInputLayout>
 
 
         <com.google.android.material.textfield.TextInputLayout

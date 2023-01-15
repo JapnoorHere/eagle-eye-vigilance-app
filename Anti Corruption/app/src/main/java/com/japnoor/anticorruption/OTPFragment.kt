@@ -1,6 +1,9 @@
 package com.japnoor.anticorruption
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -26,9 +29,9 @@ class OTPFragment : Fragment() {
     private var param2: String? = null
     lateinit var binding: FragmentOTPBinding
     var email: String = ""
-    var phone: String = ""
     var name: String = ""
     var pass: String = ""
+    var passcode: String = ""
     lateinit var auth: FirebaseAuth
     lateinit var userRef: DatabaseReference
     lateinit var database: FirebaseDatabase
@@ -63,9 +66,9 @@ class OTPFragment : Fragment() {
         binding = FragmentOTPBinding.inflate(layoutInflater, container, false)
         arguments?.let {
             email = it.getString("email").toString()
-            phone = it.getString("phone").toString()
             name = it.getString("name").toString()
             pass = it.getString("pass").toString()
+            passcode = it.getString("passcode").toString()
 
         }
         binding.tvEmail.setText(email)
@@ -104,11 +107,28 @@ class OTPFragment : Fragment() {
 
         }
 
-        OTP()
-
-        binding.resendOtp.setOnClickListener {
+        val connectivityManager =
+            signUp.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        if (isConnected) {
             OTP()
-            Toast.makeText(signUp, "OTP sent again", Toast.LENGTH_LONG).show()
+        }
+        else{
+            Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
+
+        }
+        binding.resendOtp.setOnClickListener {
+            val connectivityManager =
+                signUp.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+            val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+            if (isConnected) {
+                OTP()
+                Toast.makeText(signUp, "OTP sent", Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
+            }
         }
 
         binding.btnVerify.setOnClickListener {
@@ -130,36 +150,28 @@ class OTPFragment : Fragment() {
             ) {
                 Toast.makeText(signUp, "Enter OTP", Toast.LENGTH_LONG).show()
             } else if (otp.equals(random.toString())) {
-                binding.btnVerify.visibility=View.GONE
-                binding.progressbar.visibility=View.VISIBLE
-                auth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener {
-                    if (it.isSuccessful) {
-                        var user = auth.currentUser
-                        var id = user?.uid
-                        var users = Users(
-                            name, phone,
-                            email, id.toString()
-                        )
-                        userRef.child(id.toString()).setValue(users).addOnCompleteListener {
-                            if (it.isSuccessful) {
-                                Toast.makeText(
-                                    signUp,
-                                    "Your account has been created",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                        }
-                                binding.btnVerify.visibility= View.VISIBLE
-                                binding.progressbar.visibility=View.GONE
-                        var intent = Intent(signUp, HomeScreen::class.java)
-                        intent.putExtra("uid", id.toString())
-                        startActivity(intent)
-                        signUp.finish()
-                    } else {
-                        Toast.makeText(signUp, it.exception.toString(), Toast.LENGTH_LONG).show()
-                    }
+                val connectivityManager =
+                    signUp.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                if (isConnected) {
+                    var bundle = Bundle()
+                    bundle.putString("id", id.toString())
+                    bundle.putString("pass", pass)
+                    bundle.putString("name", name)
+                    bundle.putString("email", email)
+                    bundle.putString("passcode", passcode)
+                    signUp.navController.navigate(R.id.action_OTPFragment_to_selectProfile, bundle)
                 }
-            } else {
+                else{
+                    Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
+
+                }
+            }
+
+            else {
+                binding.btnVerify.visibility= View.VISIBLE
+                binding.progressbar.visibility=View.GONE
                 Toast.makeText(signUp, "Wrong Otp", Toast.LENGTH_LONG).show()
             }
         }

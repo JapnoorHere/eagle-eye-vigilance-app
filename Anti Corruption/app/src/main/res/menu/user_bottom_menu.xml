@@ -12,10 +12,13 @@
         android:id="@+id/bnDemandLetter"
         android:icon="@drawable/ic_baseline_edit_note_24"
         />
-
-    <item android:title="Profile"
-        android:id="@+id/bnProfile"
-        android:icon="@drawable/ic_baseline_person_24"
+    <item android:title="Audios"
+        android:id="@+id/audio"
+        android:icon="@drawable/ic_baseline_mic_24"
+        />
+    <item android:title="Videos"
+        android:id="@+id/video"
+        android:icon="@drawable/ic_baseline_videocam_24"
         />
 
 </menu>

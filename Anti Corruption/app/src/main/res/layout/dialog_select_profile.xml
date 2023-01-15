@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_height="match_parent">
+    <ImageView
+        android:id="@+id/profile"
+        android:layout_marginTop="40dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@drawable/profile"
+        />
+    <TextView
+        android:layout_marginTop="20dp"
+        android:padding="10dp"
+        android:gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/select_your_profile"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        />
+<LinearLayout
+    android:layout_weight="1"
+    android:layout_width="match_parent"
+    android:gravity="bottom"
+    android:layout_marginBottom="30dp"
+    android:layout_height="match_parent"
+    tools:context=".SelectProfile">
+
+    <ImageView
+        android:id="@+id/man1"
+        android:layout_weight="1"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginLeft="5dp"
+        android:src="@drawable/man1"
+        />
+    <ImageView
+        android:layout_weight="1"
+        android:id="@+id/man2"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/man2"
+        android:layout_marginLeft="20dp"
+
+        />
+    <ImageView
+        android:id="@+id/man3"
+        android:layout_weight="1"
+        android:layout_marginLeft="20dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/man3"
+        />
+    <ImageView
+        android:id="@+id/man4"
+        android:layout_weight="1"
+        android:layout_marginLeft="20dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/man4"
+        />
+
+</LinearLayout>
+
+
+    <LinearLayout
+
+        android:layout_weight="1"
+    android:layout_width="match_parent"
+        android:layout_marginTop="20dp"
+    android:layout_height="match_parent"
+    tools:context=".SelectProfile">
+
+    <ImageView
+        android:layout_weight="1"
+        android:id="@+id/girl1"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginLeft="5dp"
+        android:src="@drawable/girl1"
+        />
+    <ImageView
+        android:layout_weight="1"
+        android:id="@+id/girl2"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/girl2"
+        android:layout_marginLeft="20dp"
+
+        />
+    <ImageView
+        android:layout_weight="1"
+        android:id="@+id/girl3"
+        android:layout_marginLeft="20dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/girl3"
+        />
+    <ImageView
+        android:layout_weight="1"
+        android:id="@+id/girl4"
+        android:layout_marginLeft="20dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:src="@drawable/girl4"
+        />
+
+</LinearLayout>
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+<com.google.android.material.floatingactionbutton.FloatingActionButton
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="end"
+    android:src="@drawable/ic_baseline_download_done_24"
+    android:layout_marginBottom="20dp"
+    android:layout_marginEnd="20dp"
+    android:id="@+id/donebtn"
+    android:visibility="invisible"
+    />
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginBottom="15dp"
+            android:id="@+id/progressbar"
+            android:visibility="gone"
+            />
+
+    </FrameLayout>
+
+</LinearLayout>
+</layout>

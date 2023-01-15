@@ -102,7 +102,9 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     binding.recyclerView.visibility=View.VISIBLE
 
                 }
-
+                binding.shimmer.stopShimmer()
+                binding.shimmer.visibility=View.GONE
+                binding.recyclerView.visibility=View.VISIBLE
             }
 
             override fun onCancelled(error: DatabaseError) {

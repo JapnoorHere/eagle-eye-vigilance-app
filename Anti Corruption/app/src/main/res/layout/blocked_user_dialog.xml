@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_height="match_parent">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        app:cardBackgroundColor="#FF0000"
+        >
+        <LinearLayout
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+<ImageView
+    android:layout_width="50dp"
+    android:layout_height="40dp"
+    android:layout_gravity="center"
+    android:src="@drawable/ic_baseline_app_blocking_24"
+    />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="BLOCKED"
+                android:layout_marginEnd="30dp"
+                android:textAlignment="center"
+                android:layout_gravity="center"
+                android:textColor="@color/white"
+                android:textStyle="bold"
+                android:textSize="30sp"
+                />
+
+        </LinearLayout>
+
+
+    </androidx.cardview.widget.CardView>
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:layout_marginTop="20dp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:text="Authorities have prohibited your access due to \ninappropriate behavior."
+
+    />
+
+<Button
+    android:layout_width="match_parent"
+    android:layout_marginEnd="70dp"
+    android:layout_marginStart="70dp"
+    android:layout_height="wrap_content"
+    android:text="logout"
+    android:id="@+id/btn"
+    android:layout_gravity="center"
+    android:layout_marginTop="20dp"
+    />
+
+</LinearLayout>
+</layout>

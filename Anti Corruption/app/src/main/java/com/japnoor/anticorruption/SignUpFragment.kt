@@ -17,6 +17,7 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.FragmentSignUpBinding
 import com.japnoor.anticorruption.databinding.OtpBinding
+import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
 import papaya.`in`.sendmail.SendMail
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -54,12 +55,6 @@ class SignUpFragment : Fragment() {
 
 
 
-        binding.etREPassword.doOnTextChanged { text, start, before, count ->
-            if (!(text.toString() == binding.etPassword.text.toString()))
-                binding.etREPassword.error = "Password is not same"
-            else
-                binding.etREPassword.error = null
-        }
 
         binding.btnSignup.setOnClickListener {
             if(binding.etName.text.toString().isNullOrEmpty()){
@@ -75,33 +70,7 @@ class SignUpFragment : Fragment() {
                 binding.etEmail.error ="Enter valid email"
                 binding.etEmail.requestFocus()
             }
-            else if (binding.etphone.text.toString().isNullOrEmpty()) {
-                binding.etphone.requestFocus()
-                binding.etphone.error = "Enter Phone NUMBER"}
-            else if(binding.etphone.text.length<10 || binding.etphone.text.length>10){
-                binding.etphone.error="Phone Number can be of 10 digits only"
-                binding.etphone.requestFocus()
-            }
-            else if(binding.etphone.text.toString().startsWith("1")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }
-            else if(binding.etphone.text.toString().startsWith("0")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }else if(binding.etphone.text.toString().startsWith("2")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }else if(binding.etphone.text.toString().startsWith("3")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }else if(binding.etphone.text.toString().startsWith("4")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }else if(binding.etphone.text.toString().startsWith("5")){
-                binding.etphone.error="Not a Valid Phone Number"
-                binding.etphone.requestFocus()
-            }
+
             else if(binding.etPassword.text.toString().isNullOrEmpty()){
                 binding.etPassword.error="Enter Password"
                 binding.etPassword.requestFocus()
@@ -116,12 +85,42 @@ class SignUpFragment : Fragment() {
                 binding.etREPassword.requestFocus()
             }
             else {
-                var bundle = Bundle()
-                bundle.putString("email", binding.etEmail.text.toString())
-                bundle.putString("name", binding.etName.text.toString())
-                bundle.putString("phone", binding.etphone.text.toString())
-                bundle.putString("pass", binding.etPassword.text.toString())
-                signUp.navController.navigate(R.id.action_signUpFragment_to_OTPFragment,bundle)
+                var dialog=Dialog(signUp)
+                var dialogBinding=PasscodeDialogBinding.inflate(layoutInflater)
+                dialog.setContentView(dialogBinding.root)
+                dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT)
+                dialogBinding.etREPassword.doOnTextChanged { text, start, before, count ->
+                    if (!(text.toString() == dialogBinding.etPassword.text.toString()))
+                        dialogBinding.etREPassword.error = "Password is not same"
+                    else
+                        dialogBinding.etREPassword.error = null
+                }
+                dialogBinding.btnSignup.setOnClickListener {
+                     if(dialogBinding.etPassword.text.toString().isNullOrEmpty()){
+                         dialogBinding.etPassword.error="Enter Password"
+                         dialogBinding.etPassword.requestFocus()
+                }
+                else if(dialogBinding.etPassword.text.toString().length<4){
+                         dialogBinding.etPassword.error="Password must be of at least 4 characters"
+                         dialogBinding.etPassword.requestFocus()
+                }
+
+                else if(dialogBinding.etREPassword.text.toString().isNullOrEmpty()){
+                         dialogBinding.etREPassword.error="Enter Password again"
+                         dialogBinding.etREPassword.requestFocus()
+                }
+                    else{
+                    var bundle = Bundle()
+                    bundle.putString("email", binding.etEmail.text.toString())
+                    bundle.putString("name", binding.etName.text.toString())
+                    bundle.putString("pass", binding.etPassword.text.toString())
+                    bundle.putString("passcode", dialogBinding.etPassword.text.toString())
+                         dialog.dismiss()
+                    signUp.navController.navigate(R.id.action_signUpFragment_to_OTPFragment,bundle)
+                }
+                }
+                dialog.show()
+
             }
         }
         return binding.root

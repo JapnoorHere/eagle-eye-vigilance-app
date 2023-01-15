@@ -1,10 +1,12 @@
 package com.japnoor.anticorruption
 
-import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.app.Activity.RESULT_OK
-import android.app.appsearch.SetSchemaRequest.READ_EXTERNAL_STORAGE
+import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Bundle
 import android.text.format.DateFormat
@@ -12,6 +14,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
@@ -19,9 +22,11 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentAddDemandLetterBinding
 import java.util.*
 
@@ -37,8 +42,7 @@ class AddDemandLetterFragment : Fragment() {
     lateinit var binding : FragmentAddDemandLetterBinding
 
      var userName : String=""
-     var userPhone : String=""
-    lateinit var userRef: DatabaseReference
+    lateinit var demuserrRef: DatabaseReference
      var userEmail : String=""
 
     lateinit var firebaseStorage : FirebaseStorage
@@ -69,14 +73,45 @@ class AddDemandLetterFragment : Fragment() {
     ): View? {
         firebaseStorage= FirebaseStorage.getInstance()
         storegeref=firebaseStorage.reference
-
-        binding =FragmentAddDemandLetterBinding.inflate(layoutInflater,container,false)
         homeScreen=activity as HomeScreen
-
         database=FirebaseDatabase.getInstance()
         demRef=database.reference.child("Demand Letter")
-        userRef=database.reference.child("Users")
+        demuserrRef=database.reference.child("Users")
+        binding =FragmentAddDemandLetterBinding.inflate(layoutInflater,container,false)
 
+
+
+        demuserrRef.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var dialog= Dialog(homeScreen)
+                for(each in snapshot.children){
+                    var userr=each.getValue(Users::class.java)
+                    if(userr!=null &&  userr.userId.equals(homeScreen.id) &&  userr.userStatus.equals("1")){
+                        var dialogB= BlockedUserDialogBinding.inflate(layoutInflater)
+                        dialog.setContentView(dialogB.root)
+                        dialog.setCancelable(false)
+                        dialog.window?.setLayout(
+                            WindowManager.LayoutParams.MATCH_PARENT,
+                            WindowManager.LayoutParams.WRAP_CONTENT
+                        )
+                        dialogB.btn.setOnClickListener {
+                            dialog.dismiss()
+                            FirebaseAuth.getInstance().signOut()
+                            var intent=Intent(homeScreen,LoginActivity::class.java)
+                            homeScreen.startActivity(intent)
+                            homeScreen.finish()
+                        }
+                        dialog.show()
+
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
         binding.btnSubmit.setOnClickListener {
             if (binding.DemandSubject.text.isNullOrEmpty()) {
                 binding.DemandSubject.setError("Enter Subject of Demand")
@@ -93,31 +128,39 @@ class AddDemandLetterFragment : Fragment() {
             else if (imageUri==null){
                 Toast.makeText(homeScreen,"Upload an Image",Toast.LENGTH_LONG).show()
             }
-            else{
-                binding.addImage.isClickable=false
-                binding.progressbar.visibility=View.VISIBLE
-                binding.btnSubmit.visibility=View.GONE
-                uploadDemandLetterAndImage()
-                userRef.addValueEventListener(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        for(eachUser in snapshot.children) {
-                            var user = eachUser.getValue(Users::class.java)
-                            println("uSers" + user?.userId)
-                            if (user != null && user.userId.equals(homeScreen.id)){
-                                userName = user.name.toString()
-                                userEmail = user.email.toString()
-                                userPhone = user.phone.toString()
-                                println("name" + userName)
-                                break
+            else {
+                val connectivityManager =
+                    homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                if (isConnected) {
+                    binding.addImage.isClickable = false
+                    binding.progressbar.visibility = View.VISIBLE
+                    binding.btnSubmit.visibility = View.GONE
+                    uploadDemandLetterAndImage()
+                    demuserrRef.addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            for (eachUser in snapshot.children) {
+                                var user = eachUser.getValue(Users::class.java)
+                                println("uSers" + user?.userId)
+                                if (user != null && user.userId.equals(homeScreen.id)) {
+                                    userName = user.name.toString()
+                                    userEmail = user.email.toString()
+                                    println("name" + userName)
+                                    break
+                                }
                             }
                         }
-                    }
 
-                    override fun onCancelled(error: DatabaseError) {
-                        TODO("Not yet implemented")
-                    }
-                })
-                println("Url->" + imageUrl)
+                        override fun onCancelled(error: DatabaseError) {
+                            TODO("Not yet implemented")
+                        }
+                    })
+                    println("Url->" + imageUrl)
+                }
+                else{
+                    Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                }
             }
         }
 
@@ -210,7 +253,7 @@ class AddDemandLetterFragment : Fragment() {
                         binding.DemandDetails.text.toString(),
                         demDate.toString(),binding.District.text.toString()
                         ,homeScreen.id,
-                        did.toString(),imageUrl,imageName,userName,userEmail,userPhone,"")
+                        did.toString(),imageUrl,imageName,userName,userEmail,"")
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {
                         if (it.isSuccessful) {

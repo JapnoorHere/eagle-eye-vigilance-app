@@ -2,6 +2,9 @@
     <string name="app_name">Anti Corruption</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="want_to_get_tips_or_knowledge_about_corruption_ntap_here">Want to get Tips or knowledge about Corruption? \nTap here👆🏻</string>
+    <string name="select_your_profile">Select your Profile : </string>
+    <string name="EnterPass">Enter Your Password to Continue</string>
     <string-array name="District">
         <item>Amritsar</item>
         <item>Barnala</item>

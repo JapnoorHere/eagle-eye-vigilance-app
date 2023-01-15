@@ -3,8 +3,12 @@ package com.japnoor.anticorruption
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Bundle
 
@@ -12,6 +16,7 @@ import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.activity.result.ActivityResultCallback
@@ -19,11 +24,14 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 
 import androidx.fragment.app.Fragment
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentAddComplaintBinding
 import java.util.*
 
@@ -49,7 +57,7 @@ class AddComplaintFragment : Fragment() {
 
     lateinit var database: FirebaseDatabase
     lateinit var compRef: DatabaseReference
-    lateinit var userRef: DatabaseReference
+    lateinit var userrrRef: DatabaseReference
 
     lateinit var arrayAdapter: ArrayAdapter<String>
 
@@ -58,7 +66,6 @@ class AddComplaintFragment : Fragment() {
     var audioUri : Uri? =null
     var userName : String=""
     var userEmail : String=""
-    var userPhone : String=""
     var videoUrl : String=""
     var videoUri : Uri? =null
 
@@ -68,7 +75,6 @@ class AddComplaintFragment : Fragment() {
         registerActivityforResult()
         registerActivityforResult2()
         super.onCreate(savedInstanceState)
-        homeScreen = activity as HomeScreen
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
             param2 = it.getString(ARG_PARAM2)
@@ -82,13 +88,75 @@ class AddComplaintFragment : Fragment() {
 
         firebaseStorage=FirebaseStorage.getInstance()
         storegeref=firebaseStorage.reference
+        homeScreen = activity as HomeScreen
+
 
 
         database = FirebaseDatabase.getInstance()
         compRef = database.reference.child("Complaints")
-        userRef=database.reference.child("Users")
+        userrrRef=database.reference.child("Users")
         binding = FragmentAddComplaintBinding.inflate(layoutInflater, container, false)
 
+
+        arguments.let {
+            audioUri=it?.getString("audio")?.toUri()
+            videoUri=it?.getString("video")?.toUri()
+            println("hnji uri" + audioUri.toString())
+        }
+        if(audioUri!=null){
+            binding.addAudio.setText("  Audio Selected")
+            binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_mic_24),null,resources.getDrawable(R.drawable.ic_baseline_cancel_24),null)
+            binding.addAudio.setBackgroundResource(R.drawable.upload_photo1)
+        }
+        else if(audioUri==null){
+            binding.addAudio.setText("  Add Audio")
+            binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_mic_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+            binding.addAudio.setBackgroundResource(R.drawable.upload_photo)
+
+        }
+        if(videoUri!=null) {
+            binding.addVideo.setText("  Video Selected")
+            binding.addVideo.setCompoundDrawablesWithIntrinsicBounds(
+                resources.getDrawable(R.drawable.ic_baseline_videocam_24), null, resources.getDrawable(R.drawable.ic_baseline_cancel_24),
+                null)
+            binding.addVideo.setBackgroundResource(R.drawable.upload_photo1)
+        }
+        else if(videoUri!=null){
+            binding.addVideo.setText(" Add Video")
+            binding.addVideo.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_videocam_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+            binding.addVideo.setBackgroundResource(R.drawable.upload_photo)
+        }
+        userrrRef.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var dialog= Dialog(homeScreen)
+                for(each in snapshot.children){
+                    var userr=each.getValue(Users::class.java)
+                    if(userr!=null &&  userr.userId.equals(homeScreen.id) &&  userr.userStatus.equals("1")){
+                        var dialogB= BlockedUserDialogBinding.inflate(layoutInflater)
+                        dialog.setContentView(dialogB.root)
+                        dialog.window?.setLayout(
+                            WindowManager.LayoutParams.MATCH_PARENT,
+                            WindowManager.LayoutParams.WRAP_CONTENT
+                        )
+                        dialog.setCancelable(false)
+                        dialogB.btn.setOnClickListener {
+                            dialog.dismiss()
+                            FirebaseAuth.getInstance().signOut()
+                            var intent=Intent(homeScreen,LoginActivity::class.java)
+                            homeScreen.startActivity(intent)
+                            homeScreen.finish()
+                        }
+                        dialog.show()
+
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
         binding.addAudio.setOnClickListener {
             if(videoUri==null&&audioUri==null){
                 chooseAudio()
@@ -101,7 +169,7 @@ class AddComplaintFragment : Fragment() {
 
             }
             else{
-                Toast.makeText(homeScreen," Either You choose video or audio",Toast.LENGTH_LONG).show()
+                Toast.makeText(homeScreen," Either choose video or audio",Toast.LENGTH_LONG).show()
             }
         }
         binding.addVideo.setOnClickListener {
@@ -139,34 +207,42 @@ class AddComplaintFragment : Fragment() {
                 Toast.makeText(homeScreen, "Upload Video or Audio", Toast.LENGTH_LONG).show()
             }
             else {
-                binding.addAudio.isClickable=false
-                binding.addVideo.isClickable=false
-                binding.progressbar.visibility=View.VISIBLE
-                binding.btnSubmit.visibility=View.GONE
-                uploadComplaintandAudio()
-                userRef.addValueEventListener(object : ValueEventListener{
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        for(eachUser in snapshot.children) {
-                            var user = eachUser.getValue(Users::class.java)
-                            println("uSers" + user?.userId)
-                            if (user != null && user.userId.equals(homeScreen.id)){
-                                userName = user.name.toString()
-                                userEmail = user.email.toString()
-                                userPhone = user.phone.toString()
-                                println("name" + userName)
-                                break
+                val connectivityManager =
+                    homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                if (isConnected) {
+                    binding.addAudio.isClickable = false
+                    binding.addVideo.isClickable = false
+                    binding.progressbar.visibility = View.VISIBLE
+                    binding.btnSubmit.visibility = View.GONE
+                    uploadComplaintandAudio()
+                    userrrRef.addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            for (eachUser in snapshot.children) {
+                                var user = eachUser.getValue(Users::class.java)
+                                println("uSers" + user?.userId)
+                                if (user != null && user.userId.equals(homeScreen.id)) {
+                                    userName = user.name.toString()
+                                    userEmail = user.email.toString()
+                                    println("name" + userName)
+                                    break
+                                }
                             }
                         }
-                    }
 
-                    override fun onCancelled(error: DatabaseError) {
-                        TODO("Not yet implemented")
-                    }
-                })
+                        override fun onCancelled(error: DatabaseError) {
+                            TODO("Not yet implemented")
+                        }
+                    })
+                }
+                else{
+                    Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+
+                }
             }
         }
         return binding.root
-
     }
 
     override fun onRequestPermissionsResult(
@@ -190,7 +266,6 @@ class AddComplaintFragment : Fragment() {
             ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
         }
         else{
-
             var intent = Intent()
             intent.type="audio/*"
             intent.action= Intent.ACTION_GET_CONTENT
@@ -220,9 +295,11 @@ class AddComplaintFragment : Fragment() {
 
                 if(resultcode== Activity.RESULT_OK && audioData!=null )
                     audioUri=audioData.data
-                if(audioUri!=null){
+                if(audioUri!=null) {
                     binding.addAudio.setText("  Audio Selected")
-                    binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_mic_24),null,resources.getDrawable(R.drawable.ic_baseline_cancel_24),null)
+                    binding.addAudio.setCompoundDrawablesWithIntrinsicBounds(
+                        resources.getDrawable(R.drawable.ic_baseline_mic_24), null, resources.getDrawable(R.drawable.ic_baseline_cancel_24),
+                        null)
                     binding.addAudio.setBackgroundResource(R.drawable.upload_photo1)
                 }
             })
@@ -259,18 +336,15 @@ class AddComplaintFragment : Fragment() {
 
         val audioreference=storegeref.child("audios").child(audioName)
         val videoreference=storegeref.child("videos").child(videoName)
-
+          println("let" + audioUri.toString())
         audioUri?.let{ uri ->
             audioreference.putFile(uri).addOnSuccessListener {
                 var myUploadAudioRef=storegeref.child("audios").child(audioName)
-
                 myUploadAudioRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
                     var complaintDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var cid = compRef.push().key
                     audioUrl=it.toString()
-
-
                     var complaints = Complaints(
                         binding.compSumm.text.toString(),
                         binding.compAgainst.text.toString(),
@@ -278,7 +352,7 @@ class AddComplaintFragment : Fragment() {
                         binding.District.text.toString(),
                         homeScreen.id,
                         complaintDate.toString(),
-                        cid.toString(),audioName,audioUrl,videoName,videoUrl,userName,userEmail,userPhone,"")
+                        cid.toString(),audioName,audioUrl,videoName,videoUrl,userName,userEmail,"")
 
                     compRef.child(cid.toString()).setValue(complaints).addOnCompleteListener {task->
                         if (task.isSuccessful) {
@@ -317,7 +391,7 @@ class AddComplaintFragment : Fragment() {
                         binding.District.text.toString(),
                         homeScreen.id,
                         complaintDate.toString(),
-                        cid.toString(),audioName,audioUrl,videoName,videoUrl,userName,userEmail,userPhone,""
+                        cid.toString(),audioName,audioUrl,videoName,videoUrl,userName,userEmail,""
                     )
 
                     compRef.child(cid.toString()).setValue(complaints).addOnCompleteListener {task->
@@ -350,4 +424,5 @@ class AddComplaintFragment : Fragment() {
         arrayAdapter = ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
         binding.District.setAdapter(arrayAdapter)
     }
+
 }

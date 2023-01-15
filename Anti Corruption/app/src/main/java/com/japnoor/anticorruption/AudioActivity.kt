@@ -1,12 +1,16 @@
 package com.japnoor.anticorruption
 
+import android.content.Context
 import android.media.AudioManager
 import android.media.MediaPlayer
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.core.net.toUri
 import com.japnoor.anticorruption.databinding.ActivityAudioBinding
 import com.japnoor.anticorruption.databinding.EditUserDemandDialogBinding
@@ -19,15 +23,24 @@ class AudioActivity : AppCompatActivity() {
      var mediaPlayer: MediaPlayer?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding=ActivityAudioBinding.inflate(layoutInflater)
+        binding = ActivityAudioBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val connectivityManager =
+            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+        if (isConnected) {
+
+            var audio = intent.getStringExtra("audio")?.toUri()
+            if (audio != null) {
+                controlSound(audio)
+            }
 
 
-        var audio = intent.getStringExtra("audio")?.toUri()
-        if (audio != null) {
-            controlSound(audio)
         }
-
+        else{
+            Toast.makeText(this,"Check you internet connection please",Toast.LENGTH_LONG).show()
+        }
         binding.btn.setOnClickListener {
             mediaPlayer?.stop()
             finish()

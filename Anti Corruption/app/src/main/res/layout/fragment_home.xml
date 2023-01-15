@@ -9,6 +9,28 @@
         android:orientation="vertical"
         android:padding="15dp"
         >
+<androidx.cardview.widget.CardView
+    android:layout_width="350dp"
+    android:layout_gravity="center"
+    android:layout_height="180dp">
+
+        <androidx.viewpager2.widget.ViewPager2
+            android:layout_width="350dp"
+            android:layout_gravity="center"
+            android:layout_height="180dp"
+            android:id="@+id/viewpager"
+            />
+</androidx.cardview.widget.CardView>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_marginTop="10dp"
+            android:id="@+id/movText"
+            android:text="@string/want_to_get_tips_or_knowledge_about_corruption_ntap_here"
+            />
+
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardImage"

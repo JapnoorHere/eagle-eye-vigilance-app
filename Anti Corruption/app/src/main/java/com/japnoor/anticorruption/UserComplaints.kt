@@ -62,6 +62,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
     lateinit var database: FirebaseDatabase
     lateinit var compRef: DatabaseReference
+    var c=0
 
     lateinit var binding: FragmentUserComplaintsBinding
 
@@ -84,7 +85,6 @@ class UserComplaints : Fragment(), UserComplaintClick {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         firebaseStorage = FirebaseStorage.getInstance()
         storegeref = firebaseStorage.reference
         homeScreen = activity as HomeScreen
@@ -93,35 +93,34 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
 
-       binding.shimmer.startShimmer()
+        binding.shimmer.startShimmer()
 
 
         compRef.addValueEventListener(object : ValueEventListener, UserComplaintClick {
+
             override fun onDataChange(snapshot: DataSnapshot) {
                 complaintsList.clear()
                 for (eachComplaint in snapshot.children) {
+                         val complaint = eachComplaint.getValue(Complaints::class.java)
 
-                    val complaint = eachComplaint.getValue(Complaints::class.java)
-
-                    if (complaint != null && complaint.userId.equals(homeScreen.id)) {
-                        complaintsList.add(complaint)
-                    }
-
-
+                         if (complaint != null && complaint.userId.equals(homeScreen.id)) {
+                             complaintsList.add(complaint)
+                         }
                     myComplaintsAdapter = MyComplaintsAdapter(homeScreen, complaintsList, this)
                     binding.recyclerView.layoutManager = LinearLayoutManager(homeScreen)
                     binding.recyclerView.adapter = myComplaintsAdapter
                     binding.shimmer.visibility=View.GONE
                     binding.shimmer.stopShimmer()
                     binding.recyclerView.visibility=View.VISIBLE
-
                 }
-
+                binding.shimmer.visibility=View.GONE
+                binding.shimmer.stopShimmer()
+                binding.recyclerView.visibility=View.VISIBLE
 
             }
 
             override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
+
             }
 
 

@@ -33,7 +33,7 @@
                 android:background="@color/black" />
 
             <EditText
-                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM 1234567890"
+                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM 1234567890 ,."
                 android:id="@+id/compSumm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -43,7 +43,7 @@
                 android:padding="20dp" />
 
             <EditText
-                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPLKJHGFDSAZXCVBNM"
+                android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPLKJHGFDSAZXCVBNM .,"
                 android:id="@+id/compAgainst"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

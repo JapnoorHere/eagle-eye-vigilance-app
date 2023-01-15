@@ -10,5 +10,4 @@ data class DemandLetter(var demandSubject : String="",
                         var imageName : String="",
                         var userName : String="",
                         var userEmail : String="",
-                        var userPhone : String="",
                         var status : String="")
