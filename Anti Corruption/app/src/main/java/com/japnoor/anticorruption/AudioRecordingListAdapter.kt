@@ -1,6 +1,8 @@
 package com.japnoor.anticorruption
 
+import android.content.Intent
 import android.media.MediaPlayer
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -81,6 +83,15 @@ class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File
             context.navController.navigate(R.id.addComplaintFragment,bundle)
         }
 
+
+//        holder.binding.share.setOnClickListener {
+//            val share = Intent(Intent.ACTION_SEND)
+//            share.type = "video/3gpp"
+//            share.setDataAndType(Uri.fromFile(audioList[position]), context.contentResolver.getType(Uri.fromFile(audioList[position])))
+//            share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(audioList[position]))
+//            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+//            context.startActivity(Intent.createChooser(share, "Share Sound File"))
+//        }
 
     }
 

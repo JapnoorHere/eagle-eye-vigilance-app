@@ -2,6 +2,7 @@ package com.japnoor.anticorruption
 
 import android.app.Activity.RESULT_OK
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -9,6 +10,8 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
@@ -24,6 +27,9 @@ private const val ARG_PARAM2 = "param2"
 
 
 class VideoRecordingList : Fragment() {
+         private  val REQUEST_CAMERA_PERMISSION = 100
+        private  val REQUEST_STORAGE_PERMISSION = 101
+
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -73,13 +79,38 @@ class VideoRecordingList : Fragment() {
 
 
         binding.fabbtn.setOnClickListener {
-            val videoCaptureIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
-            startActivityForResult(videoCaptureIntent, REQUEST_VIDEO_CAPTURE)
+            requestCameraPermission()
         }
 
 
         return binding.root
     }
+
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == REQUEST_CAMERA_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                startRecording()
+            }
+        }
+    }
+    fun startRecording(){
+        val videoCaptureIntent = Intent(MediaStore.ACTION_VIDEO_CAPTURE)
+        startActivityForResult(videoCaptureIntent, REQUEST_VIDEO_CAPTURE)
+    }
+
+    private fun requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(
+                homeScreen,
+                arrayOf(android.Manifest.permission.CAMERA),
+                REQUEST_CAMERA_PERMISSION
+            )
+        } else {
+            startRecording()
+        }
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_VIDEO_CAPTURE && resultCode == RESULT_OK) {
             val videoUri = data?.data

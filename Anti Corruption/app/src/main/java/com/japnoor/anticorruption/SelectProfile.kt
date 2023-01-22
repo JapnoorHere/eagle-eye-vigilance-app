@@ -118,7 +118,12 @@ class SelectProfile : Fragment() {
                             var id = user?.uid
                             var users = Users(
                                 name,
-                                email, id.toString(), profileValue, pass, "", passcode
+                                email,
+                                id.toString(),
+                                profileValue,
+                                pass,
+                                "",
+                                passcode
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
                                 if (it.isSuccessful) {

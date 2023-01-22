@@ -10,6 +10,7 @@ import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 
 import android.text.format.DateFormat
@@ -48,7 +49,8 @@ class AddComplaintFragment : Fragment() {
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storegeref : StorageReference
 
-
+    private var REQUEST_CAMERA_PERMISSION=100
+    private var REQUEST_CAMERA=100
     lateinit var activityResulLauncher : ActivityResultLauncher<Intent>
     lateinit var activityResulLauncher2 : ActivityResultLauncher<Intent>
 
@@ -158,8 +160,15 @@ class AddComplaintFragment : Fragment() {
 
         })
         binding.addAudio.setOnClickListener {
-            if(videoUri==null&&audioUri==null){
-                chooseAudio()
+            if(audioUri==null&&videoUri==null){
+                if (Build.VERSION.RELEASE >= "13") {
+                    var intent = Intent()
+                    intent.type="audio/*"
+                    intent.action= Intent.ACTION_GET_CONTENT
+                    activityResulLauncher2.launch(intent)}
+                else{
+                    chooseAudio()
+                }
             }
             else if(audioUri!=null){
                     audioUri=null
@@ -174,7 +183,14 @@ class AddComplaintFragment : Fragment() {
         }
         binding.addVideo.setOnClickListener {
             if(audioUri==null&&videoUri==null){
-                chooseVideo()
+                if (Build.VERSION.RELEASE >= "13") {
+                var intent = Intent()
+                intent.type="video/*"
+                intent.action= Intent.ACTION_GET_CONTENT
+                activityResulLauncher2.launch(intent)}
+                else{
+                    chooseVideo()
+                }
             }
             else if(videoUri!=null){
                 videoUri=null
@@ -189,9 +205,25 @@ class AddComplaintFragment : Fragment() {
 
 
         binding.btnSubmit.setOnClickListener {
-            if (binding.compSumm.text.isNullOrEmpty()) {
+            val input: String = binding.compSumm.getText().toString().trim()
+            val input1: String = binding.compAgainst.getText().toString().trim()
+            val input2: String = binding.comDetails.getText().toString().trim()
+            if(input.length==0){
                 binding.compSumm.requestFocus()
-                binding.compSumm.error = "Summary cannot be empty"
+                binding.compSumm.error = "Cannot be empty"
+            }
+            else if(input1.length==0){
+                binding.compAgainst.requestFocus()
+                binding.compAgainst.error = "Cannot be empty"
+            }
+            else if(input2.length==0){
+                binding.comDetails.requestFocus()
+                binding.comDetails.error = "Cannot be empty"
+            }
+
+           else if (binding.compSumm.text.isNullOrEmpty()) {
+                binding.compSumm.requestFocus()
+                binding.compSumm.error = "Cannot be empty"
             } else if (binding.compAgainst.text.isNullOrEmpty()) {
                 binding.compAgainst.requestFocus()
                 binding.compAgainst.error = "Cannot be empty"
@@ -250,20 +282,22 @@ class AddComplaintFragment : Fragment() {
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode==1 && grantResults.isNotEmpty() && grantResults[0]== PackageManager.PERMISSION_GRANTED){
+        if(requestCode==REQUEST_CAMERA_PERMISSION )
+        {
+        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
             var intent = Intent()
             intent.type="audio/*"
             intent.action= Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
         }
     }
+    }
 
 
 
     fun chooseAudio(){
         if(ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
+            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),REQUEST_CAMERA_PERMISSION)
         }
         else{
             var intent = Intent()
@@ -275,7 +309,7 @@ class AddComplaintFragment : Fragment() {
     }
     fun chooseVideo(){
         if(ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
+            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),REQUEST_CAMERA)
         }
         else{
             var intent = Intent()

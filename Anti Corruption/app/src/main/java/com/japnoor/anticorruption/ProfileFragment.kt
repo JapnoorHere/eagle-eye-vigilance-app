@@ -2,7 +2,10 @@ package com.japnoor.anticorruption
 
 import android.app.Dialog
 import android.content.ContentValues.TAG
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.AsyncTask
 import android.os.Bundle
 import android.provider.ContactsContract.Data
@@ -140,11 +143,14 @@ class ProfileFragment : Fragment() {
         })
 
         binding.Profile.setOnClickListener {
-            var dialog=Dialog(homeScreen)
+            var dialog = Dialog(homeScreen)
             var dialogBinding = DialogSelectProfileBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
-            dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.MATCH_PARENT)
-            when(userProfile) {
+            dialog.window?.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT
+            )
+            when (userProfile) {
                 "1" -> dialogBinding.profile.setImageResource(R.drawable.man1)
                 "2" -> dialogBinding.profile.setImageResource(R.drawable.man2)
                 "3" -> dialogBinding.profile.setImageResource(R.drawable.man3)
@@ -155,60 +161,71 @@ class ProfileFragment : Fragment() {
                 "8" -> dialogBinding.profile.setImageResource(R.drawable.girl4)
             }
             dialogBinding.man1.setOnClickListener {
-                profileValue="1"
+                profileValue = "1"
                 dialogBinding.profile.setImageResource(R.drawable.man1)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.man2.setOnClickListener {
-                profileValue="2"
+                profileValue = "2"
                 dialogBinding.profile.setImageResource(R.drawable.man2)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.man3.setOnClickListener {
-                profileValue="3"
+                profileValue = "3"
                 dialogBinding.profile.setImageResource(R.drawable.man3)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.man4.setOnClickListener {
-                profileValue="4"
+                profileValue = "4"
                 dialogBinding.profile.setImageResource(R.drawable.man4)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
 
             dialogBinding.girl1.setOnClickListener {
-                profileValue="5"
+                profileValue = "5"
                 dialogBinding.profile.setImageResource(R.drawable.girl1)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.girl2.setOnClickListener {
-                profileValue="6"
+                profileValue = "6"
                 dialogBinding.profile.setImageResource(R.drawable.girl2)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.girl3.setOnClickListener {
-                profileValue="7"
+                profileValue = "7"
                 dialogBinding.profile.setImageResource(R.drawable.girl3)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
             dialogBinding.girl4.setOnClickListener {
-                profileValue="8"
+                profileValue = "8"
                 dialogBinding.profile.setImageResource(R.drawable.girl4)
-                dialogBinding.donebtn.visibility=View.VISIBLE
+                dialogBinding.donebtn.visibility = View.VISIBLE
             }
-
-            dialogBinding.donebtn.setOnClickListener {
-                profileRef.child(homeScreen.id).child("profileValue").setValue(profileValue).addOnCompleteListener {
-                    if(it.isSuccessful){
-                        dialog.dismiss()
-                    }
+            val connectivityManager =
+                homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+            val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+            if (isConnected) {
+                dialogBinding.donebtn.setOnClickListener {
+                    profileRef.child(homeScreen.id).child("profileValue").setValue(profileValue)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                dialog.dismiss()
+                            }
+                        }
                 }
+                dialog.show()
             }
-            dialog.show()
+            else{
+                Toast.makeText(homeScreen,"Check you internet connection please",Toast.LENGTH_LONG).show()
+
+            }
         }
 
 
 
         binding.btnName.setOnClickListener {
+
             var dialog = Dialog(requireContext())
             var dialogBinding = ProfileItemBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
@@ -218,12 +235,28 @@ class ProfileFragment : Fragment() {
             )
             dialogBinding.et.setText(userName)
             dialogBinding.fab.setOnClickListener {
+                val input: String = dialogBinding.et.getText().toString().trim()
                 if (dialogBinding.et.text.isNullOrEmpty()) {
                     dialogBinding.et.error = "Cannot be empty!"
-                } else {
-                    profileRef.child(homeScreen.id).child("name")
-                        .setValue(dialogBinding.et.text.toString())
-                    dialog.dismiss()
+                }
+                else if(input.length==0){
+                    dialogBinding.et.requestFocus()
+                    dialogBinding.et.error = "Enter Some characters "
+                }
+                else {
+
+                        val connectivityManager =
+                            homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                        if (isConnected) {
+                        profileRef.child(homeScreen.id).child("name")
+                            .setValue(dialogBinding.et.text.toString())
+                        dialog.dismiss()
+                    }
+                    else{
+                        Toast.makeText(homeScreen,"Check you internet connection please",Toast.LENGTH_LONG).show()
+                    }
                 }
             }
             dialog.show()

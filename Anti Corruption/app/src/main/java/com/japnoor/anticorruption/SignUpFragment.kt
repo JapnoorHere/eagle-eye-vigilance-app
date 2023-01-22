@@ -90,18 +90,18 @@ class SignUpFragment : Fragment() {
                 dialog.setContentView(dialogBinding.root)
                 dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT)
                 dialogBinding.etREPassword.doOnTextChanged { text, start, before, count ->
-                    if (!(text.toString() == dialogBinding.etPassword.text.toString()))
-                        dialogBinding.etREPassword.error = "Password is not same"
-                    else
-                        dialogBinding.etREPassword.error = null
                 }
                 dialogBinding.btnSignup.setOnClickListener {
                      if(dialogBinding.etPassword.text.toString().isNullOrEmpty()){
                          dialogBinding.etPassword.error="Enter Password"
                          dialogBinding.etPassword.requestFocus()
                 }
-                else if(dialogBinding.etPassword.text.toString().length<4){
-                         dialogBinding.etPassword.error="Password must be of at least 4 characters"
+                else if(dialogBinding.etPassword.text.toString().length<5){
+                         dialogBinding.etPassword.error="Password must be of at least 5 characters"
+                         dialogBinding.etPassword.requestFocus()
+                }
+                     else if(dialogBinding.etPassword.text.toString().length>5){
+                         dialogBinding.etPassword.error="Password must be of 5 characters only"
                          dialogBinding.etPassword.requestFocus()
                 }
 

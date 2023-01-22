@@ -284,7 +284,26 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
                     dialogBindEdit.District.setAdapter(arrayAdapter)
                     dialogBindEdit.fabAdd1.setOnClickListener {
-                        if (audioUri == null && videoUri == null) {
+                        val input: String = dialogBindEdit.compSumm.getText().toString().trim()
+                        val input1: String = dialogBindEdit.compAgainst.getText().toString().trim()
+                        val input2: String = dialogBindEdit.comDetails.getText().toString().trim()
+                        if(input.length==0){
+                            dialogBindEdit.compSumm.requestFocus()
+                            dialogBindEdit.compSumm.error = "Cannot be empty"
+                        }
+                        else if(input1.length==0){
+                            dialogBindEdit.compAgainst.requestFocus()
+                            dialogBindEdit.compAgainst.error = "Cannot be empty"
+                        }
+                        else if(input2.length==0){
+                            dialogBindEdit.comDetails.requestFocus()
+                            dialogBindEdit.comDetails.error = "Cannot be empty"
+                        }
+                        else if (dialogBindEdit.District.text.isNullOrEmpty()) {
+                            dialogBindEdit.District.requestFocus()
+                            dialogBindEdit  .District.error = "Cannot be empty"
+                        }
+                        else if (audioUri == null && videoUri == null) {
                             update(dialogBindEdit,complaints,dialog)
                         } else {
                             dialogBindEdit.progressbar.visibility = View.VISIBLE
@@ -320,7 +339,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         if(audioUri==null) {
                             chooseAudio()
                         }
-                            else if(audioUri!=null){
+                        else if(audioUri!=null){
                                 audioUri=null
                             dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg)
                             dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)

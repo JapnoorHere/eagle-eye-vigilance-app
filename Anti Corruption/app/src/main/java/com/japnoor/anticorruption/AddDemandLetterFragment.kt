@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
 import androidx.fragment.app.Fragment
@@ -37,24 +38,27 @@ class AddDemandLetterFragment : Fragment() {
 
     private var param1: String? = null
     private var param2: String? = null
-    lateinit var homeScreen:HomeScreen
+    lateinit var homeScreen: HomeScreen
     lateinit var arrayAdapter: ArrayAdapter<String>
-    lateinit var binding : FragmentAddDemandLetterBinding
+    lateinit var binding: FragmentAddDemandLetterBinding
 
-     var userName : String=""
+    var userName: String = ""
+
+    var REQUEST_CAMERA_PERMISSION=100
+
     lateinit var demuserrRef: DatabaseReference
-     var userEmail : String=""
+    var userEmail: String = ""
 
-    lateinit var firebaseStorage : FirebaseStorage
-    lateinit var storegeref : StorageReference
+    lateinit var firebaseStorage: FirebaseStorage
+    lateinit var storegeref: StorageReference
     lateinit var database: FirebaseDatabase
-    lateinit var demRef : DatabaseReference
+    lateinit var demRef: DatabaseReference
 
-    var imageUrl : String=""
+    var imageUrl: String = ""
 
-    var imageUri : Uri? =null
+    var imageUri: Uri? = null
 
-    lateinit var activityResulLauncher : ActivityResultLauncher<Intent>
+    lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,23 +75,26 @@ class AddDemandLetterFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        firebaseStorage= FirebaseStorage.getInstance()
-        storegeref=firebaseStorage.reference
-        homeScreen=activity as HomeScreen
-        database=FirebaseDatabase.getInstance()
-        demRef=database.reference.child("Demand Letter")
-        demuserrRef=database.reference.child("Users")
-        binding =FragmentAddDemandLetterBinding.inflate(layoutInflater,container,false)
+        firebaseStorage = FirebaseStorage.getInstance()
+        storegeref = firebaseStorage.reference
+        homeScreen = activity as HomeScreen
+        database = FirebaseDatabase.getInstance()
+        demRef = database.reference.child("Demand Letter")
+        demuserrRef = database.reference.child("Users")
+        binding = FragmentAddDemandLetterBinding.inflate(layoutInflater, container, false)
 
 
 
-        demuserrRef.addValueEventListener(object : ValueEventListener{
+        demuserrRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                var dialog= Dialog(homeScreen)
-                for(each in snapshot.children){
-                    var userr=each.getValue(Users::class.java)
-                    if(userr!=null &&  userr.userId.equals(homeScreen.id) &&  userr.userStatus.equals("1")){
-                        var dialogB= BlockedUserDialogBinding.inflate(layoutInflater)
+                var dialog = Dialog(homeScreen)
+                for (each in snapshot.children) {
+                    var userr = each.getValue(Users::class.java)
+                    if (userr != null && userr.userId.equals(homeScreen.id) && userr.userStatus.equals(
+                            "1"
+                        )
+                    ) {
+                        var dialogB = BlockedUserDialogBinding.inflate(layoutInflater)
                         dialog.setContentView(dialogB.root)
                         dialog.setCancelable(false)
                         dialog.window?.setLayout(
@@ -97,7 +104,7 @@ class AddDemandLetterFragment : Fragment() {
                         dialogB.btn.setOnClickListener {
                             dialog.dismiss()
                             FirebaseAuth.getInstance().signOut()
-                            var intent=Intent(homeScreen,LoginActivity::class.java)
+                            var intent = Intent(homeScreen, LoginActivity::class.java)
                             homeScreen.startActivity(intent)
                             homeScreen.finish()
                         }
@@ -113,22 +120,26 @@ class AddDemandLetterFragment : Fragment() {
 
         })
         binding.btnSubmit.setOnClickListener {
-            if (binding.DemandSubject.text.isNullOrEmpty()) {
-                binding.DemandSubject.setError("Enter Subject of Demand")
+            val input: String = binding.DemandSubject.getText().toString().trim()
+            val input1: String = binding.DemandDetails.getText().toString().trim()
+            if (input.length == 0) {
                 binding.DemandSubject.requestFocus()
-            }
-            else if (binding.DemandDetails.text.isNullOrEmpty()) {
-                binding.DemandDetails.setError("Enter details of Demand")
+                binding.DemandSubject.error = "Cannot be empty"
+            } else if (input1.length == 0) {
                 binding.DemandDetails.requestFocus()
-            }
-            else if(binding.District.text.isNullOrEmpty()){
-                binding.District.setError("Enter District")
+                binding.DemandDetails.error = "Cannot be empty"
+            } else if (binding.DemandSubject.text.isNullOrEmpty()) {
+                binding.DemandSubject.setError("Cannot be empty")
+                binding.DemandSubject.requestFocus()
+            } else if (binding.DemandDetails.text.isNullOrEmpty()) {
+                binding.DemandDetails.setError("Cannot be empty")
+                binding.DemandDetails.requestFocus()
+            } else if (binding.District.text.isNullOrEmpty()) {
+                binding.District.setError("Cannot be empty")
                 binding.District.requestFocus()
-            }
-            else if (imageUri==null){
-                Toast.makeText(homeScreen,"Upload an Image",Toast.LENGTH_LONG).show()
-            }
-            else {
+            } else if (imageUri == null) {
+                Toast.makeText(homeScreen, "Upload an Image", Toast.LENGTH_LONG).show()
+            } else {
                 val connectivityManager =
                     homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -157,20 +168,37 @@ class AddDemandLetterFragment : Fragment() {
                         }
                     })
                     println("Url->" + imageUrl)
-                }
-                else{
-                    Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(
+                        homeScreen,
+                        "Check your internet connection please",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
 
         binding.addImage.setOnClickListener {
-            if(imageUri==null)
-            chooseImage()
-            else if(imageUri!=null){
-                imageUri=null
+            if (imageUri == null)
+                if(imageUri==null){
+                    if (Build.VERSION.RELEASE >= "13") {
+                        var intent = Intent()
+                        intent.type="audio/*"
+                        intent.action= Intent.ACTION_GET_CONTENT
+                        activityResulLauncher.launch(intent)}
+                    else{
+                        chooseImage()
+                    }
+                }
+            else if (imageUri != null) {
+                imageUri = null
                 binding.addImage.setText("  Add Image")
-                binding.addImage.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_image_24),null,resources.getDrawable(R.drawable.ic_baseline_control_point_24),null)
+                binding.addImage.setCompoundDrawablesWithIntrinsicBounds(
+                    resources.getDrawable(R.drawable.ic_baseline_image_24),
+                    null,
+                    resources.getDrawable(R.drawable.ic_baseline_control_point_24),
+                    null
+                )
                 binding.addImage.setBackgroundResource(R.drawable.upload_photo)
             }
 
@@ -188,90 +216,107 @@ class AddDemandLetterFragment : Fragment() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if(requestCode==1 && grantResults.isNotEmpty() && grantResults[0]== PackageManager.PERMISSION_GRANTED){
+        if (requestCode == 1 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             var intent = Intent()
-            intent.type="image/*"
-            intent.action=Intent.ACTION_GET_CONTENT
+            intent.type = "image/*"
+            intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
         }
     }
 
 
-    fun chooseImage(){
-        if(ContextCompat.checkSelfPermission(homeScreen,android.Manifest.permission.READ_EXTERNAL_STORAGE)!= PackageManager.PERMISSION_GRANTED){
-            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),1)
+    fun chooseImage() {
+        if (ContextCompat.checkSelfPermission(homeScreen, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION
+            )
         }
-        else{
+        else {
             var intent = Intent()
-            intent.type="image/*"
-            intent.action=Intent.ACTION_GET_CONTENT
+            intent.type = "image/*"
+            intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
         }
     }
 
-    fun registerActivityforResult(){
+    fun registerActivityforResult() {
 
-        activityResulLauncher=registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
-            ActivityResultCallback { result ->
-                var resultcode=result.resultCode
-                var imageData=result.data
+        activityResulLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
+                ActivityResultCallback { result ->
+                    var resultcode = result.resultCode
+                    var imageData = result.data
 
-                if(resultcode== RESULT_OK  && imageData!=null ) {
+                    if (resultcode == RESULT_OK && imageData != null) {
 
-                    imageUri = imageData.data
-                    println("Image - > " + imageUri)
+                        imageUri = imageData.data
+                        println("Image - > " + imageUri)
 
-                    if (imageUri != null) {
-                        binding.addImage.setText("  Image Selected")
-                        binding.addImage.setCompoundDrawablesWithIntrinsicBounds(resources.getDrawable(R.drawable.ic_baseline_image_24),null,resources.getDrawable(R.drawable.ic_baseline_cancel_24),null)
-                        binding.addImage.setBackgroundResource(R.drawable.upload_photo1)
+                        if (imageUri != null) {
+                            binding.addImage.setText("  Image Selected")
+                            binding.addImage.setCompoundDrawablesWithIntrinsicBounds(
+                                resources.getDrawable(
+                                    R.drawable.ic_baseline_image_24
+                                ),
+                                null,
+                                resources.getDrawable(R.drawable.ic_baseline_cancel_24),
+                                null
+                            )
+                            binding.addImage.setBackgroundResource(R.drawable.upload_photo1)
+                        }
                     }
-                }
 
-            })
+                })
 
 
     }
 
-    fun uploadDemandLetterAndImage(){
+    fun uploadDemandLetterAndImage() {
 
-        var imageName=UUID.randomUUID().toString()
+        var imageName = UUID.randomUUID().toString()
 
-        val imgreference=storegeref.child("images").child(imageName)
+        val imgreference = storegeref.child("images").child(imageName)
 
-        imageUri?.let{ uri ->
+        imageUri?.let { uri ->
             imgreference.putFile(uri).addOnSuccessListener {
-                var myUploadImageRef=storegeref.child("images").child(imageName)
+                var myUploadImageRef = storegeref.child("images").child(imageName)
 
                 myUploadImageRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
-                    var demDate : CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
+                    var demDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var did = demRef.push().key
-                    imageUrl=it.toString()
+                    imageUrl = it.toString()
                     var demands = DemandLetter(
                         binding.DemandSubject.text.toString(),
                         binding.DemandDetails.text.toString(),
-                        demDate.toString(),binding.District.text.toString()
-                        ,homeScreen.id,
-                        did.toString(),imageUrl,imageName,userName,userEmail,"")
+                        demDate.toString(), binding.District.text.toString(), homeScreen.id,
+                        did.toString(), imageUrl, imageName, userName, userEmail, ""
+                    )
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {
                         if (it.isSuccessful) {
-                            Toast.makeText(requireContext(), "Demand letter Submit", Toast.LENGTH_LONG)
+                            Toast.makeText(
+                                requireContext(),
+                                "Demand letter Submit",
+                                Toast.LENGTH_LONG
+                            )
                                 .show()
-                            binding.progressbar.visibility=View.GONE
-                            binding.btnSubmit.visibility=View.VISIBLE
+                            binding.progressbar.visibility = View.GONE
+                            binding.btnSubmit.visibility = View.VISIBLE
                             homeScreen.navController.navigate(R.id.homeFragment)
                         } else {
-                            binding.progressbar.visibility=View.GONE
-                            binding.btnSubmit.visibility=View.VISIBLE
-                            Toast.makeText(requireContext(), it.exception.toString(), Toast.LENGTH_LONG)
+                            binding.progressbar.visibility = View.GONE
+                            binding.btnSubmit.visibility = View.VISIBLE
+                            Toast.makeText(
+                                requireContext(),
+                                it.exception.toString(),
+                                Toast.LENGTH_LONG
+                            )
                                 .show()
                         }
                     }
                     println("Url 2-> " + imageUrl)
                 }
-            }.addOnFailureListener{
+            }.addOnFailureListener {
 
             }
         }
@@ -286,4 +331,4 @@ class AddDemandLetterFragment : Fragment() {
     }
 
 
-    }
+}

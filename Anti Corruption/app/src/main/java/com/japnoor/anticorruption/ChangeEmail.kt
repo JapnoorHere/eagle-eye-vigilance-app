@@ -54,6 +54,9 @@ class ChangeEmail : Fragment() {
             pass=it?.getString("pass").toString()
         }
         var binding = FragmentChangeEmailBinding.inflate(layoutInflater,container,false)
+
+
+
         // Inflate the layout for this fragment
 
         binding.btnNext.setOnClickListener {
@@ -74,26 +77,32 @@ class ChangeEmail : Fragment() {
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
-                    binding.btnNext.visibility = View.GONE
-                    binding.progressbar.visibility = View.VISIBLE
-                    val credential = EmailAuthProvider.getCredential(email, pass)
-                    FirebaseAuth.getInstance().currentUser?.reauthenticate(credential)
-                        ?.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                Toast.makeText(homeScreen, "OTP sent", Toast.LENGTH_LONG).show()
-                                binding.btnNext.visibility = View.VISIBLE
-                                binding.progressbar.visibility = View.GONE
-                                var bundle = Bundle()
-                                bundle.putString("email", binding.etEmail.text.toString())
-                                homeScreen.navController.navigate(
-                                    R.id.action_changeEmail_to_OTPEmailChange,
-                                    bundle
-                                )
-                            } else {
-                                binding.btnNext.visibility = View.VISIBLE
-                                binding.progressbar.visibility = View.GONE
-                            }
-                        }
+
+                                    binding.btnNext.visibility = View.GONE
+                                    binding.progressbar.visibility = View.VISIBLE
+                                    val credential = EmailAuthProvider.getCredential(email, pass)
+                                    FirebaseAuth.getInstance().currentUser?.reauthenticate(credential)
+                                        ?.addOnCompleteListener { task ->
+                                            if (task.isSuccessful) {
+                                                Toast.makeText(homeScreen, "OTP sent", Toast.LENGTH_LONG).show()
+                                                binding.btnNext.visibility = View.VISIBLE
+                                                binding.progressbar.visibility = View.GONE
+                                                var bundle = Bundle()
+                                                bundle.putString("email", binding.etEmail.text.toString())
+                                                homeScreen.navController.navigate(
+                                                    R.id.action_changeEmail_to_OTPEmailChange,
+                                                    bundle
+                                                )
+
+                                            }
+
+                                            else {
+                                                binding.btnNext.visibility = View.VISIBLE
+                                                binding.progressbar.visibility = View.GONE
+                                            }
+                                        }
+
+
                 }
                 else{
                     Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()

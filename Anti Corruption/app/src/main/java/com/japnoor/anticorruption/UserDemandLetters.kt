@@ -248,7 +248,21 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
                     dialogBindEdit.District.setAdapter(arrayAdapter)
                     dialogBindEdit.fabAdd1.setOnClickListener {
-                        if (imageUri == null) {
+                        val input: String = dialogBindEdit.Summ.getText().toString().trim()
+                        val input1: String = dialogBindEdit.Details.getText().toString().trim()
+                        if(input.length==0){
+                            dialogBindEdit.Summ.requestFocus()
+                            dialogBindEdit.Summ.error = "Cannot be empty"
+                        }
+                        else if(input1.length==0){
+                            dialogBindEdit.Details.requestFocus()
+                            dialogBindEdit.Details.error = "Cannot be empty"
+                        }
+                        else if(dialogBindEdit.District.text.isNullOrEmpty()){
+                            dialogBindEdit.District.setError("Cannot be empty")
+                            dialogBindEdit.District.requestFocus()
+                        }
+                        else if (imageUri == null) {
                             update(demandLetter,dialogBindEdit,dialog)
                         } else {
                             dialogBindEdit.progressbar.visibility = View.VISIBLE

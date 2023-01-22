@@ -46,7 +46,7 @@ class ForgotPassword : AppCompatActivity() {
                             if (it.isSuccessful) {
                                 binding.btnNext.visibility = View.VISIBLE
                                 binding.progressbar.visibility = View.GONE
-                                Toast.makeText(this, "Reset Password link sent!", Toast.LENGTH_LONG)
+                                Toast.makeText(this, "Reset Password link sent on your email!", Toast.LENGTH_LONG)
                                     .show()
                                 var intent = Intent(this, LoginActivity::class.java)
                                 startActivity(intent)

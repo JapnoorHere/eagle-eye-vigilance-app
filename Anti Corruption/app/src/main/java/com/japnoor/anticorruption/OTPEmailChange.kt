@@ -87,8 +87,9 @@ class OTPEmailChange : Fragment() {
             if (binding.otp6.text.toString().isNullOrEmpty()) {
                 binding.otp5.requestFocus()
             }
-
         }
+
+
         val connectivityManager =
             homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo

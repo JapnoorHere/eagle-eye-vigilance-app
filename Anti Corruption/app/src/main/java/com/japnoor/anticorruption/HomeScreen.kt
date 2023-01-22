@@ -1,8 +1,11 @@
 package com.japnoor.anticorruption
 
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.Menu
@@ -24,23 +27,23 @@ import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
 
 class HomeScreen : AppCompatActivity() {
 
-    lateinit var binding : ActivityHomeScreenBinding
-    lateinit var navController:NavController
-    var id : String=""
-    var pass : String=""
+    lateinit var binding: ActivityHomeScreenBinding
+    lateinit var navController: NavController
+    var id: String = ""
+    var pass: String = ""
     lateinit var database: FirebaseDatabase
-    lateinit var useref : DatabaseReference
+    lateinit var useref: DatabaseReference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding=ActivityHomeScreenBinding.inflate(layoutInflater)
+        binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        navController=findNavController(R.id.navController)
-         id=intent.getStringExtra("uid").toString()
-         pass=intent.getStringExtra("pass").toString()
-         database=FirebaseDatabase.getInstance()
-        useref=database.reference.child("Users")
+        navController = findNavController(R.id.navController)
+        id = intent.getStringExtra("uid").toString()
+        pass = intent.getStringExtra("pass").toString()
+        database = FirebaseDatabase.getInstance()
+        useref = database.reference.child("Users")
         println("password->$pass")
         println("password->$id")
 
@@ -89,22 +92,24 @@ class HomeScreen : AppCompatActivity() {
         menu?.add("Logout")
         return super.onCreateOptionsMenu(menu)
     }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         if (item.title?.equals("Home") == true) {
             navController.navigate(R.id.homeFragment)
-        }
-        else if (item.title?.equals("Profile") == true) {
+        } else if (item.title?.equals("Profile") == true) {
             navController.navigate(R.id.profileFragment)
-        }
-        else if (item.title?.equals("Change Passcode") == true) {
-            var dialog= Dialog(this)
-            var dialogBinding= PasscodeDialogBinding.inflate(layoutInflater)
+        } else if (item.title?.equals("Change Passcode") == true) {
+            var dialog = Dialog(this)
+            var dialogBinding = PasscodeDialogBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
-            dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
-            dialogBinding.etPasswordLayout1.visibility= View.GONE
-            dialogBinding.etPasswordLayout2.visibility= View.GONE
-            dialogBinding.btnSignup.visibility= View.GONE
+            dialog.window?.setLayout(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.WRAP_CONTENT
+            )
+            dialogBinding.etPasswordLayout1.visibility = View.GONE
+            dialogBinding.etPasswordLayout2.visibility = View.GONE
+            dialogBinding.btnSignup.visibility = View.GONE
             dialogBinding.passw.visibility = View.VISIBLE
             dialogBinding.btn.visibility = View.VISIBLE
             dialogBinding.tv.setText("Enter the 6 digit password which you entered while making your account")
@@ -112,63 +117,74 @@ class HomeScreen : AppCompatActivity() {
                 if (dialogBinding.etpass.text.toString().isNullOrEmpty()) {
                     dialogBinding.etpass.error = "Enter Password"
                     dialogBinding.etpass.requestFocus()
-                } else if(dialogBinding.etpass.text.toString().equals(pass))
-                {
-                    dialogBinding.tv.setText("Enter the 5 digit passcode which will help \n to keep your app safe")
-                    dialogBinding.etPasswordLayout1.visibility = View.VISIBLE
-                    dialogBinding.etPasswordLayout2.visibility = View.VISIBLE
-                    dialogBinding.btnSignup.visibility = View.VISIBLE
-                    dialogBinding.passw.visibility = View.GONE
-                    dialogBinding.btn.visibility = View.GONE
-                }
-                else{
-                    Toast.makeText(this,"Wrong Password",Toast.LENGTH_LONG).show()
+                } else if (dialogBinding.etpass.text.toString().equals(pass)) {
+                    val connectivityManager =
+                        getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                    if (isConnected) {
+                        dialogBinding.tv.setText("Enter the 5 digit passcode which will help \n to keep your app safe")
+                        dialogBinding.etPasswordLayout1.visibility = View.VISIBLE
+                        dialogBinding.etPasswordLayout2.visibility = View.VISIBLE
+                        dialogBinding.btnSignup.visibility = View.VISIBLE
+                        dialogBinding.passw.visibility = View.GONE
+                        dialogBinding.btn.visibility = View.GONE
+                    } else {
+                        Toast.makeText(
+                            this,
+                            "Check you internet connection please",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                } else {
+                    Toast.makeText(this, "Wrong Password", Toast.LENGTH_LONG).show()
                 }
             }
 
 
             dialogBinding.btnSignup.setOnClickListener {
-                if(dialogBinding.etPassword.text.toString().isNullOrEmpty()){
-                    dialogBinding.etPassword.error="Enter Passcode"
+                if (dialogBinding.etPassword.text.toString().isNullOrEmpty()) {
+                    dialogBinding.etPassword.error = "Enter Passcode"
                     dialogBinding.etPassword.requestFocus()
-                }
-                else if(dialogBinding.etPassword.text.toString().length<5){
-                    dialogBinding.etPassword.error="Passcode must be of at least 5 characters"
+                } else if (dialogBinding.etPassword.text.toString().length < 5) {
+                    dialogBinding.etPassword.error = "Passcode must be of at least 5 characters"
                     dialogBinding.etPassword.requestFocus()
-                }
-                else if(dialogBinding.etPassword.text.toString().length>5){
-                    dialogBinding.etPassword.error="Passcode must be of 5 characters only "
+                } else if (dialogBinding.etPassword.text.toString().length > 5) {
+                    dialogBinding.etPassword.error = "Passcode must be of 5 characters only "
                     dialogBinding.etPassword.requestFocus()
-                }
-
-                else if(dialogBinding.etREPassword.text.toString().isNullOrEmpty()){
-                    dialogBinding.etREPassword.error="Enter Passcode again"
+                } else if (dialogBinding.etREPassword.text.toString().isNullOrEmpty()) {
+                    dialogBinding.etREPassword.error = "Enter Passcode again"
                     dialogBinding.etREPassword.requestFocus()
-                }
-                else if((!dialogBinding.etPassword.text.toString().equals(dialogBinding.etREPassword.text.toString()))){
-                    dialogBinding.etREPassword.error="Passcode must be same"
+                } else if ((!dialogBinding.etPassword.text.toString()
+                        .equals(dialogBinding.etREPassword.text.toString()))
+                ) {
+                    dialogBinding.etREPassword.error = "Passcode must be same"
                     dialogBinding.etREPassword.requestFocus()
-                }
-                else{
-                    dialogBinding.btnSignup.visibility= View.GONE
-                    dialogBinding.progressbar.visibility= View.VISIBLE
+                } else {
+                    dialogBinding.btnSignup.visibility = View.GONE
+                    dialogBinding.progressbar.visibility = View.VISIBLE
                     useref.addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
-                            for(eachUser in snapshot.children){
-                                var userr=eachUser.getValue(Users::class.java)
-                                if(userr!=null && userr.userId.equals(id)){
-                                    useref.child(id).child("passcode").setValue(dialogBinding.etPassword.text.toString()).addOnCompleteListener{
-                                        if(it.isSuccessful) {
-                                            dialogBinding.btnSignup.visibility = View.VISIBLE
-                                            dialogBinding.progressbar.visibility = View.GONE
-                                            dialog.dismiss()
+                            for (eachUser in snapshot.children) {
+                                var userr = eachUser.getValue(Users::class.java)
+                                if (userr != null && userr.userId.equals(id)) {
+                                    useref.child(id).child("passcode")
+                                        .setValue(dialogBinding.etPassword.text.toString())
+                                        .addOnCompleteListener {
+                                            if (it.isSuccessful) {
+                                                dialogBinding.btnSignup.visibility = View.VISIBLE
+                                                dialogBinding.progressbar.visibility = View.GONE
+                                                dialog.dismiss()
+                                            } else {
+                                                dialogBinding.btnSignup.visibility = View.VISIBLE
+                                                dialogBinding.progressbar.visibility = View.GONE
+                                                Toast.makeText(
+                                                    this@HomeScreen,
+                                                    it.exception.toString(),
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
                                         }
-                                        else{
-                                            dialogBinding.btnSignup.visibility = View.VISIBLE
-                                            dialogBinding.progressbar.visibility = View.GONE
-                                            Toast.makeText(this@HomeScreen,it.exception.toString(),Toast.LENGTH_LONG).show()
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -182,8 +198,7 @@ class HomeScreen : AppCompatActivity() {
             }
 
             dialog.show()
-        }
-        else {
+        } else {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("Logout")
             builder.setMessage("Are you sure you want to logout?")
