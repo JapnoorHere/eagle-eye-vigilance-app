@@ -31,12 +31,14 @@ class OTPFragment : Fragment() {
     var email: String = ""
     var name: String = ""
     var pass: String = ""
+    var birthdate: String = ""
     var passcode: String = ""
     lateinit var auth: FirebaseAuth
     lateinit var userRef: DatabaseReference
     lateinit var database: FirebaseDatabase
     lateinit var signUp: SignUp
     var random: Int = 0;
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,9 +51,11 @@ class OTPFragment : Fragment() {
 
     fun OTP() {
         random = Random.nextInt(100000..999999)
-        val mail = SendMail("anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
+        val mail = SendMail(
+            "anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
             email, "Your One Time Password",
-            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random")
+            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
+        )
         mail.execute()
     }
 
@@ -69,6 +73,7 @@ class OTPFragment : Fragment() {
             name = it.getString("name").toString()
             pass = it.getString("pass").toString()
             passcode = it.getString("passcode").toString()
+            birthdate = it.getString("birthdate").toString()
 
         }
         binding.tvEmail.setText(email)
@@ -113,10 +118,9 @@ class OTPFragment : Fragment() {
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         if (isConnected) {
             OTP()
-        }
-        else{
-            Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
-
+        } else {
+            Toast.makeText(signUp, "Check your internet connection please", Toast.LENGTH_LONG)
+                .show()
         }
         binding.resendOtp.setOnClickListener {
             val connectivityManager =
@@ -127,7 +131,8 @@ class OTPFragment : Fragment() {
                 OTP()
                 Toast.makeText(signUp, "OTP sent", Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                Toast.makeText(signUp, "Check your internet connection please", Toast.LENGTH_LONG)
+                    .show()
             }
         }
 
@@ -142,11 +147,11 @@ class OTPFragment : Fragment() {
             var otp = "$otp1$otp2$otp3$otp4$otp5$otp6";
             println("OTP" + otp)
             if (binding.otp1.text.toString().isNullOrEmpty() ||
-                binding.otp1.text.toString().isNullOrEmpty() ||
-                binding.otp1.text.toString().isNullOrEmpty() ||
-                binding.otp1.text.toString().isNullOrEmpty() ||
-                binding.otp1.text.toString().isNullOrEmpty() ||
-                binding.otp1.text.toString().isNullOrEmpty()
+                binding.otp2.text.toString().isNullOrEmpty() ||
+                binding.otp3.text.toString().isNullOrEmpty() ||
+                binding.otp4.text.toString().isNullOrEmpty() ||
+                binding.otp5.text.toString().isNullOrEmpty() ||
+                binding.otp6.text.toString().isNullOrEmpty()
             ) {
                 Toast.makeText(signUp, "Enter OTP", Toast.LENGTH_LONG).show()
             } else if (otp.equals(random.toString())) {
@@ -161,17 +166,19 @@ class OTPFragment : Fragment() {
                     bundle.putString("name", name)
                     bundle.putString("email", email)
                     bundle.putString("passcode", passcode)
+                    bundle.putString("birthdate", birthdate)
                     signUp.navController.navigate(R.id.action_OTPFragment_to_selectProfile, bundle)
-                }
-                else{
-                    Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(
+                        signUp,
+                        "Check your internet connection please",
+                        Toast.LENGTH_LONG
+                    ).show()
 
                 }
-            }
-
-            else {
-                binding.btnVerify.visibility= View.VISIBLE
-                binding.progressbar.visibility=View.GONE
+            } else {
+                binding.btnVerify.visibility = View.VISIBLE
+                binding.progressbar.visibility = View.GONE
                 Toast.makeText(signUp, "Wrong Otp", Toast.LENGTH_LONG).show()
             }
         }

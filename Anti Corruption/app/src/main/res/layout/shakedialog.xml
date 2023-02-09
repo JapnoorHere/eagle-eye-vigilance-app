@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardCornerRadius="20dp"
+            android:layout_margin="10dp"
+            >
+
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <!--                    <ImageView-->
+
+                    <!--                        android:layout_width="wrap_content"-->
+                    <!--                        android:layout_height="50dp"-->
+
+                    <!--                        android:layout_marginTop="7dp"-->
+                    <!--                        android:src="@drawable/clapping"-->
+                    <!--                        android:textColor="@color/dark_sea_green"-->
+                    <!--                        android:textSize="16sp" />-->
+
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Shake 2 Record"
+                    android:gravity="center"
+                    android:background="#F1B416"
+                    android:textSize="30dp"
+                    android:textColor="@color/white" />
+                <TextView
+                    android:id="@+id/textmessage"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textSize="15dp"
+                    android:textColor="@color/black" />
+                <com.airbnb.lottie.LottieAnimationView
+                    android:layout_margin="10dp"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    app:lottie_loop="true"
+                    android:id="@+id/lottie"
+                    app:lottie_autoPlay="true"
+                    app:lottie_fileName="shake.json"
+                    android:layout_gravity="center"
+                    />
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginLeft="10dp"
+    android:layout_marginRight="5dp"
+    android:textStyle="italic"
+    android:textColor="@color/black"
+    android:text="With this feature, you can quickly start recording audio secretly by simply shaking your device."
+    />
+                <Switch
+                    android:layout_margin="20dp"
+                    android:id="@+id/onswitch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="Shake to Record"
+                    android:textStyle="bold"
+                    android:textColor="#F1B416"
+                    android:trackTint="#F1B416"
+                    />
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>
+</layout>

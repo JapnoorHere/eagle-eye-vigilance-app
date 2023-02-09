@@ -38,7 +38,6 @@ class VideoRecordingList : Fragment() {
     lateinit var database: FirebaseDatabase
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storageReference: StorageReference
-    var videoList: ArrayList<Video> = ArrayList()
     var arrayList: ArrayList<Int> = ArrayList()
     lateinit var videoRecordingListAdapter: VideoRecordingListAdapter
     lateinit var binding: FragmentVideoRecordingListBinding

@@ -27,6 +27,7 @@ class SelectProfile : Fragment() {
     var id : String=""
     var pass : String=""
     var passcode : String=""
+    var birthdate : String=""
     var name : String=""
     var email : String=""
     var profileValue : String=""
@@ -52,6 +53,7 @@ class SelectProfile : Fragment() {
             name = it?.getString("name").toString()
             email = it?.getString("email").toString()
             passcode = it?.getString("passcode").toString()
+            birthdate = it?.getString("birthdate").toString()
 
         }
         println("Password pro -> " + pass)
@@ -123,7 +125,7 @@ class SelectProfile : Fragment() {
                                 profileValue,
                                 pass,
                                 "",
-                                passcode
+                                passcode,birthdate,""
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
                                 if (it.isSuccessful) {

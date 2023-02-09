@@ -1,6 +1,7 @@
 package com.japnoor.anticorruption
 
 import android.content.Context
+import android.content.pm.ActivityInfo
 import android.media.AudioManager
 import android.media.MediaPlayer
 import android.net.ConnectivityManager
@@ -25,6 +26,8 @@ class AudioActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAudioBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         val connectivityManager =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
@@ -95,6 +98,11 @@ class AudioActivity : AppCompatActivity() {
                 }                }
 
         },0)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
 
 }

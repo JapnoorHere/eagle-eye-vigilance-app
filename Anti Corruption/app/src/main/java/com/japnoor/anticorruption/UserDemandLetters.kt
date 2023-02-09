@@ -1,16 +1,16 @@
 package com.japnoor.anticorruption
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.*
 import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
@@ -68,6 +68,7 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
         }
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -81,9 +82,18 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
         demRef=database.reference.child("Demand Letter")
 
         binding = FragmentUserDemandLettersBinding.inflate(layoutInflater, container, false)
+
+        binding.search.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (event.rawX >= (binding.search.right - binding.search.compoundDrawables[2].bounds.width())) {
+                    binding.search.text.clear()
+                    return@setOnTouchListener true
+                }
+            }
+            return@setOnTouchListener false
+        }
+
         binding.shimmer.startShimmer()
-
-
         // Inflate the layout for this fragment
         demRef.addValueEventListener(object : ValueEventListener, UserComplaintClick, UserDemandClick {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -100,7 +110,27 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     binding.shimmer.stopShimmer()
                     binding.shimmer.visibility=View.GONE
                     binding.recyclerView.visibility=View.VISIBLE
+                    binding.search.addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                        }
 
+                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        }
+
+                        override fun afterTextChanged(s: Editable?) {
+                            var filteredList = ArrayList<DemandLetter>()
+                            for (item in demandList){
+                                if(item.demandSubject.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.demandNumber.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.demandDate.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.demandTime.toLowerCase().contains(s.toString().toLowerCase())
+                                )
+                                    filteredList.add(item)
+                            }
+                            userDemandAdapter.FilteredList(filteredList)
+                        }
+
+                    })
                 }
                 binding.shimmer.stopShimmer()
                 binding.shimmer.visibility=View.GONE

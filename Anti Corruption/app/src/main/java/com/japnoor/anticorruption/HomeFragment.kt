@@ -56,41 +56,7 @@ class HomeFragment : Fragment() {
         useRef = database.reference.child("Users")
         binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
 
-        useRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var dialog = Dialog(homeScreen)
-                for (each in snapshot.children) {
-                    var userr = each.getValue(Users::class.java)
-                    if (userr != null && userr.userId.equals(homeScreen.id) && userr.userStatus.equals(
-                            "1"
-                        )
-                    ) {
-                        var dialogB = BlockedUserDialogBinding.inflate(layoutInflater)
 
-                        dialog.setContentView(dialogB.root)
-                        dialog.window?.setLayout(
-                            WindowManager.LayoutParams.MATCH_PARENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT
-                        )
-                        dialog.setCancelable(false)
-                        dialogB.btn.setOnClickListener {
-                            dialog.dismiss()
-                            FirebaseAuth.getInstance().signOut()
-                            var intent = Intent(homeScreen, LoginActivity::class.java)
-                            homeScreen.startActivity(intent)
-                            homeScreen.finish()
-                        }
-                        dialog.show()
-
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-
-        })
 
         val textView = binding.movText
         val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 600f, -600f)

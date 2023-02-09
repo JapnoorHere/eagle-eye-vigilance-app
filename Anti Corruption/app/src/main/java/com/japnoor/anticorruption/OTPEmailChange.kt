@@ -11,8 +11,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentOTPEmailChangeBinding
 import papaya.`in`.sendmail.SendMail
 import kotlin.random.Random
@@ -20,17 +19,19 @@ import kotlin.random.nextInt
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
+
 class OTPEmailChange : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    var email : String=""
-    var random : Int=0
+    var email: String = ""
+    var random: Int = 0
     lateinit var homeScreen: HomeScreen
-    lateinit var user : FirebaseAuth
-    lateinit var userRef : DatabaseReference
+    lateinit var user: FirebaseAuth
+    lateinit var userRef: DatabaseReference
     lateinit var database: FirebaseDatabase
 
+    lateinit var userArrayList: ArrayList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,14 +45,16 @@ class OTPEmailChange : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        database=FirebaseDatabase.getInstance()
-        userRef=database.reference.child("Users")
-        homeScreen=activity as HomeScreen
-        user=FirebaseAuth.getInstance()
-        var binding = FragmentOTPEmailChangeBinding.inflate(layoutInflater,container,false)
+        database = FirebaseDatabase.getInstance()
+        userRef = database.reference.child("Users")
+        homeScreen = activity as HomeScreen
+        user = FirebaseAuth.getInstance()
+        userArrayList = ArrayList<String>()
+        var check=""
+        var binding = FragmentOTPEmailChangeBinding.inflate(layoutInflater, container, false)
 
         arguments.let {
-            email=it?.getString("email").toString()
+            email = it?.getString("email").toString()
         }
 
         binding.tvEmail.setText(email)
@@ -62,6 +65,7 @@ class OTPEmailChange : Fragment() {
         binding.otp2.doOnTextChanged { text, start, before, count ->
             if (!binding.otp2.text.toString().isNullOrEmpty())
                 binding.otp3.requestFocus()
+//           else if()
             else
                 binding.otp1.requestFocus()
         }
@@ -96,9 +100,9 @@ class OTPEmailChange : Fragment() {
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         if (isConnected) {
             OTP()
-        }
-        else{
-            Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(homeScreen, "Check your internet connection please", Toast.LENGTH_LONG)
+                .show()
 
         }
         binding.resendOtp.setOnClickListener {
@@ -110,7 +114,11 @@ class OTPEmailChange : Fragment() {
                 OTP()
                 Toast.makeText(homeScreen, "OTP sent", Toast.LENGTH_LONG).show()
             } else {
-                Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    homeScreen,
+                    "Check your internet connection please",
+                    Toast.LENGTH_LONG
+                ).show()
             }
         }
 
@@ -137,31 +145,66 @@ class OTPEmailChange : Fragment() {
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
+
                     binding.btnVerify.visibility = View.GONE
                     binding.progressbar.visibility = View.VISIBLE
                     user.currentUser?.updateEmail(email)?.addOnCompleteListener {
                         if (it.isSuccessful) {
+                            var map=HashMap<String,Any>()
                             homeScreen.navController.navigate(R.id.profileFragment)
                             binding.progressbar.visibility = View.GONE
                             binding.btnVerify.visibility = View.VISIBLE
                             userRef.child(homeScreen.id).child("email").setValue(email)
-                            homeScreen.navController.navigate(R.id.homeFragment)
+                            FirebaseDatabase.getInstance().reference.child("Complaints")
+                                .addValueEventListener(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        for (eachComplaint in snapshot.children) {
+                                            var complaintdetail = eachComplaint.getValue(Complaints::class.java)
+                                            if (complaintdetail != null && complaintdetail.userId.equals(homeScreen.id)) {
+                                                    var check = complaintdetail.complaintId
+                                                map.put("userEmail",email)
+                                                    println("CID" + check)
+
+                                                    println("SEt" + email)
+                                            }
+                                        }
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                        TODO("Not yet implemented")
+                                    }
+
+                                })
+
+                            FirebaseDatabase.getInstance().reference.child("Complaints")
+                                .child(check).updateChildren(map)
+                            homeScreen.finish()
+
+                        } else if (it.exception.toString()
+                                .equals("com.google.firebase.auth.FirebaseAuthUserCollisionException: The email address is already in use by another account.")
+                        ) {
+                            Toast.makeText(homeScreen, "Email already Exists", Toast.LENGTH_LONG)
+                                .show()
                         } else {
                             binding.progressbar.visibility = View.GONE
                             binding.btnVerify.visibility = View.VISIBLE
                             Toast.makeText(homeScreen, it.exception.toString(), Toast.LENGTH_LONG)
                                 .show()
+                            println("Emaol " + it.exception.toString())
                         }
                     }
-                }
-                else{
-                    Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+
+                } else {
+                    Toast.makeText(
+                        homeScreen,
+                        "Check your internet connection please",
+                        Toast.LENGTH_LONG
+                    ).show()
 
                 }
-            }
-                else {
-                binding.btnVerify.visibility= View.VISIBLE
-                binding.progressbar.visibility=View.GONE
+            } else {
+                binding.btnVerify.visibility = View.VISIBLE
+                binding.progressbar.visibility = View.GONE
                 Toast.makeText(homeScreen, "Wrong Otp", Toast.LENGTH_LONG).show()
             }
         }
@@ -171,9 +214,11 @@ class OTPEmailChange : Fragment() {
 
     fun OTP() {
         random = Random.nextInt(100000..999999)
-        val mail = SendMail("anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
+        val mail = SendMail(
+            "anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
             email, "Your One Time Password",
-            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random")
+            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
+        )
         mail.execute()
     }
 

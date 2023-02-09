@@ -1,11 +1,14 @@
 package com.japnoor.anticorruption
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.AudioItemBinding
 import java.io.File
@@ -48,16 +51,41 @@ class VideoRecordingListAdapter (var context: HomeScreen, var videoFiles: List<F
             context.startActivity(intent)
         }
 
-        holder.binding.share.setOnClickListener {
-            var bundle=Bundle()
+
+
+        holder.binding.more.setOnClickListener {
+            var bottomSheet = BottomSheetDialog(context)
+            bottomSheet.setContentView(R.layout.dialog_more)
+            bottomSheet.show()
+            var tvShare = bottomSheet.findViewById<TextView>(R.id.share)
+            var tvSend = bottomSheet.findViewById<TextView>(R.id.send)
+            var tvDelete = bottomSheet.findViewById<TextView>(R.id.delete)
+
+            tvShare?.setOnClickListener {
+                bottomSheet.dismiss()
+                val videoUri = Uri.parse(videoFiles[position].toString())
+                val shareIntent = Intent()
+                shareIntent.action = Intent.ACTION_SEND
+                shareIntent.putExtra(Intent.EXTRA_STREAM, videoUri)
+                shareIntent.type = "video/*"
+                context.startActivity(Intent.createChooser(shareIntent, "Share Video"))
+            }
+
+
+            tvSend?.setOnClickListener {
+                bottomSheet.dismiss()
+                var bundle=Bundle()
             bundle.putString("video",videoFiles[position].toUri().toString())
             context.navController.navigate(R.id.addComplaintFragment,bundle)
+            }
+
+            tvDelete?.setOnClickListener {
+                bottomSheet.dismiss()
+                videoFiles[position].delete()
+                context.navController.navigate(R.id.videoRecordingList)
+            }
         }
 
-        holder.binding.delete.setOnClickListener {
-            videoFiles[position].delete()
-            context.navController.navigate(R.id.videoRecordingList)
-        }
     }
 
     override fun getItemCount(): Int {

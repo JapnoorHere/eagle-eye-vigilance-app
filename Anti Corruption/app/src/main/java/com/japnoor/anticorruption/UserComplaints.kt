@@ -5,16 +5,13 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.text.format.DateFormat
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.view.WindowManager
-import android.webkit.MimeTypeMap
+import android.view.*
+import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
@@ -33,8 +30,8 @@ import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
-import com.sun.mail.imap.protocol.INTERNALDATE
 import java.util.*
+import kotlin.collections.ArrayList
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -81,6 +78,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
     }
 
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -93,9 +91,19 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
 
+
+        binding.search.setOnTouchListener { v, event ->
+            if (event.action == MotionEvent.ACTION_UP) {
+                if (event.rawX >= (binding.search.right - binding.search.compoundDrawables[2].bounds.width())) {
+                             binding.search.text.clear()
+                    return@setOnTouchListener true
+                }
+            }
+            return@setOnTouchListener false
+        }
+
+
         binding.shimmer.startShimmer()
-
-
         compRef.addValueEventListener(object : ValueEventListener, UserComplaintClick {
 
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -112,6 +120,27 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     binding.shimmer.visibility=View.GONE
                     binding.shimmer.stopShimmer()
                     binding.recyclerView.visibility=View.VISIBLE
+                    binding.search.addTextChangedListener(object : TextWatcher{
+                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                        }
+
+                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        }
+
+                        override fun afterTextChanged(s: Editable?) {
+                            var filteredList = ArrayList<Complaints>()
+                            for (item in complaintsList){
+                                if(item.complaintAgainst.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.complaintNumber.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.complaintDate.toLowerCase().contains(s.toString().toLowerCase())
+                                    || item.complaintTime.toLowerCase().contains(s.toString().toLowerCase())
+                                )
+                                    filteredList.add(item)
+                            }
+                            myComplaintsAdapter.FilteredList(filteredList)
+                        }
+
+                    })
                 }
                 binding.shimmer.visibility=View.GONE
                 binding.shimmer.stopShimmer()
@@ -388,6 +417,8 @@ class UserComplaints : Fragment(), UserComplaintClick {
                 }
             }
         })
+
+
 
         return binding.root
     }

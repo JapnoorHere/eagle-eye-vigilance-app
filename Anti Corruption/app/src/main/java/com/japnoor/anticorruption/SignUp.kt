@@ -2,6 +2,7 @@ package com.japnoor.anticorruption
 
 import android.app.Dialog
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.util.Patterns
 import android.view.View
@@ -31,7 +32,14 @@ class SignUp : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivitySignUpBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        this.title="Sign Up"
         navController=findNavController(R.id.navControllerSignup)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
     }
 }

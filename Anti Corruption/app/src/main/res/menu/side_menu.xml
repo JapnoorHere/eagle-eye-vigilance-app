@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <item android:id="@+id/Homeee"
+        android:title="Home"
+        android:icon="@drawable/ic_baseline_home_24"
+        />
+
+
+    <item
+        android:id="@+id/passcodee"
+        android:icon="@drawable/ic_baseline_password_24"
+        android:title="Change Passcode"
+        />
+
+    <item
+        android:id="@+id/sensorShake"
+        android:icon="@drawable/shakes"
+        android:title="Shake 2 Record"
+        />
+
+    <item
+        android:id="@+id/report"
+        android:icon="@drawable/ic_baseline_report_problem_24"
+        android:title="Report an Issue"
+        />
+
+    <item
+        android:id="@+id/about"
+        android:icon="@drawable/about"
+        android:title="About"
+        />
+    <item
+        android:id="@+id/credit"
+        android:icon="@drawable/credits"
+        android:title="Credit"
+        />
+    <item android:id="@+id/logoutt"
+    android:title="Logout"
+        android:icon="@drawable/ic_baseline_logout_241"
+    />
+
+
+
+
+</menu>

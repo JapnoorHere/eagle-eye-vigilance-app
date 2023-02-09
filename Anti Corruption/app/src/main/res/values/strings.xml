@@ -1,10 +1,13 @@
 <resources>
-    <string name="app_name">Anti Corruption</string>
+    <string name="app_name">Punjab Vigilance Bureau</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
     <string name="want_to_get_tips_or_knowledge_about_corruption_ntap_here">Want to get Tips or knowledge about Corruption? \nTap here👆🏻</string>
     <string name="select_your_profile">Select your Profile : </string>
     <string name="EnterPass">Enter Your Password to Continue</string>
+    <string name="acknowledge">"This Android project was created and developed by Japnoor Singh as a Major Project in Diploma Final Year. The idea behind the project was to create a unique and functional application that would bring value to the people of Punjab From the officials asking for Bribe. \n\nThe design, coding, and testing were all completed by Japnoor Singh and the project was brought to life through hard work, determination, and a passion for technology. The project is a testament to Japnoor's commitment to delivering quality and user-friendly solutions, and it's a representation of the skills in the field of Android development. \n\nI always strives to stay up-to-date with the latest advancements in technology and this project is no exception. From researching and evaluating user needs, to designing and implementing features, I put in countless hours to make this project a success. The end result is an app that is not only visually appealing but also intuitive and user-friendly. I am proud to have created something that will be of benefit to others and hopes that users will enjoy using it as much as I enjoyed creating it. "</string>
     <string-array name="District">
         <item>Amritsar</item>
         <item>Barnala</item>

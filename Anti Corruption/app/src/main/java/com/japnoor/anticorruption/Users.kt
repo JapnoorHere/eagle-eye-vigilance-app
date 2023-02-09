@@ -6,6 +6,8 @@ data class Users(var name : String="",
                  var profileValue : String="",
                  var password : String="",
                  var userStatus : String="",
-                 var passcode : String=""
+                 var passcode : String="",
+                 var birthdate : String = "",
+                 var userSensor : String = ""
 ) {
 }

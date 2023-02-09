@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout>
+
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,7 +12,7 @@
         android:id="@+id/passcodeView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#F1B416"
+            android:background="#F1B416"
         app:firstInputTip="Enter a passcode of 5 digits "
         app:correctStateColor="#71bb4d"
         app:wrongStateColor="#ea2b46"
@@ -25,7 +26,7 @@
         android:layout_height="wrap_content"
         android:text="Forgot Passcode?"
         android:textStyle="bold"
-        android:textAlignment="textEnd"
+        android:textAlignment="center"
         android:layout_marginBottom="10dp"
         android:layout_marginEnd="10dp"
         android:id="@+id/tvForgotPassword"
@@ -35,5 +36,4 @@
         />
 
 </RelativeLayout>
-
 </layout>

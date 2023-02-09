@@ -1,7 +1,11 @@
 package com.japnoor.anticorruption
 
+import android.app.DatePickerDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.os.Bundle
 import android.util.Patterns
 import androidx.fragment.app.Fragment
@@ -11,14 +15,18 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.widget.doOnTextChanged
+import androidx.databinding.DataBindingUtil.bind
 import androidx.databinding.DataBindingUtil.setContentView
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentSignUpBinding
 import com.japnoor.anticorruption.databinding.OtpBinding
 import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
 import papaya.`in`.sendmail.SendMail
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
+import kotlin.math.sign
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -34,6 +42,9 @@ class SignUpFragment : Fragment() {
     lateinit var userRef : DatabaseReference
     lateinit var database: FirebaseDatabase
     lateinit var signUp: SignUp
+     var emailList = ArrayList<String>()
+     var age : Int=0
+    var date : String=""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,77 +63,172 @@ class SignUpFragment : Fragment() {
         userRef=database.reference.child("Users")
         auth=FirebaseAuth.getInstance()
         binding=FragmentSignUpBinding.inflate(layoutInflater,container,false)
+        val auth = FirebaseAuth.getInstance()
+
+        val c = Calendar.getInstance()
+        val year = c.get(Calendar.YEAR)
+        val month = c.get(Calendar.MONTH)
+        val day = c.get(Calendar.DAY_OF_MONTH)
 
 
+        binding.btntrans.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val currentYear = calendar.get(Calendar.YEAR)
+            val currentMonth = calendar.get(Calendar.MONTH) + 1
+            val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
 
+            val datePickerDialog = DatePickerDialog(
+                signUp,
+                DatePickerDialog.OnDateSetListener { _, year, month, day ->
+                    val userBirthYear = year
+                    val userBirthMonth = month + 1
+                    val userBirthDay = day
 
-        binding.btnSignup.setOnClickListener {
-            if(binding.etName.text.toString().isNullOrEmpty()){
-                binding.etName.error="Enter Name"
-                binding.etName.requestFocus()
-            }
-            else if(binding.etEmail.text.toString().isNullOrEmpty()){
-                binding.etEmail.error="Enter email"
-                binding.etEmail.requestFocus()
-
-            }
-            else if(!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString()).matches()){
-                binding.etEmail.error ="Enter valid email"
-                binding.etEmail.requestFocus()
-            }
-
-            else if(binding.etPassword.text.toString().isNullOrEmpty()){
-                binding.etPassword.error="Enter Password"
-                binding.etPassword.requestFocus()
-            }
-            else if(binding.etPassword.text.toString().length<6){
-                binding.etPassword.error="Password must be of at least 6 characters"
-                binding.etPassword.requestFocus()
-            }
-
-            else if(binding.etREPassword.text.toString().isNullOrEmpty()){
-                binding.etREPassword.error="Enter Password again"
-                binding.etREPassword.requestFocus()
-            }
-            else {
-                var dialog=Dialog(signUp)
-                var dialogBinding=PasscodeDialogBinding.inflate(layoutInflater)
-                dialog.setContentView(dialogBinding.root)
-                dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT)
-                dialogBinding.etREPassword.doOnTextChanged { text, start, before, count ->
-                }
-                dialogBinding.btnSignup.setOnClickListener {
-                     if(dialogBinding.etPassword.text.toString().isNullOrEmpty()){
-                         dialogBinding.etPassword.error="Enter Password"
-                         dialogBinding.etPassword.requestFocus()
-                }
-                else if(dialogBinding.etPassword.text.toString().length<5){
-                         dialogBinding.etPassword.error="Password must be of at least 5 characters"
-                         dialogBinding.etPassword.requestFocus()
-                }
-                     else if(dialogBinding.etPassword.text.toString().length>5){
-                         dialogBinding.etPassword.error="Password must be of 5 characters only"
-                         dialogBinding.etPassword.requestFocus()
-                }
-
-                else if(dialogBinding.etREPassword.text.toString().isNullOrEmpty()){
-                         dialogBinding.etREPassword.error="Enter Password again"
-                         dialogBinding.etREPassword.requestFocus()
-                }
-                    else{
-                    var bundle = Bundle()
-                    bundle.putString("email", binding.etEmail.text.toString())
-                    bundle.putString("name", binding.etName.text.toString())
-                    bundle.putString("pass", binding.etPassword.text.toString())
-                    bundle.putString("passcode", dialogBinding.etPassword.text.toString())
-                         dialog.dismiss()
-                    signUp.navController.navigate(R.id.action_signUpFragment_to_OTPFragment,bundle)
-                }
-                }
-                dialog.show()
-
-            }
+                    var age = currentYear - userBirthYear
+                    if (userBirthMonth > currentMonth || (userBirthMonth == currentMonth && userBirthDay > currentDay)) {
+                        age--
+                    }
+                    if (age >= 18) {
+                           binding.birthDate.setText("$userBirthDay/$userBirthMonth/$userBirthYear")
+                        date="$userBirthDay/$userBirthMonth/$userBirthYear"
+                    } else {
+                         Toast.makeText(signUp,"At least 18 years of age is required",Toast.LENGTH_LONG).show()
+                    }
+                },
+                2004,
+                0,
+                1
+            )
+            datePickerDialog.show()
         }
-        return binding.root
-    }
+
+
+            binding.btnSignup.setOnClickListener {
+                if (binding.etName.text.toString().isNullOrEmpty()) {
+                    binding.etName.error = "Enter Name"
+                    binding.etName.requestFocus()
+                } else if (binding.etEmail.text.toString().isNullOrEmpty()) {
+                    binding.etEmail.error = "Enter email"
+                    binding.etEmail.requestFocus()
+
+                } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString())
+                        .matches()
+                ) {
+                    binding.etEmail.error = "Enter valid email"
+                    binding.etEmail.requestFocus()
+                } else if (binding.etPassword.text.toString().isNullOrEmpty()) {
+                    binding.etPassword.error = "Enter Password"
+                    binding.etPassword.requestFocus()
+                } else if (binding.etPassword.text.toString().length < 6) {
+                    binding.etPassword.error = "Password must be of at least 6 characters"
+                    binding.etPassword.requestFocus()
+                } else if (binding.etREPassword.text.toString().isNullOrEmpty()) {
+                    binding.etREPassword.error = "Enter Password again"
+                    binding.etREPassword.requestFocus()
+                }
+                else if(!(binding.etPassword.text.toString().equals(binding.etREPassword.text.toString()))){
+                    binding.etREPassword.requestFocus()
+                    binding.etREPassword.error="Password should be same"
+                }
+                else if (binding.birthDate.text.isNullOrEmpty()) {
+                    binding.birthDate.requestFocus()
+                    binding.birthDate.error = "Enter Your Birth Date"
+                } else {
+                    val connectivityManager =
+                        signUp.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                    if (isConnected) {
+                        binding.progressbar.visibility = View.VISIBLE
+                        binding.btnSignup.visibility = View.GONE
+                        auth.fetchSignInMethodsForEmail(binding.etEmail.text.toString().trim())
+                            .addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val signInMethods = task.result.signInMethods
+                                    println(signInMethods.toString())
+                                    if (signInMethods != null && signInMethods.contains("password")) {
+                                        binding.progressbar.visibility = View.GONE
+                                        binding.btnSignup.visibility = View.VISIBLE
+                                        Toast.makeText(
+                                            signUp,
+                                            "Email already exists",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    } else {
+                                        println("Age : " + age)
+                                        binding.progressbar.visibility = View.GONE
+                                        binding.btnSignup.visibility = View.VISIBLE
+                                        var dialog = Dialog(signUp)
+                                        var dialogBinding =
+                                            PasscodeDialogBinding.inflate(layoutInflater)
+                                        dialog.setContentView(dialogBinding.root)
+                                        dialog.window?.setLayout(
+                                            WindowManager.LayoutParams.MATCH_PARENT,
+                                            WindowManager.LayoutParams.WRAP_CONTENT
+                                        )
+                                        dialogBinding.btnSignup.setOnClickListener {
+                                            if (dialogBinding.etPassword.text.toString()
+                                                    .isNullOrEmpty()
+                                            ) {
+                                                dialogBinding.etPassword.error = "Enter Passcode"
+                                                dialogBinding.etPassword.requestFocus()
+                                            } else if (dialogBinding.etPassword.text.toString().length < 5) {
+                                                dialogBinding.etPassword.error =
+                                                    "Passcode must be of at least 5 characters"
+                                                dialogBinding.etPassword.requestFocus()
+                                            } else if (dialogBinding.etPassword.text.toString().length > 5) {
+                                                dialogBinding.etPassword.error =
+                                                    "Passcode must be of 5 characters only"
+                                                dialogBinding.etPassword.requestFocus()
+                                            } else if (dialogBinding.etREPassword.text.toString()
+                                                    .isNullOrEmpty()
+                                            ) {
+                                                dialogBinding.etREPassword.error =
+                                                    "Enter Passcode again"
+                                                dialogBinding.etREPassword.requestFocus()
+                                            }
+                                            else if(!(dialogBinding.etPassword.text.toString().equals(dialogBinding.etREPassword.text.toString()))){
+                                                dialogBinding.etREPassword.requestFocus()
+                                                dialogBinding.etREPassword.error="Enter Passcode Again"
+                                            }
+
+                                            else {
+                                                var bundle = Bundle()
+                                                bundle.putString(
+                                                    "email",
+                                                    binding.etEmail.text.toString().trim()
+                                                )
+                                                bundle.putString(
+                                                    "name",
+                                                    binding.etName.text.toString()
+                                                )
+                                                bundle.putString(
+                                                    "pass",
+                                                    binding.etPassword.text.toString()
+                                                )
+                                                bundle.putString("passcode", dialogBinding.etPassword.text.toString())
+                                                bundle.putString("birthdate", date)
+                                                dialog.dismiss()
+                                                signUp.navController.navigate(
+                                                    R.id.action_signUpFragment_to_OTPFragment,
+                                                    bundle
+                                                )
+                                            }
+                                        }
+                                        dialog.show()
+                                    }
+                                }
+                            }
+                    } else {
+                        Toast.makeText(
+                            signUp,
+                            "Check your internet connection please",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                    }
+                }
+            }
+            return binding.root
+        }
 }

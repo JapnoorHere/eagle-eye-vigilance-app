@@ -4,11 +4,14 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import com.google.android.material.transition.Hold
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -46,6 +49,12 @@ arguments.let {
      pass=it?.getString("pass").toString()
 }
         var binding=FragmentCheckPasswordBinding.inflate(layoutInflater,container,false)
+
+        binding.lottie.playAnimation()
+
+        binding.lottie.setOnClickListener{
+            binding.lottie.playAnimation()
+        }
 
         binding.btnNext.setOnClickListener {
             if(binding.etEmail.text.toString().isNullOrEmpty()){

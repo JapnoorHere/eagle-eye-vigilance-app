@@ -6,13 +6,17 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.AudioItemBinding
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Date
+import java.util.*
+
 
 class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File>)  : RecyclerView.Adapter<AudioRecordingListAdapter.ViewHolder>() {
 
@@ -40,7 +44,7 @@ class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
 
-        holder.binding.name.text=audioList[position].name.removeSuffix(".3gp")
+        holder.binding.name.text=audioList[position].name.removeSuffix(".mp3")
         var last=audioList[position].lastModified()
         var date=Date(last)
         val format = SimpleDateFormat("dd/MM/yyyy HH:mm")
@@ -66,32 +70,46 @@ class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File
             }
                 }
 
-        holder.binding.delete.setOnClickListener {
-            mediaPlayer?.stop()
-            mediaPlayer?.reset()
-            audioList[position].delete()
-            context.navController.navigate(R.id.audiorecordingListFragment)
+
+        holder.binding.more.setOnClickListener {
+            var bottomSheet = BottomSheetDialog(context)
+            bottomSheet.setContentView(R.layout.dialog_more)
+            bottomSheet.show()
+            var tvShare = bottomSheet.findViewById<TextView>(R.id.share)
+            var tvSend = bottomSheet.findViewById<TextView>(R.id.send)
+            var tvDelete = bottomSheet.findViewById<TextView>(R.id.delete)
+
+            tvShare?.setOnClickListener {
+                bottomSheet.dismiss()
+            val videoUri = Uri.parse(audioList[position].toString())
+            val shareIntent = Intent()
+            shareIntent.action = Intent.ACTION_SEND
+            shareIntent.putExtra(Intent.EXTRA_STREAM, videoUri)
+            shareIntent.type = "audio/*"
+            context.startActivity(Intent.createChooser(shareIntent, "Share Audio"))
+            }
+
+
+            tvSend?.setOnClickListener {
+                bottomSheet.dismiss()
+                mediaPlayer?.stop()
+                mediaPlayer?.reset()
+                var bundle = Bundle()
+                bundle.putString("audio",audioList[position].toUri().toString())
+                context.navController.navigate(R.id.addComplaintFragment,bundle)
+            }
+
+            tvDelete?.setOnClickListener {
+                bottomSheet.dismiss()
+                mediaPlayer?.stop()
+                mediaPlayer?.reset()
+                audioList[position].delete()
+                context.navController.navigate(R.id.audiorecordingListFragment)
+            }
         }
 
 
 
-        holder.binding.share.setOnClickListener {
-            mediaPlayer?.stop()
-            mediaPlayer?.reset()
-            var bundle =Bundle()
-            bundle.putString("audio",audioList[position].toUri().toString())
-            context.navController.navigate(R.id.addComplaintFragment,bundle)
-        }
-
-
-//        holder.binding.share.setOnClickListener {
-//            val share = Intent(Intent.ACTION_SEND)
-//            share.type = "video/3gpp"
-//            share.setDataAndType(Uri.fromFile(audioList[position]), context.contentResolver.getType(Uri.fromFile(audioList[position])))
-//            share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(audioList[position]))
-//            share.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-//            context.startActivity(Intent.createChooser(share, "Share Sound File"))
-//        }
 
     }
 

@@ -3,6 +3,8 @@ package com.japnoor.anticorruption
 import android.Manifest.permission.RECORD_AUDIO
 import android.app.Dialog
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.media.MediaRecorder
 import android.net.Uri
 import android.os.Bundle
@@ -30,11 +32,12 @@ companion object{
 
      var uri : Uri?=null
     lateinit var homeScreen : HomeScreen
-    lateinit var audioref : DatabaseReference
     lateinit var database: FirebaseDatabase
-    var audioList: ArrayList<Audio> = ArrayList()
     var arrayList: ArrayList<String> = ArrayList()
     lateinit var audioRecordingListAdapter: AudioRecordingListAdapter
+    lateinit var userRef : DatabaseReference
+    var userSensor=""
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -47,7 +50,9 @@ companion object{
         var binding= FragmentAudioRecordingListBinding.inflate(layoutInflater,container,false)
         database=FirebaseDatabase.getInstance()
         homeScreen=activity as HomeScreen
-        audioref=database.reference.child("audioRecording")
+        database=FirebaseDatabase.getInstance()
+        userRef=database.reference.child("Users")
+
 
         arguments.let {
             uri=it?.getString("uri").toString().toUri()
@@ -55,11 +60,10 @@ companion object{
 
         println("URI- > " + uri.toString())
 
-
         val musicDir = File("/storage/emulated/0/Android/data/com.japnoor.anticorruption/files/Music/")
         val audioFiles = musicDir.listFiles { file ->
             val mimeType = URLConnection.guessContentTypeFromName(file.name)
-            mimeType != null && mimeType.startsWith("video/3gpp")
+            mimeType != null && mimeType.startsWith("audio/mpeg")
         }
             if (audioFiles != null) {
             audioRecordingListAdapter= AudioRecordingListAdapter(homeScreen, audioFiles.toList())
@@ -68,7 +72,6 @@ companion object{
         }
 
         binding.fabbtn.setOnClickListener {
-
              requestAudioPermission()
         }
 
@@ -88,31 +91,45 @@ companion object{
         var dialog=Dialog(homeScreen)
         var dialogB=FragmentAudioRecordBinding.inflate(layoutInflater)
         dialog.setContentView(dialogB.root)
-        dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
+
+
         dialogB.audiorecord.setOnClickListener {
             if (!isRecording) {
+                homeScreen.isSensorActive=false
+                dialogB.audiorecord.visibility=View.GONE
+                dialogB.lottie.visibility=View.VISIBLE
+                dialogB.lottie.playAnimation()
                 val currentTime = Date().time
-                filee = File(requireContext().getExternalFilesDir(Environment.DIRECTORY_MUSIC),"Audio $currentTime.3gp")
+                filee = File(requireContext().getExternalFilesDir(Environment.DIRECTORY_MUSIC),"Audio $currentTime.mp3")
                 mediaRecorder = MediaRecorder()
                 mediaRecorder?.setAudioSource(MediaRecorder.AudioSource.MIC)
-                mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                mediaRecorder?.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 mediaRecorder?.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
                 mediaRecorder?.setOutputFile(filee?.absolutePath)
                 dialogB.tv.setText("Recording has started")
                 mediaRecorder?.prepare()
                 mediaRecorder?.start()
                 isRecording = true
-                dialogB.audiorecord.setImageResource(R.drawable.audiostart)
+//                dialogB.audiorecord.setImageResource(R.drawable.audiostart)
                 dialog.setCancelable(false)
-            } else {
+            }
+        }
+
+        dialogB.lottie.setOnClickListener{
+            if(isRecording) {
+                homeScreen.isSensorActive=true
+                dialogB.audiorecord.visibility=View.VISIBLE
+                dialogB.lottie.visibility=View.GONE
                 dialogB.tv.setText("Recording is stopped")
-                mediaRecorder?.stop()
+                mediaRecorder?.pause()
                 mediaRecorder?.reset()
                 mediaRecorder?.release()
                 dialog.dismiss()
                 dialog.setCancelable(true)
                 homeScreen.navController.navigate(R.id.audiorecordingListFragment)
-                dialogB.audiorecord.setImageResource(R.drawable.audiostop)
+//                dialogB.audiorecord.setImageResource(R.drawable.audiostop)
                 isRecording = false
             }
         }

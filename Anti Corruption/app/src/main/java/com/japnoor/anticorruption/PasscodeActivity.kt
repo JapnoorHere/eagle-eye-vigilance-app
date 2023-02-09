@@ -3,6 +3,7 @@ package com.japnoor.anticorruption
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +28,7 @@ class PasscodeActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         binding=ActivityPasscodeBinding.inflate(layoutInflater)
         setContentView(binding.root)
         database=FirebaseDatabase.getInstance()
@@ -153,6 +155,12 @@ class PasscodeActivity : AppCompatActivity() {
           }
 
 
+
+    }
+
+    override fun onStart() {
+        super.onStart()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
     }
 }

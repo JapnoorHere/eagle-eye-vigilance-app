@@ -9,7 +9,6 @@
     android:layout_height="match_parent">
     <com.facebook.shimmer.ShimmerFrameLayout
         android:id="@+id/shimmer"
-
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -36,8 +35,8 @@
 
             <ImageView
                 android:id="@+id/Profile"
-                android:layout_width="200dp"
-                android:layout_height="200dp"
+                android:layout_width="150dp"
+                android:layout_height="150dp"
                 android:layout_marginTop="5dp"
                 android:src="@drawable/profile"
                 android:textColor="@color/white" />
@@ -138,7 +137,53 @@
                     android:src="@drawable/ic_baseline_edit_24"
                     app:tint="@color/white" />
             </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginEnd="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/edit_text"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:maxLines="1"
+                        android:padding="10dp"
+                        android:text="Birth Date : "
+                        android:textColor="@color/black"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+
+                        />
+
+                    <TextView
+                        android:id="@+id/birthdate"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="text"
+                        android:paddingStart="10dp"
+                        android:paddingBottom="10dp"
+                        android:textColor="@color/black"
+
+                        />
+                </LinearLayout>
+
+                <com.google.android.material.floatingactionbutton.FloatingActionButton
+                    android:id="@+id/btndate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginTop="10dp"
+                    android:backgroundTint="@color/black"
+                    android:src="@drawable/ic_baseline_edit_24"
+                    app:tint="@color/white" />
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">

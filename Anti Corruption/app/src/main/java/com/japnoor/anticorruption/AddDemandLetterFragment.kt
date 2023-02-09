@@ -29,6 +29,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentAddDemandLetterBinding
+import java.text.SimpleDateFormat
 import java.util.*
 
 private const val ARG_PARAM1 = "param1"
@@ -85,40 +86,7 @@ class AddDemandLetterFragment : Fragment() {
 
 
 
-        demuserrRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var dialog = Dialog(homeScreen)
-                for (each in snapshot.children) {
-                    var userr = each.getValue(Users::class.java)
-                    if (userr != null && userr.userId.equals(homeScreen.id) && userr.userStatus.equals(
-                            "1"
-                        )
-                    ) {
-                        var dialogB = BlockedUserDialogBinding.inflate(layoutInflater)
-                        dialog.setContentView(dialogB.root)
-                        dialog.setCancelable(false)
-                        dialog.window?.setLayout(
-                            WindowManager.LayoutParams.MATCH_PARENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT
-                        )
-                        dialogB.btn.setOnClickListener {
-                            dialog.dismiss()
-                            FirebaseAuth.getInstance().signOut()
-                            var intent = Intent(homeScreen, LoginActivity::class.java)
-                            homeScreen.startActivity(intent)
-                            homeScreen.finish()
-                        }
-                        dialog.show()
 
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-
-        })
         binding.btnSubmit.setOnClickListener {
             val input: String = binding.DemandSubject.getText().toString().trim()
             val input1: String = binding.DemandDetails.getText().toString().trim()
@@ -285,11 +253,17 @@ class AddDemandLetterFragment : Fragment() {
                     var demDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var did = demRef.push().key
                     imageUrl = it.toString()
+                    var timestamp = System.currentTimeMillis()
+                    val randomNumber = (100..999).random()
+                    var timestamp1=timestamp.toString().substring(0,5)
+                    var demandNumber = "$timestamp1$randomNumber"
+                    val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    var demandTime = format.format(Date())
                     var demands = DemandLetter(
                         binding.DemandSubject.text.toString(),
                         binding.DemandDetails.text.toString(),
                         demDate.toString(), binding.District.text.toString(), homeScreen.id,
-                        did.toString(), imageUrl, imageName, userName, userEmail, ""
+                        did.toString(), imageUrl, imageName, userName, userEmail, "",demandNumber,demandTime
                     )
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {

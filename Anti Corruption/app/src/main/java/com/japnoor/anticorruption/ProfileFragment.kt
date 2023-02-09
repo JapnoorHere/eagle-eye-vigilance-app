@@ -1,5 +1,6 @@
 package com.japnoor.anticorruption
 
+import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.ContentValues.TAG
 import android.content.Context
@@ -26,6 +27,7 @@ import com.japnoor.anticorruption.databinding.DialogSelectProfileBinding
 import com.japnoor.anticorruption.databinding.FragmentProfileBinding
 import com.japnoor.anticorruption.databinding.ProfileItemBinding
 import com.japnoor.anticorruption.databinding.ProfileItemEmailBinding
+import java.util.*
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -39,15 +41,13 @@ class ProfileFragment : Fragment() {
     var userEmail: String = ""
     var userProfile: String = ""
     var userPass: String = ""
-
-     var profileValue : String=""
+    var userDate: String = ""
+    var newdate: String = ""
+    var profileValue: String = ""
 
 
     lateinit var database: FirebaseDatabase
     lateinit var profileRef: DatabaseReference
-
-//    lateinit var dialogbindingEmail: ProfileEmailItemBinding
-//    lateinit var dialogBindingPhone: ProfileItemPhoneBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,41 +64,9 @@ class ProfileFragment : Fragment() {
     ): View? {
         database = FirebaseDatabase.getInstance()
         profileRef = database.reference.child("Users")
-
         var binding = FragmentProfileBinding.inflate(layoutInflater, container, false)
         homeScreen = activity as HomeScreen
-        profileRef.addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                var dialog= Dialog(homeScreen)
-                for(each in snapshot.children){
-                    var userr=each.getValue(Users::class.java)
-                    if(userr!=null &&  userr.userId.equals(homeScreen.id) &&  userr.userStatus.equals("1")){
-                        var dialogB= BlockedUserDialogBinding.inflate(layoutInflater)
-                        dialog.setContentView(dialogB.root)
-                        dialog.window?.setLayout(
-                            WindowManager.LayoutParams.MATCH_PARENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT
-                        )
-                        dialog.setCancelable(false)
 
-                        dialogB.btn.setOnClickListener {
-                            dialog.dismiss()
-                            FirebaseAuth.getInstance().signOut()
-                            var intent= Intent(homeScreen,LoginActivity::class.java)
-                            homeScreen.startActivity(intent)
-                            homeScreen.finish()
-                        }
-                        dialog.show()
-
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-
-        })
 
         binding.shimmer.startShimmer()
 
@@ -110,13 +78,15 @@ class ProfileFragment : Fragment() {
                         userName = info.name
                         userEmail = info.email
                         userProfile = info.profileValue
-                        userPass=info.password
+                        userPass = info.password
+                        userDate = info.birthdate
                         println("Yeh " + userName)
                         println("Yeh " + userEmail)
                         binding.name.text = userName
-                        binding.email.setText(userEmail)
-                        binding.pass.text=userPass
-                        when(userProfile) {
+                        binding.email.text = userEmail
+                        binding.pass.text = userPass
+                        binding.birthdate.text = userDate
+                        when (userProfile) {
                             "1" -> binding.Profile.setImageResource(R.drawable.man1)
                             "2" -> binding.Profile.setImageResource(R.drawable.man2)
                             "3" -> binding.Profile.setImageResource(R.drawable.man3)
@@ -127,8 +97,8 @@ class ProfileFragment : Fragment() {
                             "8" -> binding.Profile.setImageResource(R.drawable.girl4)
                         }
                         binding.shimmer.stopShimmer()
-                        binding.shimmer.visibility=View.GONE
-                        binding.scroll.visibility=View.VISIBLE
+                        binding.shimmer.visibility = View.GONE
+                        binding.scroll.visibility = View.VISIBLE
 
                     }
 
@@ -141,6 +111,55 @@ class ProfileFragment : Fragment() {
             }
 
         })
+
+        binding.btndate.setOnClickListener {
+            val calendar = Calendar.getInstance()
+            val currentYear = calendar.get(Calendar.YEAR)
+            val currentMonth = calendar.get(Calendar.MONTH) + 1
+            val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                homeScreen,
+                DatePickerDialog.OnDateSetListener { _, year, month, day ->
+                    val userBirthYear = year
+                    val userBirthMonth = month + 1
+                    val userBirthDay = day
+
+                    var age = currentYear - userBirthYear
+                    if (userBirthMonth > currentMonth || (userBirthMonth == currentMonth && userBirthDay > currentDay)) {
+                        age--
+                    }
+                    if (age >= 18) {
+                        binding.birthdate.text = "$userBirthDay/$userBirthMonth/$userBirthYear"
+                        newdate = "$userBirthDay/$userBirthMonth/$userBirthYear"
+                        val connectivityManager =
+                            homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                        if (isConnected) {
+                            homeScreen.finish()
+                            profileRef.child(homeScreen.id).child("birthdate").setValue(newdate)
+                        } else {
+                            Toast.makeText(
+                                homeScreen,
+                                "Check you internet connection please",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    } else {
+                        Toast.makeText(
+                            homeScreen,
+                            "At least 18 years of age is required",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }, 2004,
+                0,
+                1
+            )
+            datePickerDialog.show()
+        }
+
 
         binding.Profile.setOnClickListener {
             var dialog = Dialog(homeScreen)
@@ -210,14 +229,18 @@ class ProfileFragment : Fragment() {
                     profileRef.child(homeScreen.id).child("profileValue").setValue(profileValue)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
+                                homeScreen.finish()
                                 dialog.dismiss()
                             }
                         }
                 }
                 dialog.show()
-            }
-            else{
-                Toast.makeText(homeScreen,"Check you internet connection please",Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(
+                    homeScreen,
+                    "Check you internet connection please",
+                    Toast.LENGTH_LONG
+                ).show()
 
             }
         }
@@ -238,39 +261,41 @@ class ProfileFragment : Fragment() {
                 val input: String = dialogBinding.et.getText().toString().trim()
                 if (dialogBinding.et.text.isNullOrEmpty()) {
                     dialogBinding.et.error = "Cannot be empty!"
-                }
-                else if(input.length==0){
+                } else if (input.length == 0) {
                     dialogBinding.et.requestFocus()
                     dialogBinding.et.error = "Enter Some characters "
-                }
-                else {
+                } else {
 
-                        val connectivityManager =
-                            homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
-                        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-                        if (isConnected) {
+                    val connectivityManager =
+                        homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                    if (isConnected) {
+                        homeScreen.finish()
                         profileRef.child(homeScreen.id).child("name")
                             .setValue(dialogBinding.et.text.toString())
                         dialog.dismiss()
-                    }
-                    else{
-                        Toast.makeText(homeScreen,"Check you internet connection please",Toast.LENGTH_LONG).show()
+                    } else {
+                        Toast.makeText(
+                            homeScreen,
+                            "Check you internet connection please",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }
             dialog.show()
         }
         binding.btnEmail.setOnClickListener {
-            var bundle=Bundle()
-            bundle.putString("email",userEmail)
-            bundle.putString("pass",userPass)
-            homeScreen.navController.navigate(R.id.action_profileFragment_to_checkPassword,bundle)
+            var bundle = Bundle()
+            bundle.putString("email", userEmail)
+            bundle.putString("pass", userPass)
+            homeScreen.navController.navigate(R.id.action_profileFragment_to_checkPassword, bundle)
 
         }
 
         binding.btnPass.setOnClickListener {
-            var intent=Intent(homeScreen,ForgotPassword::class.java)
+            var intent = Intent(homeScreen, ForgotPassword::class.java)
             startActivity(intent)
         }
         return binding.root

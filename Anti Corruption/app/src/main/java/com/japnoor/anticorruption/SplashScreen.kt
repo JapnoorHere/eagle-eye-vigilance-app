@@ -2,6 +2,7 @@ package com.japnoor.anticorruption
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Build
@@ -26,6 +27,7 @@ class SplashScreen : AppCompatActivity() {
     lateinit var binding : ActivitySplashScreenBinding
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         binding=ActivitySplashScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -84,6 +86,10 @@ class SplashScreen : AppCompatActivity() {
 
     }
 
+    override fun onStart() {
+        super.onStart()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
+    }
 
 }

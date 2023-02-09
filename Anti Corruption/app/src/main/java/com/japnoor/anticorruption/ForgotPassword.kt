@@ -2,6 +2,7 @@ package com.japnoor.anticorruption
 
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import androidx.appcompat.app.AppCompatActivity
@@ -22,11 +23,12 @@ class ForgotPassword : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding=ActivityForgotPasswordBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         auth=FirebaseAuth.getInstance()
 
         var user=intent.getStringExtra("id")
-
+        this.title="Change Password"
         binding.btnNext.setOnClickListener {
 
             if(binding.etEmail.text.toString().isNullOrEmpty()){
@@ -41,7 +43,7 @@ class ForgotPassword : AppCompatActivity() {
                 if (isConnected) {
                     binding.btnNext.visibility = View.GONE
                     binding.progressbar.visibility = View.VISIBLE
-                    auth.sendPasswordResetEmail(binding.etEmail.text.toString())
+                    auth.sendPasswordResetEmail(binding.etEmail.text.toString().trim())
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
                                 binding.btnNext.visibility = View.VISIBLE
@@ -51,7 +53,23 @@ class ForgotPassword : AppCompatActivity() {
                                 var intent = Intent(this, LoginActivity::class.java)
                                 startActivity(intent)
                                 finish()
-                            } else {
+                            }
+                            else if(it.exception.toString().equals("com.google.firebase.auth.FirebaseAuthInvalidUserException: There is no user record corresponding to this identifier. The user may have been deleted."))
+                            {
+                                binding.btnNext.visibility = View.VISIBLE
+                                binding.progressbar.visibility = View.GONE
+                                Toast.makeText(this,"Email does not exists", Toast.LENGTH_LONG)
+                                    .show()
+                            }
+                            else if(it.exception.toString().equals("com.google.firebase.auth.FirebaseAuthInvalidCredentialsException: The email address is badly formatted."))
+                            {
+                                binding.btnNext.visibility = View.VISIBLE
+                                binding.progressbar.visibility = View.GONE
+                                Toast.makeText(this,"Not a valid email", Toast.LENGTH_LONG)
+                                    .show()
+                            }
+                            else {
+                                println(it.exception.toString())
                                 binding.btnNext.visibility = View.VISIBLE
                                 binding.progressbar.visibility = View.GONE
                                 Toast.makeText(this, it.exception.toString(), Toast.LENGTH_LONG)
@@ -66,5 +84,9 @@ class ForgotPassword : AppCompatActivity() {
             }
         }
 
+    }
+    override fun onStart() {
+        super.onStart()
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     }
 }
