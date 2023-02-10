@@ -317,9 +317,6 @@ class HomeScreen : AppCompatActivity() {
 
                         })
                         dialogB.lottie.setMinAndMaxFrame(10,35)
-                        dialogB.onswitch.setOnClickListener {
-                            finish()
-                        }
                         dialogB.onswitch.setOnCheckedChangeListener { _, isChecked ->
 
                             if (isChecked) {

@@ -130,7 +130,7 @@ class LoginActivity : AppCompatActivity() {
         var user = auth.currentUser
         if (user != null) {
             var intent = Intent(this@LoginActivity, HomeScreen::class.java)
-            intent.putExtra("uid", user?.uid)
+            intent.putExtra("uid", user.uid)
             startActivity(intent)
             finish()
         }

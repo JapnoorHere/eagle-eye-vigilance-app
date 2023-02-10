@@ -137,7 +137,6 @@ class ProfileFragment : Fragment() {
                         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                         if (isConnected) {
-                            homeScreen.finish()
                             profileRef.child(homeScreen.id).child("birthdate").setValue(newdate)
                         } else {
                             Toast.makeText(
@@ -229,7 +228,6 @@ class ProfileFragment : Fragment() {
                     profileRef.child(homeScreen.id).child("profileValue").setValue(profileValue)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
-                                homeScreen.finish()
                                 dialog.dismiss()
                             }
                         }
@@ -271,7 +269,6 @@ class ProfileFragment : Fragment() {
                     val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                     val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (isConnected) {
-                        homeScreen.finish()
                         profileRef.child(homeScreen.id).child("name")
                             .setValue(dialogBinding.et.text.toString())
                         dialog.dismiss()

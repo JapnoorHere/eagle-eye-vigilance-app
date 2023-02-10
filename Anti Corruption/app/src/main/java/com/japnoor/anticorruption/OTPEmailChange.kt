@@ -30,6 +30,7 @@ class OTPEmailChange : Fragment() {
     lateinit var user: FirebaseAuth
     lateinit var userRef: DatabaseReference
     lateinit var database: FirebaseDatabase
+    lateinit var arrayList: ArrayList<String>
 
     lateinit var userArrayList: ArrayList<String>
 
@@ -51,10 +52,12 @@ class OTPEmailChange : Fragment() {
         user = FirebaseAuth.getInstance()
         userArrayList = ArrayList<String>()
         var check=""
+        arrayList= ArrayList()
         var binding = FragmentOTPEmailChangeBinding.inflate(layoutInflater, container, false)
 
         arguments.let {
             email = it?.getString("email").toString()
+            arrayList= it?.getStringArrayList("cids") as ArrayList<String>
         }
 
         binding.tvEmail.setText(email)
@@ -150,35 +153,15 @@ class OTPEmailChange : Fragment() {
                     binding.progressbar.visibility = View.VISIBLE
                     user.currentUser?.updateEmail(email)?.addOnCompleteListener {
                         if (it.isSuccessful) {
-                            var map=HashMap<String,Any>()
-                            homeScreen.navController.navigate(R.id.profileFragment)
                             binding.progressbar.visibility = View.GONE
                             binding.btnVerify.visibility = View.VISIBLE
-                            userRef.child(homeScreen.id).child("email").setValue(email)
-                            FirebaseDatabase.getInstance().reference.child("Complaints")
-                                .addValueEventListener(object : ValueEventListener {
-                                    override fun onDataChange(snapshot: DataSnapshot) {
-                                        for (eachComplaint in snapshot.children) {
-                                            var complaintdetail = eachComplaint.getValue(Complaints::class.java)
-                                            if (complaintdetail != null && complaintdetail.userId.equals(homeScreen.id)) {
-                                                    var check = complaintdetail.complaintId
-                                                map.put("userEmail",email)
-                                                    println("CID" + check)
-
-                                                    println("SEt" + email)
-                                            }
-                                        }
-                                    }
-
-                                    override fun onCancelled(error: DatabaseError) {
-                                        TODO("Not yet implemented")
-                                    }
-
-                                })
-
-                            FirebaseDatabase.getInstance().reference.child("Complaints")
-                                .child(check).updateChildren(map)
-                            homeScreen.finish()
+                            userRef.child(homeScreen.id).child("email")
+                                .setValue(email)
+                            for(eachh in arrayList){
+                                FirebaseDatabase.getInstance().reference.child("Complaints").child(eachh).child("userEmail").setValue(email).addOnCompleteListener {
+                                    homeScreen.navController.navigate(R.id.homeFragment)
+                                }
+                            }
 
                         } else if (it.exception.toString()
                                 .equals("com.google.firebase.auth.FirebaseAuthUserCollisionException: The email address is already in use by another account.")
@@ -194,7 +177,8 @@ class OTPEmailChange : Fragment() {
                         }
                     }
 
-                } else {
+                }
+                else {
                     Toast.makeText(
                         homeScreen,
                         "Check your internet connection please",

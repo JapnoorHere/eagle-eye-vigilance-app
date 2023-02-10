@@ -74,8 +74,8 @@ class ChangeEmail : Fragment() {
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
-                    binding.progressbar.visibility=View.VISIBLE
-                    binding.btnNext.visibility=View.GONE
+                    binding.progressbar.visibility = View.VISIBLE
+                    binding.btnNext.visibility = View.GONE
                     user.fetchSignInMethodsForEmail(binding.etEmail.text.toString())
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
@@ -104,17 +104,44 @@ class ChangeEmail : Fragment() {
                                                     "OTP sent",
                                                     Toast.LENGTH_LONG
                                                 ).show()
-                                                binding.btnNext.visibility = View.VISIBLE
-                                                binding.progressbar.visibility = View.GONE
-                                                var bundle = Bundle()
-                                                bundle.putString(
-                                                    "email",
-                                                    binding.etEmail.text.toString()
-                                                )
-                                                homeScreen.navController.navigate(
-                                                    R.id.action_changeEmail_to_OTPEmailChange,
-                                                    bundle
-                                                )
+
+                                                FirebaseDatabase.getInstance().reference.child("Complaints")
+                                                    .addValueEventListener(object :
+                                                        ValueEventListener {
+                                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                                            for (eachcompl in snapshot.children) {
+                                                                var complaintdetail =
+                                                                    eachcompl.getValue(Complaints::class.java)
+                                                                if (complaintdetail != null && complaintdetail.userId.equals(
+                                                                        homeScreen.id
+                                                                    )
+                                                                ) {
+                                                                    var check =
+                                                                        complaintdetail.complaintId
+                                                                    var arrayList = ArrayList<String>()
+                                                                    arrayList.add(complaintdetail.complaintId)
+                                                                    binding.btnNext.visibility = View.VISIBLE
+                                                                    binding.progressbar.visibility = View.GONE
+                                                                    var bundle = Bundle()
+                                                                    bundle.putString("email", binding.etEmail.text.toString()
+                                                                    )
+                                                                    bundle.putStringArrayList("cids",arrayList)
+                                                                    homeScreen.navController.navigate(
+                                                                        R.id.OTPEmailChange,
+                                                                        bundle
+                                                                    )
+                                                                    println("CID" + check)
+                                                                    println("SEt" + email)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        override fun onCancelled(error: DatabaseError) {
+                                                            TODO("Not yet implemented")
+                                                        }
+
+                                                    })
+
 
 
                                             } else {
@@ -124,17 +151,20 @@ class ChangeEmail : Fragment() {
                                         }
                                 }
 
+                            }
                         }
+                } else {
+                    Toast.makeText(
+                        homeScreen,
+                        "Check your internet connection please",
+                        Toast.LENGTH_LONG
+                    )
+                        .show()
+
                 }
             }
-            else{
-            Toast.makeText(homeScreen, "Check your internet connection please", Toast.LENGTH_LONG)
-                .show()
-
         }
-        }
+        return binding.root
     }
-    return binding.root
-}
 
 }

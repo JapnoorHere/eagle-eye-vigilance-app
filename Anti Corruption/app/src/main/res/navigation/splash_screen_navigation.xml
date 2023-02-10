@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/splash_screen_navigation"
+    app:startDestination="@id/splashScreenFragment">
+
+    <fragment
+        android:id="@+id/splashScreenFragment"
+        android:name="com.japnoor.anticorruption.SplashScreenFragment"
+        android:label="SplashScreenFragment" >
+
+        <action
+            android:id="@+id/action_splashScreenFragment_to_passcodeFragment"
+            app:destination="@id/passcodeFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/passcodeFragment"
+        android:name="com.japnoor.anticorruption.PasscodeFragment"
+        android:label="PasscodeFragment" >
+
+    </fragment>
+</navigation>
