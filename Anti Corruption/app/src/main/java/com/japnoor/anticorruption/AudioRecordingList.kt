@@ -1,6 +1,7 @@
 package com.japnoor.anticorruption
 
 import android.Manifest.permission.RECORD_AUDIO
+import android.animation.ObjectAnimator
 import android.app.Dialog
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -52,8 +53,11 @@ companion object{
         homeScreen=activity as HomeScreen
         database=FirebaseDatabase.getInstance()
         userRef=database.reference.child("Users")
-
-
+        val textView = binding.movText
+        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 1100f, -1100f)
+        objectAnimator.duration = 9000
+        objectAnimator.repeatCount = ObjectAnimator.DURATION_INFINITE.toInt()
+        objectAnimator.start()
         arguments.let {
             uri=it?.getString("uri").toString().toUri()
         }
@@ -136,6 +140,8 @@ companion object{
         dialog.show()
 
     }
+
+
 
     private fun requestAudioPermission() {
         if (ContextCompat.checkSelfPermission(homeScreen, android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {

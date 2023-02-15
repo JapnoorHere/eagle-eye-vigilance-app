@@ -42,7 +42,7 @@ class SplashScreenFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-          var binding=FragmentSplashScreenBinding.inflate(layoutInflater,container,false)
+          var binding=FragmentSplashScreenBinding.inflate(layoutInflater)
         splashScreen=activity as SplashScreen
         var downAnim = AnimationUtils.loadAnimation(splashScreen, R.anim.down_anim)
         auth = FirebaseAuth.getInstance()

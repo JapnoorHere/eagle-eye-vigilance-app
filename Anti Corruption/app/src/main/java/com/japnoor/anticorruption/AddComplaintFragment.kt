@@ -6,7 +6,10 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
@@ -34,6 +37,7 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentAddComplaintBinding
+import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -42,7 +46,8 @@ private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
 class AddComplaintFragment : Fragment() {
-
+    lateinit var sharedPreferences : SharedPreferences
+    lateinit var editor : SharedPreferences.Editor
 
     private var param1: String? = null
     private var param2: String? = null
@@ -91,8 +96,34 @@ class AddComplaintFragment : Fragment() {
         firebaseStorage = FirebaseStorage.getInstance()
         storegeref = firebaseStorage.reference
         homeScreen = activity as HomeScreen
+        sharedPreferences = homeScreen.getSharedPreferences("Instructions", Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+        var checkInstOnce=sharedPreferences.getString("instructionsOnce",null)
+        if(sharedPreferences.contains("instructionsOnce")&&checkInstOnce.equals("0") && !(sharedPreferences.contains("instRemind"))) {
+            var dialog = Dialog(homeScreen)
+            var diaologB = InstructionsBlockedUserDialogBinding.inflate(layoutInflater)
+            dialog.setContentView(diaologB.root)
+            dialog.show()
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
+            diaologB.radiogroup.setOnCheckedChangeListener{group,checkeId->
+                when(checkeId){
+                    R.id.reminInst->{
+                        editor.putString("instRemind","1")
+                        editor.apply()
+                        editor.commit()
+                    }
 
+                }
+
+            }
+            diaologB.ok.setOnClickListener {
+                dialog.dismiss()
+                editor.putString("instructionsOnce", "1")
+                editor.apply()
+                editor.commit()
+            }
+        }
 
         database = FirebaseDatabase.getInstance()
         compRef = database.reference.child("Complaints")
@@ -302,7 +333,6 @@ class AddComplaintFragment : Fragment() {
             intent.type = "audio/*"
             intent.action = Intent.ACTION_GET_CONTENT
             activityResulLauncher.launch(intent)
-
         }
     }
 
@@ -378,13 +408,11 @@ class AddComplaintFragment : Fragment() {
     fun uploadComplaintandAudio() {
 
         var audioName = compRef.push().key.toString()
-        var videoName = compRef.push().key.toString()
 
-        println(audioName)
-        println(videoName)
+//        println(audioName)
+//        println(videoName)
 
         val audioreference = storegeref.child("audios").child(audioName)
-        val videoreference = storegeref.child("videos").child(videoName)
         println("let" + audioUri.toString())
         audioUri?.let { uri ->
             audioreference.putFile(uri).addOnSuccessListener {
@@ -411,7 +439,7 @@ class AddComplaintFragment : Fragment() {
                         complaintDate.toString(),
                         cid.toString(),
                         audioName, audioUrl,
-                        videoName,
+                        "",
                         videoUrl, userName,
                         userEmail, "", complaintNumber,complaintTime
                     )
@@ -446,6 +474,8 @@ class AddComplaintFragment : Fragment() {
             }
         }
         videoUri?.let { uri ->
+            var videoName = compRef.push().key.toString()
+            val videoreference = storegeref.child("videos").child(videoName)
             videoreference.putFile(uri).addOnSuccessListener {
                 var myUploadVideoRef = storegeref.child("videos").child(videoName)
                 myUploadVideoRef.downloadUrl.addOnSuccessListener {
@@ -466,7 +496,7 @@ class AddComplaintFragment : Fragment() {
                         binding.District.text.toString(),
                         homeScreen.id,
                         complaintDate.toString(),
-                        cid.toString(), audioName, audioUrl, videoName, videoUrl,
+                        cid.toString(), "", audioUrl, videoName, videoUrl,
                         userName, userEmail, "", complaintNumber,
                         complaintTime
                     )

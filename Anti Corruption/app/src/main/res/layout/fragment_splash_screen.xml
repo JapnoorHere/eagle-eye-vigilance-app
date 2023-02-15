@@ -11,7 +11,6 @@
         android:gravity="center"
         tools:context=".MainActivity">
 
-
         <ImageView
             android:id="@+id/ivMAimg"
             android:layout_width="200dp"
@@ -20,11 +19,10 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_centerInParent="true"
             android:layout_marginStart="61dp"
-            android:layout_marginTop="-82dp"
+            android:layout_marginTop="-49dp"
             android:layout_marginEnd="59dp"
-            android:layout_marginBottom="84dp"
+            android:layout_marginBottom="49dp"
             android:src="@drawable/fnll" />
 
         <TextView
@@ -32,13 +30,13 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@+id/imageview"
             android:layout_marginStart="30dp"
-            android:layout_marginTop="-40dp"
+            android:layout_marginTop="-20dp"
             android:layout_marginEnd="30dp"
             android:fontFamily="@font/nature"
             android:lineSpacingExtra="5dp"
             android:text="Eradicate corruption, build a better Punjab"
             android:textAlignment="center"
-            android:textColor="#4169e1         "
+            android:textColor="#4169e1"
             android:textSize="20sp"
             android:textStyle="bold" />
 
@@ -49,7 +47,6 @@
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="-203dp"
             android:background="@drawable/wave__5_" />
-
 
     </RelativeLayout>
 </layout>

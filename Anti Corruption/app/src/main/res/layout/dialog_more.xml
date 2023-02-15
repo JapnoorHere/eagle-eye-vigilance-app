@@ -13,16 +13,16 @@
         android:background="#ababab" />
 
 
-
     <TextView
         android:id="@+id/send"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@drawable/no_btn"
-        android:padding="13dp"
-        android:drawableStart="@drawable/ic_baseline_share_24"
-        android:text="      Send Complaint"
+        android:textColor="@color/white"
+        android:background="@drawable/yes_btn"
+        android:padding="20dp"
+        android:drawableStart="@drawable/ic_baseline_send_24"
+        android:text="      Send as Complaint"
         android:textStyle="bold" />
 
     <TextView
@@ -30,10 +30,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@drawable/no_btn"
-        android:padding="13dp"
+        android:textColor="@color/white"
+        android:background="@drawable/yes_btn"
+        android:padding="20dp"
         android:drawableStart="@drawable/ic_baseline_delete_1"
-        android:text="      Delete Complaint"
+        android:text="      Delete"
         android:textStyle="bold" />
 
     <TextView
@@ -41,10 +42,11 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
-        android:background="@drawable/no_btn"
-        android:padding="13dp"
-        android:drawableStart="@drawable/ic_baseline_mobile_screen_share_24"
-        android:text="     Show more options"
+        android:background="@drawable/yes_btn"
+        android:textColor="@color/white"
+        android:padding="20dp"
+        android:drawableStart="@drawable/ic_baseline_share_24"
+        android:text="     Share"
         android:textStyle="bold" />
 
 

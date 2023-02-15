@@ -2,6 +2,8 @@ package com.japnoor.anticorruption
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
 import android.content.pm.ActivityInfo
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
@@ -24,15 +26,27 @@ class SplashScreen : AppCompatActivity() {
 
     lateinit var navController: NavController
     lateinit var binding : ActivitySplashScreenBinding
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: Editor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+        sharedPreferences=getSharedPreferences("Instructions", Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+
 
         binding=ActivitySplashScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         navController=findNavController(R.id.navController)
 
+        editor.putString("instructionsOnce","0")
+        editor.putString("instructionsOnceDem","0")
+        editor.apply()
+        editor.commit()
 
 
 

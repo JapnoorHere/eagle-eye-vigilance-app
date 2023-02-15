@@ -51,23 +51,26 @@ class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File
         val dateString = format.format(date)
         holder.binding.Date.setText(dateString)
         holder.binding.playpause.setOnClickListener {
-                    if(!isplayi) {
-                        mediaPlayer = MediaPlayer.create(context, audioList[position].toUri())
-                        holder.binding.playpause.setImageResource(R.drawable.pause2)
-                        mediaPlayer?.start()
-                        isplayi=true
-                        mediaPlayer?.setOnCompletionListener{
-                            mediaPlayer?.reset()
-                            mediaPlayer?.pause()
-                            holder.binding.playpause.setImageResource(R.drawable.play2)
-                            isplayi=false
-                        }
-                    }
-            else if (mediaPlayer?.isPlaying == true) {
-                isplayi=false
-                holder.binding.playpause.setImageResource(R.drawable.play2)
-                mediaPlayer?.pause()
-            }
+            var intent=Intent(context,AudioActivity::class.java)
+            intent.putExtra("audio",audioList[position].toUri().toString())
+            context.startActivity(intent)
+//                    if(!isplayi) {
+//                        mediaPlayer = MediaPlayer.create(context, audioList[position].toUri())
+//                        holder.binding.playpause.setImageResource(R.drawable.pause2)
+//                        mediaPlayer?.start()
+//                        isplayi=true
+//                        mediaPlayer?.setOnCompletionListener{
+//                            mediaPlayer?.reset()
+//                            mediaPlayer?.pause()
+//                            holder.binding.playpause.setImageResource(R.drawable.play2)
+//                            isplayi=false
+//                        }
+//                    }
+//            else if (mediaPlayer?.isPlaying == true) {
+//                isplayi=false
+//                holder.binding.playpause.setImageResource(R.drawable.play2)
+//                mediaPlayer?.pause()
+//            }
                 }
 
 

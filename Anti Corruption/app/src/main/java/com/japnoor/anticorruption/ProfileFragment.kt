@@ -2,31 +2,21 @@ package com.japnoor.anticorruption
 
 import android.app.DatePickerDialog
 import android.app.Dialog
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
-import android.os.AsyncTask
 import android.os.Bundle
-import android.provider.ContactsContract.Data
-import android.util.Log
-import android.util.Patterns
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
-import com.google.firebase.auth.EmailAuthProvider
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.google.firebase.database.ktx.snapshots
-import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.DialogSelectProfileBinding
 import com.japnoor.anticorruption.databinding.FragmentProfileBinding
 import com.japnoor.anticorruption.databinding.ProfileItemBinding
-import com.japnoor.anticorruption.databinding.ProfileItemEmailBinding
 import java.util.*
 
 private const val ARG_PARAM1 = "param1"
@@ -271,6 +261,76 @@ class ProfileFragment : Fragment() {
                     if (isConnected) {
                         profileRef.child(homeScreen.id).child("name")
                             .setValue(dialogBinding.et.text.toString())
+                        var arrayList = ArrayList<String>()
+                        FirebaseDatabase.getInstance().reference.child("Complaints")
+                            .addValueEventListener(object :
+                                ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    for (eachcompl in snapshot.children) {
+                                        var complaintdetail =
+                                            eachcompl.getValue(Complaints::class.java)
+                                        if (complaintdetail != null && complaintdetail.userId.equals(
+                                                homeScreen.id
+                                            )
+                                        ) {
+                                            var check = complaintdetail.complaintId
+                                            arrayList.add(complaintdetail.complaintId)
+                                            println("Array->" + arrayList)
+                                            println("CID" + check)
+                                        }
+                                    }
+
+                                    for (eachh in arrayList) {
+                                        FirebaseDatabase.getInstance().reference.child("Complaints")
+                                            .child(eachh).child("userName")
+                                            .setValue(dialogBinding.et.text.toString())
+                                            .addOnCompleteListener {
+                                            }
+                                    }
+
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    TODO("Not yet implemented")
+                                }
+
+                            })
+                        var demandarraylist = ArrayList<String>()
+
+                        FirebaseDatabase.getInstance().reference.child("Demand Letter")
+                            .addValueEventListener(object :
+                                ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    for (eachdem in snapshot.children) {
+                                        var demandetail =
+                                            eachdem.getValue(DemandLetter::class.java)
+                                        if (demandetail != null && demandetail.userId.equals(
+                                                homeScreen.id
+                                            )
+                                        ) {
+                                            var check =
+                                                demandetail.demandId
+                                            demandarraylist.add(demandetail.demandId)
+                                            println("Array->" + demandarraylist)
+                                            println("CID" + check)
+                                        }
+                                    }
+                                    for (eachh in demandarraylist) {
+                                        FirebaseDatabase.getInstance().reference.child("Demand Letter")
+                                            .child(eachh).child("userName")
+                                            .setValue(dialogBinding.et.text.toString())
+                                    }
+                                    homeScreen.navController.navigate(R.id.homeFragment)
+
+
+                                }
+
+                                override fun onCancelled(error: DatabaseError) {
+                                    TODO("Not yet implemented")
+                                }
+
+                            })
+
                         dialog.dismiss()
                     } else {
                         Toast.makeText(

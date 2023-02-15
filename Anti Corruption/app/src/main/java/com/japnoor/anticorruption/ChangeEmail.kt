@@ -104,6 +104,8 @@ class ChangeEmail : Fragment() {
                                                     "OTP sent",
                                                     Toast.LENGTH_LONG
                                                 ).show()
+                                                var checkvaluevent =false
+                                                var arrayList = ArrayList<String>()
 
                                                 FirebaseDatabase.getInstance().reference.child("Complaints")
                                                     .addValueEventListener(object :
@@ -118,22 +120,24 @@ class ChangeEmail : Fragment() {
                                                                 ) {
                                                                     var check =
                                                                         complaintdetail.complaintId
-                                                                    var arrayList = ArrayList<String>()
+                                                                    checkvaluevent=true
                                                                     arrayList.add(complaintdetail.complaintId)
-                                                                    binding.btnNext.visibility = View.VISIBLE
-                                                                    binding.progressbar.visibility = View.GONE
-                                                                    var bundle = Bundle()
-                                                                    bundle.putString("email", binding.etEmail.text.toString()
-                                                                    )
-                                                                    bundle.putStringArrayList("cids",arrayList)
-                                                                    homeScreen.navController.navigate(
-                                                                        R.id.OTPEmailChange,
-                                                                        bundle
-                                                                    )
+                                                                    println("Array->" + arrayList)
                                                                     println("CID" + check)
                                                                     println("SEt" + email)
                                                                 }
                                                             }
+                                                                binding.btnNext.visibility = View.VISIBLE
+                                                                binding.progressbar.visibility = View.GONE
+                                                                var bundle = Bundle()
+                                                                bundle.putString(
+                                                                    "email", binding.etEmail.text.toString()
+                                                                )
+                                                                bundle.putStringArrayList("cids", arrayList)
+                                                                homeScreen.navController.navigate(
+                                                                    R.id.OTPEmailChange,
+                                                                    bundle
+                                                                )
                                                         }
 
                                                         override fun onCancelled(error: DatabaseError) {
@@ -141,7 +145,6 @@ class ChangeEmail : Fragment() {
                                                         }
 
                                                     })
-
 
 
                                             } else {

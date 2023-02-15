@@ -3,9 +3,12 @@ package com.japnoor.anticorruption
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -90,6 +93,41 @@ class UserComplaints : Fragment(), UserComplaintClick {
         compRef = database.reference.child("Complaints")
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
+//        val notificationManager = homeScreen.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//        val channelId = "default"
+//        val channelName = "Default Channel"
+//        val importance = NotificationManager.IMPORTANCE_HIGH
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            val channel = NotificationChannel(channelId, channelName, importance)
+//            notificationManager.createNotificationChannel(channel)
+//        }
+//
+//        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+//            .setContentTitle("My Notification")
+//            .setContentText("This is my notification message.")
+//            .setPriority(NotificationCompat.PRIORITY_HIGH)
+//            .setSmallIcon(R.drawable.notification_icon)
+//            .setAutoCancel(true)
+//
+//        val notificationIntent = Intent(this, MainActivity::class.java)
+//        notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+//        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        notificationBuilder.setContentIntent(pendingIntent)
+//
+//        val notificationId = 1
+//        notificationManager.notify(notificationId, notificationBuilder.build())
+//
+//        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val notificationTime = System.currentTimeMillis() + 5000 // 5 seconds from now
+//        val notificationBroadcastIntent = Intent(this, MyNotificationReceiver::class.java)
+//        val pendingBroadcastIntent = PendingIntent.getBroadcast(this, 0, notificationBroadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+//            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, notificationTime, pendingBroadcastIntent)
+//        } else {
+//            alarmManager.set(AlarmManager.RTC_WAKEUP, notificationTime, pendingBroadcastIntent)
+//        }
 
 
         binding.search.setOnTouchListener { v, event ->

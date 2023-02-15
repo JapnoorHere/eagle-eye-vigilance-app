@@ -49,7 +49,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:screenOrientation="portrait"
+            android:screenOrientation="sensor"
             android:name=".VideoActivity"
             android:exported="false">
             <meta-data

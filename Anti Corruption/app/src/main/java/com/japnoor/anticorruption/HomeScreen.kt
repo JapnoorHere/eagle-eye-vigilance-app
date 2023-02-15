@@ -4,13 +4,17 @@ import com.japnoor.anticorruption.R
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
 import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.icu.util.Calendar
 import android.media.MediaRecorder
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
@@ -26,6 +30,8 @@ import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.google.firebase.auth.FirebaseAuth
@@ -41,25 +47,30 @@ import java.util.*
 
 
 class HomeScreen : AppCompatActivity() {
+    companion object {
+        var REQUEST_RECORD_AUDIO_PERMISSION = 200
+    }
 
     lateinit var binding: ActivityHomeScreenBinding
     lateinit var navController: NavController
     var id: String = ""
     lateinit var toggle: ActionBarDrawerToggle
     var pass: String = ""
+    lateinit var sensorDialog: Dialog
     lateinit var database: FirebaseDatabase
     lateinit var useref: DatabaseReference
     private var sensorManager: SensorManager? = null
     private var acceleration = 0f
     var isRecording = false
+
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
     lateinit var filee: File
     lateinit var mediaRecorder: MediaRecorder
     var sense = true
-    var userSensor=""
-     var isSensorActive = true
+    var userSensor = ""
 
+    var isSensorActive = true
 
 
     private val sensorListener: SensorEventListener = object : SensorEventListener {
@@ -82,48 +93,72 @@ class HomeScreen : AppCompatActivity() {
 
 
         override fun onSensorChanged(event: SensorEvent) {
+            FirebaseDatabase.getInstance().reference.child("Users")
+                .addValueEventListener(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        for (sensor in snapshot.children) {
+                            var sensecheckid = intent.getStringExtra("uid").toString()
+                            var sensestatus = sensor.getValue(Users::class.java)
+                            if (sensestatus != null && sensestatus.userId.equals(sensecheckid) && sensestatus.userSensor.equals(
+                                    "1"
+                                )
+                            ) {
+                                userSensor = "1"
+                                if (sense && userSensor.equals("1") && isSensorActive) {
+                                    val x = event.values[0]
+                                    val y = event.values[1]
+                                    val z = event.values[2]
+                                    lastAcceleration = currentAcceleration
+                                    currentAcceleration =
+                                        sqrt((x * x + y * y + z * z).toDouble()).toFloat()
+                                    val delta: Float = currentAcceleration - lastAcceleration
+                                    acceleration = acceleration * 0.9f + delta
+                                    if (acceleration > 17) {
+                                        var dialog = Dialog(this@HomeScreen)
+                                        var dialogB =
+                                            FragmentAudioRecordBinding.inflate(layoutInflater)
+                                        dialog.setContentView(dialogB.root)
+                                        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
-            if (sense && userSensor.equals("1") && isSensorActive) {
-                val x = event.values[0]
-                val y = event.values[1]
-                val z = event.values[2]
-                lastAcceleration = currentAcceleration
-                currentAcceleration = sqrt((x * x + y * y + z * z).toDouble()).toFloat()
-                val delta: Float = currentAcceleration - lastAcceleration
-                acceleration = acceleration * 0.9f + delta
-                if (acceleration > 17) {
-                    var dialog = Dialog(this@HomeScreen)
-                    var dialogB = FragmentAudioRecordBinding.inflate(layoutInflater)
-                    dialog.setContentView(dialogB.root)
-                    dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                                        if (!isRecording) {
+                                            dialogB.audiorecord.visibility = View.GONE
+                                            dialogB.lottie.visibility = View.VISIBLE
+                                            dialogB.lottie.playAnimation()
+                                            startRecording()
 
-                    if (!isRecording) {
-                        dialogB.audiorecord.visibility = View.GONE
-                        dialogB.lottie.visibility = View.VISIBLE
-                        dialogB.lottie.playAnimation()
-                        startRecording()
-
-                        dialogB.tv.setText("Recording has started")
+                                            dialogB.tv.setText("Recording has started")
 //                        dialogB.audiorecord.setImageResource(R.drawable.audiostart)
-                        dialog.setCancelable(false)
-                        dialog.show()
+                                            dialog.setCancelable(false)
+                                            dialog.show()
+                                        }
+
+                                        dialogB.lottie.setOnClickListener {
+                                            dialogB.tv.setText("Recording is stopped")
+                                            mediaRecorder.stop()
+                                            dialogB.audiorecord.visibility = View.VISIBLE
+                                            dialogB.lottie.visibility = View.GONE
+                                            mediaRecorder.reset()
+                                            mediaRecorder.release()
+                                            dialog.dismiss()
+                                            dialog.setCancelable(true)
+                                            navController.navigate(R.id.audiorecordingListFragment)
+//                        dialogB.audiorecord.setImageResource(R.drawable.audiostop)
+                                            isRecording = false
+                                        }
+                                    }
+                                }
+
+                            } else {
+                                userSensor = "0"
+                            }
+                        }
+
                     }
 
-                    dialogB.lottie.setOnClickListener {
-                        dialogB.tv.setText("Recording is stopped")
-                        mediaRecorder.stop()
-                        dialogB.audiorecord.visibility = View.VISIBLE
-                        dialogB.lottie.visibility = View.GONE
-                        mediaRecorder.reset()
-                        mediaRecorder.release()
-                        dialog.dismiss()
-                        dialog.setCancelable(true)
-                        navController.navigate(R.id.audiorecordingListFragment)
-//                        dialogB.audiorecord.setImageResource(R.drawable.audiostop)
-                        isRecording = false
+                    override fun onCancelled(error: DatabaseError) {
+                        TODO("Not yet implemented")
                     }
-                }
-            }
+                })
 
 
         }
@@ -145,11 +180,12 @@ class HomeScreen : AppCompatActivity() {
         super.onPause()
     }
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
         navController = findNavController(R.id.navController)
         id = intent.getStringExtra("uid").toString()
         pass = intent.getStringExtra("pass").toString()
@@ -161,22 +197,6 @@ class HomeScreen : AppCompatActivity() {
         val name = headerView.findViewById<TextView>(R.id.namee)
         val email = headerView.findViewById<TextView>(R.id.emaill)
         val profile = headerView.findViewById<ImageView>(R.id.profilee)
-
-        useref.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for (sensor in snapshot.children) {
-                    var sensestatus = sensor.getValue(Users::class.java)
-                    if (sensestatus != null && sensestatus.userId.equals(id) && sensestatus.userSensor.equals("1")) {
-                        userSensor="1"
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
-        })
-
 
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         Objects.requireNonNull(sensorManager)?.registerListener(
@@ -192,9 +212,7 @@ class HomeScreen : AppCompatActivity() {
                 var dialog = Dialog(this@HomeScreen)
                 for (each in snapshot.children) {
                     var userr = each.getValue(Users::class.java)
-                    if (userr != null && userr.userId.equals(id) && userr.userStatus.equals(
-                            "1"
-                        )
+                    if (userr != null && userr.userId.equals(id) && userr.userStatus!="0"
                     ) {
                         var dialogB = BlockedUserDialogBinding.inflate(layoutInflater)
                         dialog.setContentView(dialogB.root)
@@ -202,6 +220,32 @@ class HomeScreen : AppCompatActivity() {
                         dialog.setCancelable(false)
                         dialogB.textmessage.text =
                             "Authorities have prohibited your access due to \n inappropriate behavior"
+                        val currentTime = System.currentTimeMillis()
+                        //                    val sevenDaysInMillisecond = 7 * 24 * 60 * 60 * 1000
+                        val sevenDaysInMillisecond : Long = 604800000
+                        val resetTime = currentTime + sevenDaysInMillisecond
+
+                        useref.addValueEventListener(object  : ValueEventListener{
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                for(each in snapshot.children){
+                                    var userdetail=each.getValue(Users::class.java)
+                                    if(userdetail!=null && userdetail.userId.equals(id) && userdetail.userStatus!="0"){
+                                        var timecheck=userdetail.userStatus.toLong() + sevenDaysInMillisecond
+                                        println("Time->" + timecheck)
+                                        if (currentTime >= timecheck) {
+                                            useref.child(id).child("userStatus").setValue("0")
+                                            dialog.dismiss()
+                                        }
+                                    }
+                                }
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+
+                            }
+
+                        })
+
                         dialogB.ok.setOnClickListener {
                             dialog.dismiss()
                             FirebaseAuth.getInstance().signOut()
@@ -291,21 +335,20 @@ class HomeScreen : AppCompatActivity() {
 
                     R.id.sensorShake -> {
 
-                        var dialog = Dialog(this@HomeScreen)
+                        sensorDialog = Dialog(this@HomeScreen)
                         var dialogB = ShakedialogBinding.inflate(layoutInflater)
-                        dialog.setContentView(dialogB.root)
+                        sensorDialog.setContentView(dialogB.root)
                         drawerLayout.close()
-                        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                        sensorDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                         useref.addValueEventListener(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
-                                for(eachuserr in snapshot.children){
-                                   var eachuser=eachuserr.getValue(Users::class.java)
-                                    if(eachuser!=null && eachuser.userId.equals(id)){
-                                        if(eachuser.userSensor.equals("1")){
-                                            dialogB.onswitch.isChecked=true
-                                        }
-                                        else{
-                                            dialogB.onswitch.isChecked=false
+                                for (eachuserr in snapshot.children) {
+                                    var eachuser = eachuserr.getValue(Users::class.java)
+                                    if (eachuser != null && eachuser.userId.equals(id)) {
+                                        if (eachuser.userSensor.equals("1")) {
+                                            dialogB.onswitch.isChecked = true
+                                        } else {
+                                            dialogB.onswitch.isChecked = false
                                         }
                                     }
                                 }
@@ -316,18 +359,28 @@ class HomeScreen : AppCompatActivity() {
                             }
 
                         })
-                        dialogB.lottie.setMinAndMaxFrame(10,35)
+                        dialogB.lottie.setMinAndMaxFrame(10, 35)
                         dialogB.onswitch.setOnCheckedChangeListener { _, isChecked ->
 
                             if (isChecked) {
-                                    useref.child(id).child("userSensor").setValue("1")
-                                }
-                            else {
+                                useref.child(id).child("userSensor").setValue("1")
+                            } else {
                                 useref.child(id).child("userSensor").setValue("0")
                             }
                         }
+                        if (ContextCompat.checkSelfPermission(
+                                this@HomeScreen,
+                                android.Manifest.permission.RECORD_AUDIO
+                            ) != PackageManager.PERMISSION_GRANTED
+                        ) {
+                            ActivityCompat.requestPermissions(
+                                this@HomeScreen, arrayOf(android.Manifest.permission.RECORD_AUDIO),
+                                REQUEST_RECORD_AUDIO_PERMISSION
+                            )
+                        } else {
+                            sensorDialog.show()
 
-                        dialog.show()
+                        }
                     }
 
                     R.id.Homeee -> {
@@ -415,7 +468,7 @@ class HomeScreen : AppCompatActivity() {
                                                     .setValue(dialogBinding.etPassword.text.toString())
                                                     .addOnCompleteListener {
                                                         if (it.isSuccessful) {
-                                                         dialogBinding.btnSignup.visibility =
+                                                            dialogBinding.btnSignup.visibility =
                                                                 View.VISIBLE
                                                             dialogBinding.progressbar.visibility =
                                                                 View.GONE
@@ -643,5 +696,17 @@ class HomeScreen : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                sensorDialog
+            }
+        }
+    }
 
 }

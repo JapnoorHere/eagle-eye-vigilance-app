@@ -52,7 +52,7 @@ class OTPFragment : Fragment() {
     fun OTP() {
         random = Random.nextInt(100000..999999)
         val mail = SendMail(
-            "anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
+            "bpunjabvigilance@gmail.com", "wwpxryeuxsavbhur",
             email, "Your One Time Password",
             "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
         )
@@ -79,6 +79,8 @@ class OTPFragment : Fragment() {
         binding.tvEmail.setText(email)
         binding.otp1.doOnTextChanged { text, start, before, count ->
             if (!binding.otp1.text.toString().isNullOrEmpty())
+                binding.otp2.requestFocus()
+            if(!binding.otp2.text.isNullOrEmpty())//Check temporary
                 binding.otp2.requestFocus()
         }
         binding.otp2.doOnTextChanged { text, start, before, count ->

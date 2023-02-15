@@ -1,5 +1,6 @@
 package com.japnoor.anticorruption
 
+import android.animation.ObjectAnimator
 import android.app.Activity.RESULT_OK
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -64,6 +65,11 @@ class VideoRecordingList : Fragment() {
         firebaseStorage=FirebaseStorage.getInstance()
         storageReference=firebaseStorage.reference.child("videoRecording")
          binding = FragmentVideoRecordingListBinding.inflate(layoutInflater,container,false)
+        val textView = binding.movText
+        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 1100f, -1100f)
+        objectAnimator.duration = 9000
+        objectAnimator.repeatCount = ObjectAnimator.DURATION_INFINITE.toInt()
+        objectAnimator.start()
 
         val videoDir = File("/storage/emulated/0/Android/data/com.japnoor.anticorruption/files/Movies/")
         val videoFiles = videoDir.listFiles { file ->

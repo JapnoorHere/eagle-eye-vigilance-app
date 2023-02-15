@@ -4,7 +4,10 @@ import android.app.Activity.RESULT_OK
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
@@ -29,6 +32,8 @@ import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentAddDemandLetterBinding
+import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDemandDialogBinding
+import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,7 +41,8 @@ private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
 
 class AddDemandLetterFragment : Fragment() {
-
+    lateinit var sharedPreferences : SharedPreferences
+    lateinit var editor : SharedPreferences.Editor
     private var param1: String? = null
     private var param2: String? = null
     lateinit var homeScreen: HomeScreen
@@ -85,7 +91,34 @@ class AddDemandLetterFragment : Fragment() {
         binding = FragmentAddDemandLetterBinding.inflate(layoutInflater, container, false)
 
 
+        sharedPreferences = homeScreen.getSharedPreferences("Instructions", Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+        var checkInstOnce=sharedPreferences.getString("instructionsOnceDem",null)
+        if(sharedPreferences.contains("instructionsOnce")&&checkInstOnce.equals("0") && !(sharedPreferences.contains("instRemind"))) {
+            var dialog = Dialog(homeScreen)
+            var diaologB = InstructionsBlockedUserDemandDialogBinding.inflate(layoutInflater)
+            dialog.setContentView(diaologB.root)
+            dialog.show()
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
+            diaologB.radiogroup.setOnCheckedChangeListener{group,checkeId->
+                when(checkeId){
+                    R.id.reminInst->{
+                        editor.putString("instRemind","1")
+                        editor.apply()
+                        editor.commit()
+                    }
+
+                }
+
+            }
+            diaologB.ok.setOnClickListener {
+                dialog.dismiss()
+                editor.putString("instructionsOnceDem", "1")
+                editor.apply()
+                editor.commit()
+            }
+        }
 
         binding.btnSubmit.setOnClickListener {
             val input: String = binding.DemandSubject.getText().toString().trim()

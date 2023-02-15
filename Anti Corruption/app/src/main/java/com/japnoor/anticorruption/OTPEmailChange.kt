@@ -199,7 +199,7 @@ class OTPEmailChange : Fragment() {
     fun OTP() {
         random = Random.nextInt(100000..999999)
         val mail = SendMail(
-            "anticorruptionpunjab75@gmail.com", "fgqzvmpzigmfpygr",
+            "bpunjabvigilance@gmail.com", "wwpxryeuxsavbhur",
             email, "Your One Time Password",
             "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
         )

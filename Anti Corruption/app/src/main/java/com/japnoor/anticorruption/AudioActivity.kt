@@ -21,7 +21,7 @@ class AudioActivity : AppCompatActivity() {
 
 
     lateinit var binding: ActivityAudioBinding
-     var mediaPlayer: MediaPlayer?=null
+    var mediaPlayer: MediaPlayer?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityAudioBinding.inflate(layoutInflater)
@@ -73,7 +73,7 @@ class AudioActivity : AppCompatActivity() {
             }
 
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                      mediaPlayer?.seekTo(seekBar!!.progress)
+                mediaPlayer?.seekTo(seekBar!!.progress)
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {

@@ -1,7 +1,6 @@
 package com.japnoor.anticorruption
 
 import android.animation.ObjectAnimator
-import android.app.Dialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -11,14 +10,11 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.CompositePageTransformer
 import androidx.viewpager2.widget.MarginPageTransformer
 import androidx.viewpager2.widget.ViewPager2
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentHomeBinding
 
 
@@ -31,12 +27,16 @@ class HomeFragment : Fragment() {
     private var param2: String? = null
     lateinit var binding: FragmentHomeBinding
     lateinit var homeScreen: HomeScreen
+
+
     private lateinit var viewPager2: ViewPager2
     private lateinit var handler: Handler
     private lateinit var imageList: ArrayList<Int>
     private lateinit var adapter: ImageAdapter
     lateinit var database: FirebaseDatabase
+
     lateinit var useRef: DatabaseReference
+    lateinit var compref: DatabaseReference
     var count = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -54,17 +54,45 @@ class HomeFragment : Fragment() {
         homeScreen = activity as HomeScreen
         database = FirebaseDatabase.getInstance()
         useRef = database.reference.child("Users")
+        compref = database.reference.child("Complaints")
         binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
 
 
 
-        val textView = binding.movText
-        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 600f, -600f)
 
-        objectAnimator.duration = 8000
+        val textView = binding.movText
+        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 1100f, -1100f)
+
+        objectAnimator.duration = 12000
         objectAnimator.repeatCount = ObjectAnimator.INFINITE
-        objectAnimator.repeatMode = ObjectAnimator.RESTART
         objectAnimator.start()
+
+
+
+        compref.addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                var resolvedcount=0
+                for(each in snapshot.children){
+                    var cdetail=each.getValue(Complaints::class.java)
+                    if(cdetail?.status.equals("2"))
+                        resolvedcount++
+                }
+                val success = binding.success
+                success.setText("We have Successfully Resolved $resolvedcount bribery cases.")
+                val objectAnimator1 = ObjectAnimator.ofFloat(success, "translationX", 1100f, -1100f)
+                objectAnimator1.duration = 12000
+                objectAnimator1.repeatCount = ObjectAnimator.INFINITE
+                objectAnimator1.start()
+
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+
+
 
 
         binding.cardComplaints.setOnClickListener {

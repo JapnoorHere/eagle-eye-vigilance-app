@@ -3,6 +3,8 @@ package com.japnoor.anticorruption
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -24,6 +26,9 @@ class SelectProfile : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
+
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: Editor
     var id : String=""
     var pass : String=""
     var passcode : String=""
@@ -47,6 +52,18 @@ class SelectProfile : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var binding=FragmentSelectProfileBinding.inflate(layoutInflater,container,false)
+
+        signUp=activity as SignUp
+
+        sharedPreferences=signUp.getSharedPreferences("Instructions",Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+        editor.putString("instructionsOnce", "0")
+        editor.putString("instructionsOnceDem", "0")
+        editor.remove("instRemind")
+        editor.apply()
+        editor.commit()
+
         arguments.let {
             id = it?.getString("id").toString()
             pass = it?.getString("pass").toString()
@@ -59,8 +76,6 @@ class SelectProfile : Fragment() {
         println("Password pro -> " + pass)
         database=FirebaseDatabase.getInstance()
         userRef=database.reference.child("Users")
-        signUp=activity as SignUp
-        var binding=FragmentSelectProfileBinding.inflate(layoutInflater,container,false)
 
         binding.man1.setOnClickListener {
             profileValue="1"
@@ -124,7 +139,7 @@ class SelectProfile : Fragment() {
                                 id.toString(),
                                 profileValue,
                                 pass,
-                                "",
+                                "0",
                                 passcode,birthdate,""
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
@@ -148,7 +163,6 @@ class SelectProfile : Fragment() {
             }
             else{
                 Toast.makeText(signUp,"Check your internet connection please",Toast.LENGTH_LONG).show()
-
             }
         }
         return binding.root
