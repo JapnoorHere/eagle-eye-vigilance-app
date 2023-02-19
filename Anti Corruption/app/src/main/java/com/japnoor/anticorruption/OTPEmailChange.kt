@@ -1,6 +1,8 @@
 package com.japnoor.anticorruption
 
+import com.japnoor.anticorruption.R
 import android.content.Context
+import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -26,11 +28,12 @@ class OTPEmailChange : Fragment() {
     private var param2: String? = null
     var email: String = ""
     var random: Int = 0
-    lateinit var homeScreen: HomeScreen
+    lateinit var emailChangeActivity: EmailChangeActivity
     lateinit var user: FirebaseAuth
     lateinit var userRef: DatabaseReference
     lateinit var database: FirebaseDatabase
-    lateinit var arrayList: ArrayList<String>
+    lateinit var comparraylist: ArrayList<String>
+    lateinit var demarraylist: ArrayList<String>
 
     lateinit var userArrayList: ArrayList<String>
 
@@ -48,16 +51,18 @@ class OTPEmailChange : Fragment() {
     ): View? {
         database = FirebaseDatabase.getInstance()
         userRef = database.reference.child("Users")
-        homeScreen = activity as HomeScreen
+        emailChangeActivity = activity as EmailChangeActivity
         user = FirebaseAuth.getInstance()
         userArrayList = ArrayList<String>()
         var check=""
-        arrayList= ArrayList()
+        comparraylist= ArrayList()
+        demarraylist= ArrayList()
         var binding = FragmentOTPEmailChangeBinding.inflate(layoutInflater, container, false)
 
-        arguments.let {
-            email = it?.getString("email").toString()
-            arrayList= it?.getStringArrayList("cids") as ArrayList<String>
+        arguments?.let {
+            email = it.getString("email").toString()
+            comparraylist= it.getStringArrayList("cids") as ArrayList<String>
+            demarraylist= it.getStringArrayList("ddids") as ArrayList<String>
         }
 
         binding.tvEmail.setText(email)
@@ -98,27 +103,27 @@ class OTPEmailChange : Fragment() {
 
 
         val connectivityManager =
-            homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         if (isConnected) {
             OTP()
         } else {
-            Toast.makeText(homeScreen, "Check your internet connection please", Toast.LENGTH_LONG)
+            Toast.makeText(emailChangeActivity, "Check your internet connection please", Toast.LENGTH_LONG)
                 .show()
 
         }
         binding.resendOtp.setOnClickListener {
             val connectivityManager =
-                homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
             val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
             if (isConnected) {
                 OTP()
-                Toast.makeText(homeScreen, "OTP sent", Toast.LENGTH_LONG).show()
+                Toast.makeText(emailChangeActivity, "OTP sent", Toast.LENGTH_LONG).show()
             } else {
                 Toast.makeText(
-                    homeScreen,
+                    emailChangeActivity,
                     "Check your internet connection please",
                     Toast.LENGTH_LONG
                 ).show()
@@ -141,10 +146,10 @@ class OTPEmailChange : Fragment() {
                 binding.otp1.text.toString().isNullOrEmpty() ||
                 binding.otp1.text.toString().isNullOrEmpty()
             ) {
-                Toast.makeText(homeScreen, "Enter OTP", Toast.LENGTH_LONG).show()
+                Toast.makeText(emailChangeActivity, "Enter OTP", Toast.LENGTH_LONG).show()
             } else if (otp.equals(random.toString())) {
                 val connectivityManager =
-                    homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
@@ -153,25 +158,29 @@ class OTPEmailChange : Fragment() {
                     binding.progressbar.visibility = View.VISIBLE
                     user.currentUser?.updateEmail(email)?.addOnCompleteListener {
                         if (it.isSuccessful) {
+
+                            userRef.child(emailChangeActivity.id).child("email")
+                                .setValue(email)
                             binding.progressbar.visibility = View.GONE
                             binding.btnVerify.visibility = View.VISIBLE
-                            userRef.child(homeScreen.id).child("email")
-                                .setValue(email)
-                            for(eachh in arrayList){
-                                FirebaseDatabase.getInstance().reference.child("Complaints").child(eachh).child("userEmail").setValue(email).addOnCompleteListener {
-                                    homeScreen.navController.navigate(R.id.homeFragment)
-                                }
+                            var intent=Intent(emailChangeActivity,HomeScreen::class.java)
+                            emailChangeActivity.startActivity(intent)
+                            emailChangeActivity.finish()
+                            for(eachh in comparraylist){
+                                FirebaseDatabase.getInstance().reference.child("Complaints").child(eachh).child("userEmail").setValue(email)
                             }
-
+                            for(eachh1 in demarraylist){
+                                FirebaseDatabase.getInstance().reference.child("Demand Letter").child(eachh1).child("userEmail").setValue(email)
+                            }
                         } else if (it.exception.toString()
                                 .equals("com.google.firebase.auth.FirebaseAuthUserCollisionException: The email address is already in use by another account.")
                         ) {
-                            Toast.makeText(homeScreen, "Email already Exists", Toast.LENGTH_LONG)
+                            Toast.makeText(emailChangeActivity, "Email already Exists", Toast.LENGTH_LONG)
                                 .show()
                         } else {
                             binding.progressbar.visibility = View.GONE
                             binding.btnVerify.visibility = View.VISIBLE
-                            Toast.makeText(homeScreen, it.exception.toString(), Toast.LENGTH_LONG)
+                            Toast.makeText(emailChangeActivity, it.exception.toString(), Toast.LENGTH_LONG)
                                 .show()
                             println("Emaol " + it.exception.toString())
                         }
@@ -180,7 +189,7 @@ class OTPEmailChange : Fragment() {
                 }
                 else {
                     Toast.makeText(
-                        homeScreen,
+                        emailChangeActivity,
                         "Check your internet connection please",
                         Toast.LENGTH_LONG
                     ).show()
@@ -189,7 +198,7 @@ class OTPEmailChange : Fragment() {
             } else {
                 binding.btnVerify.visibility = View.VISIBLE
                 binding.progressbar.visibility = View.GONE
-                Toast.makeText(homeScreen, "Wrong Otp", Toast.LENGTH_LONG).show()
+                Toast.makeText(emailChangeActivity, "Wrong Otp", Toast.LENGTH_LONG).show()
             }
         }
 

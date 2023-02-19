@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.core.net.toUri
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -57,9 +58,9 @@ class VideoRecordingListAdapter (var context: HomeScreen, var videoFiles: List<F
             var bottomSheet = BottomSheetDialog(context)
             bottomSheet.setContentView(R.layout.dialog_more)
             bottomSheet.show()
-            var tvShare = bottomSheet.findViewById<TextView>(R.id.share)
-            var tvSend = bottomSheet.findViewById<TextView>(R.id.send)
-            var tvDelete = bottomSheet.findViewById<TextView>(R.id.delete)
+            var tvShare = bottomSheet.findViewById<CardView>(R.id.share)
+            var tvSend = bottomSheet.findViewById<CardView>(R.id.send)
+            var tvDelete = bottomSheet.findViewById<CardView>(R.id.delete)
 
             tvShare?.setOnClickListener {
                 bottomSheet.dismiss()

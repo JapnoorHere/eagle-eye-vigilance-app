@@ -39,11 +39,11 @@
                 android:layout_height="wrap_content">
 
                 <include layout="@layout/shimmer_layout">
-                </include><include layout="@layout/shimmer_layout">
-            </include><include layout="@layout/shimmer_layout">
-            </include><include layout="@layout/shimmer_layout">
-            </include><include layout="@layout/shimmer_layout">
-            </include><include layout="@layout/shimmer_layout">
+                </include><include layout="@layout/shimmer_layout_demand">
+            </include><include layout="@layout/shimmer_layout_demand">
+            </include><include layout="@layout/shimmer_layout_demand">
+            </include><include layout="@layout/shimmer_layout_demand">
+            </include><include layout="@layout/shimmer_layout_demand">
             </include>
             </LinearLayout>
         </com.facebook.shimmer.ShimmerFrameLayout>

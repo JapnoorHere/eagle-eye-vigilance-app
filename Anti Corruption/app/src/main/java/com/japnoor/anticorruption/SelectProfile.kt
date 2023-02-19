@@ -8,6 +8,7 @@ import android.content.SharedPreferences.Editor
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.text.format.DateFormat
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -17,6 +18,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.FragmentSelectProfileBinding
+import java.text.SimpleDateFormat
+import java.util.*
 import kotlin.math.sign
 
 private const val ARG_PARAM1 = "param1"
@@ -130,6 +133,10 @@ class SelectProfile : Fragment() {
                 binding.progressbar.visibility = View.VISIBLE
                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
                     .addOnCompleteListener {
+                        val format = SimpleDateFormat("HH:mm", Locale.getDefault())
+                        val userTime = format.format(Date())
+
+                        var userDate: CharSequence = DateFormat.format("MMMM d,yyyy", Date().time)
                         if (it.isSuccessful) {
                             var user = FirebaseAuth.getInstance().currentUser
                             var id = user?.uid
@@ -140,7 +147,7 @@ class SelectProfile : Fragment() {
                                 profileValue,
                                 pass,
                                 "0",
-                                passcode,birthdate,""
+                                passcode,birthdate,"",userDate.toString(),userTime.toString()
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
                                 if (it.isSuccessful) {

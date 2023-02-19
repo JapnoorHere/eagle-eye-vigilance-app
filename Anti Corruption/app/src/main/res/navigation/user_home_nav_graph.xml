@@ -22,15 +22,6 @@
         android:label="fragment_add_complaint"
         tools:layout="@layout/fragment_add_complaint" />
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="com.japnoor.anticorruption.ProfileFragment"
-        android:label="fragment_profile"
-        tools:layout="@layout/fragment_profile" >
-        <action
-            android:id="@+id/action_profileFragment_to_checkPassword"
-            app:destination="@id/checkPassword" />
-    </fragment>
-    <fragment
         android:id="@+id/userComplaints"
         android:name="com.japnoor.anticorruption.UserComplaints"
         android:label="UserComplaints" />
@@ -43,41 +34,18 @@
         android:name="com.japnoor.anticorruption.UserTotalDemandFragment"
         android:label="UserTotalDemandFragment" />
     <fragment
-        android:id="@+id/checkPassword"
-        android:name="com.japnoor.anticorruption.CheckPassword"
-        android:label="CheckPassword" >
-        <action
-            android:id="@+id/action_checkPassword_to_changeEmail"
-            app:destination="@id/changeEmail" />
-    </fragment>
-    <fragment
-        android:id="@+id/changeEmail"
-        android:name="com.japnoor.anticorruption.ChangeEmail"
-        android:label="fragment_change_email"
-        tools:layout="@layout/fragment_change_email" >
-        <action
-            android:id="@+id/action_changeEmail_to_OTPEmailChange"
-            app:destination="@id/OTPEmailChange" />
-    </fragment>
-    <fragment
-        android:id="@+id/OTPEmailChange"
-        android:name="com.japnoor.anticorruption.OTPEmailChange"
-        android:label="OTPEmailChange" />
-    <fragment
         android:id="@+id/audiorecordingListFragment"
         android:name="com.japnoor.anticorruption.AudioRecordingList"
         android:label="AudioRecordingListFragment" >
-        <action
-            android:id="@+id/action_audiorecordingListFragment_to_audioRecord"
-            app:destination="@id/audioRecord" />
+
     </fragment>
-    <fragment
-        android:id="@+id/audioRecord"
-        android:name="com.japnoor.anticorruption.AudioRecord"
-        android:label="fragment_audio_record"
-        tools:layout="@layout/fragment_audio_record" />
+
     <fragment
         android:id="@+id/videoRecordingList"
         android:name="com.japnoor.anticorruption.VideoRecordingList"
         android:label="VideoRecordingList" />
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.japnoor.anticorruption.ProfileFragment"
+        android:label="ProfileFragment" />
 </navigation>

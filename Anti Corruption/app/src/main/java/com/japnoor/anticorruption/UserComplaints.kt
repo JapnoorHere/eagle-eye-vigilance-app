@@ -1,10 +1,8 @@
 package com.japnoor.anticorruption
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.app.Dialog
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import android.app.*
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -22,6 +20,7 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
+import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -31,8 +30,10 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
+import com.japnoor.anticorruption.databinding.FileDownloadBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
+import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -93,6 +94,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
         compRef = database.reference.child("Complaints")
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
+
+
+
 //        val notificationManager = homeScreen.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 //        val channelId = "default"
 //        val channelName = "Default Channel"
@@ -103,25 +107,25 @@ class UserComplaints : Fragment(), UserComplaintClick {
 //            notificationManager.createNotificationChannel(channel)
 //        }
 //
-//        val notificationBuilder = NotificationCompat.Builder(this, channelId)
+//        val notificationBuilder = androidx.core.app.NotificationCompat.Builder(homeScreen, channelId)
 //            .setContentTitle("My Notification")
 //            .setContentText("This is my notification message.")
 //            .setPriority(NotificationCompat.PRIORITY_HIGH)
-//            .setSmallIcon(R.drawable.notification_icon)
+//            .setSmallIcon(R.drawable.ic_baseline_home_24)
 //            .setAutoCancel(true)
 //
-//        val notificationIntent = Intent(this, MainActivity::class.java)
+//        val notificationIntent = Intent(homeScreen, HomeScreen::class.java)
 //        notificationIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-//        val pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val pendingIntent = PendingIntent.getActivity(homeScreen, 0, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 //        notificationBuilder.setContentIntent(pendingIntent)
 //
 //        val notificationId = 1
 //        notificationManager.notify(notificationId, notificationBuilder.build())
 //
-//        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+//        val alarmManager = homeScreen.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 //        val notificationTime = System.currentTimeMillis() + 5000 // 5 seconds from now
-//        val notificationBroadcastIntent = Intent(this, MyNotificationReceiver::class.java)
-//        val pendingBroadcastIntent = PendingIntent.getBroadcast(this, 0, notificationBroadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+//        val notificationBroadcastIntent = Intent(homeScreen, HomeScreen::class.java)
+//        val pendingBroadcastIntent = PendingIntent.getBroadcast(homeScreen, 0, notificationBroadcastIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, notificationTime, pendingBroadcastIntent)
@@ -386,11 +390,10 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     }
 
                     dialogBindEdit.video.setOnClickListener {
-                        val fileUri: Uri = complaints.videoUrl.toUri()
-
-                        var intent = Intent(homeScreen, VideoActivity::class.java)
-                        intent.putExtra("video", fileUri.toString())
-                        homeScreen.startActivity(intent)
+                            val fileUri: Uri = complaints.videoUrl.toUri()
+                            var intent = Intent(homeScreen, VideoActivity::class.java)
+                            intent.putExtra("video", fileUri.toString())
+                            homeScreen.startActivity(intent)
                     }
                     if (complaints.audioUrl.isNullOrEmpty()) {
                         dialogBindEdit.audioUpload.visibility = View.GONE
@@ -439,12 +442,19 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         }
                         tvYes?.setOnClickListener {
                             compRef.child(complaints.complaintId).removeValue()
-                            complaints?.audioName?.let { it1 ->
-                                storegeref.child("audios").child(it1).delete()
-                            }
-                            complaints?.videoName?.let { it1 ->
-                                storegeref.child("videos").child(it1).delete()
-                            }
+
+                            if(complaints.videoUrl.isNullOrEmpty())
+                            storegeref.child("audios").child(complaints.audioName).delete()
+                            else if(complaints.audioUrl.isNullOrEmpty())
+                            storegeref.child("videos").child(complaints.videoName).delete()
+
+//                            complaints?.audioName?.let { it1 ->
+//                                storegeref.child("audios").child(it1).delete()
+//                                println("it > " + it)
+//                            }
+//                            complaints?.videoName?.let { it1 ->
+//                                storegeref.child("videos").child(it1).delete()
+//                            }
                             bottomSheet.dismiss()
                             dialog.dismiss()
                             homeScreen.navController.navigate(R.id.homeFragment)
@@ -585,14 +595,12 @@ class UserComplaints : Fragment(), UserComplaintClick {
         dialog: Dialog
     ) {
 
-        var audioName = complaints.audioName
-        var videoName = complaints.videoName
 
-        val audioreference = storegeref.child("audios").child(audioName)
-        val videoreference = storegeref.child("videos").child(videoName)
 
 
         audioUri?.let { uri ->
+            var audioName = complaints.audioName
+            val audioreference = storegeref.child("audios").child(audioName)
             audioreference.putFile(uri).addOnSuccessListener {
                 var myUploadAudioRef = storegeref.child("audios").child(audioName)
 
@@ -609,8 +617,8 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     compMap["complaintDistrict"] = dialogBind.District.text.toString()
                     compMap["audioName"] = audioName
                     compMap["audioUrl"] = audioUrl
-                    compMap["videoName"] = videoName
-                    compMap["videoUrl"] = videoUrl
+                    compMap["videoName"] = ""
+                    compMap["videoUrl"] = ""
                     println("id->" + complaints.complaintId)
                     compRef.child(complaints.complaintId).updateChildren(compMap)
                         .addOnCompleteListener {
@@ -644,6 +652,8 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
 
         videoUri?.let { uri ->
+            var videoName = complaints.videoName
+            val videoreference = storegeref.child("videos").child(videoName)
             videoreference.putFile(uri).addOnSuccessListener {
                 var myUploadVideoRef = storegeref.child("videos").child(videoName)
 
@@ -658,8 +668,8 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
                     compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
                     compMap["complaintDistrict"] = dialogBind.District.text.toString()
-                    compMap["audioName"] = audioName
-                    compMap["audioUrl"] = audioUrl
+                    compMap["audioName"] = ""
+                    compMap["audioUrl"] = ""
                     compMap["videoName"] = videoName
                     compMap["videoUrl"] = videoUrl
                     println("id->" + complaints.complaintId)

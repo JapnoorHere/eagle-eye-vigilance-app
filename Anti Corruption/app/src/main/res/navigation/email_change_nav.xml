@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/email_change_nav"
+    app:startDestination="@id/checkPassword">
+
+    <fragment
+        android:id="@+id/checkPassword"
+        android:name="com.japnoor.anticorruption.CheckPassword"
+        android:label="CheckPassword" />
+    <fragment
+        android:id="@+id/changeEmail"
+        android:name="com.japnoor.anticorruption.ChangeEmail"
+        android:label="ChangeEmail" />
+
+    <fragment
+        android:id="@+id/OTPEmailChange"
+        android:name="com.japnoor.anticorruption.OTPEmailChange"
+        android:label="OTPEmailChange" />
+</navigation>

@@ -53,9 +53,12 @@ companion object{
         homeScreen=activity as HomeScreen
         database=FirebaseDatabase.getInstance()
         userRef=database.reference.child("Users")
+
+        val screenWidth = resources.displayMetrics.widthPixels.toFloat()
+
         val textView = binding.movText
-        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 1100f, -1100f)
-        objectAnimator.duration = 9000
+        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", screenWidth, -screenWidth)
+        objectAnimator.duration = 11000
         objectAnimator.repeatCount = ObjectAnimator.DURATION_INFINITE.toInt()
         objectAnimator.start()
         arguments.let {

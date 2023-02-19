@@ -62,7 +62,9 @@ class HomeScreen : AppCompatActivity() {
     private var sensorManager: SensorManager? = null
     private var acceleration = 0f
     var isRecording = false
-
+    lateinit var profileBundle: Bundle
+    lateinit var compProfileList : ArrayList<String>
+    lateinit var demProfileList : ArrayList<String>
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
     lateinit var filee: File
@@ -126,14 +128,14 @@ class HomeScreen : AppCompatActivity() {
                                             dialogB.lottie.playAnimation()
                                             startRecording()
 
-                                            dialogB.tv.setText("Recording has started")
+                                            dialogB.tv.text = "Recording has started"
 //                        dialogB.audiorecord.setImageResource(R.drawable.audiostart)
                                             dialog.setCancelable(false)
                                             dialog.show()
                                         }
 
                                         dialogB.lottie.setOnClickListener {
-                                            dialogB.tv.setText("Recording is stopped")
+                                            dialogB.tv.text = "Recording is stopped"
                                             mediaRecorder.stop()
                                             dialogB.audiorecord.visibility = View.VISIBLE
                                             dialogB.lottie.visibility = View.GONE
@@ -186,13 +188,21 @@ class HomeScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        profileBundle=Bundle()
+        compProfileList= ArrayList()
+        demProfileList=ArrayList()
         navController = findNavController(R.id.navController)
+
         id = intent.getStringExtra("uid").toString()
         pass = intent.getStringExtra("pass").toString()
+
+
         database = FirebaseDatabase.getInstance()
         useref = database.reference.child("Users")
         println("password->$pass")
         println("password->$id")
+
+
         val headerView = binding.navView.getHeaderView(0)
         val name = headerView.findViewById<TextView>(R.id.namee)
         val email = headerView.findViewById<TextView>(R.id.emaill)
@@ -207,6 +217,45 @@ class HomeScreen : AppCompatActivity() {
         currentAcceleration = SensorManager.GRAVITY_EARTH
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
+
+        FirebaseDatabase.getInstance().reference.child("Complaints").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for(each in snapshot.children){
+                    var compdetail=each.getValue(Complaints::class.java)
+                    if (compdetail != null) {
+                        if(compdetail.equals(id)){
+                            compProfileList.add(compdetail.complaintId.toString())
+                        }
+                    }
+                }
+                profileBundle.putStringArrayList("compids",compProfileList)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+
+        FirebaseDatabase.getInstance().reference.child("Demand Letter").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for(each in snapshot.children){
+                    var demdetail=each.getValue(DemandLetter::class.java)
+                    if (demdetail != null) {
+                        if(demdetail.equals(id)){
+                            demProfileList.add(demdetail.demandId.toString())
+                        }
+                    }
+                }
+                profileBundle.putStringArrayList("demids",demProfileList)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+
         useref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 var dialog = Dialog(this@HomeScreen)
@@ -218,19 +267,16 @@ class HomeScreen : AppCompatActivity() {
                         dialog.setContentView(dialogB.root)
                         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                         dialog.setCancelable(false)
-                        dialogB.textmessage.text =
-                            "Authorities have prohibited your access due to \n inappropriate behavior"
                         val currentTime = System.currentTimeMillis()
                         //                    val sevenDaysInMillisecond = 7 * 24 * 60 * 60 * 1000
                         val sevenDaysInMillisecond : Long = 604800000
-                        val resetTime = currentTime + sevenDaysInMillisecond
-
+                        var timecheck : Long=0
                         useref.addValueEventListener(object  : ValueEventListener{
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 for(each in snapshot.children){
                                     var userdetail=each.getValue(Users::class.java)
                                     if(userdetail!=null && userdetail.userId.equals(id) && userdetail.userStatus!="0"){
-                                        var timecheck=userdetail.userStatus.toLong() + sevenDaysInMillisecond
+                                         timecheck=userdetail.userStatus.toLong() + sevenDaysInMillisecond
                                         println("Time->" + timecheck)
                                         if (currentTime >= timecheck) {
                                             useref.child(id).child("userStatus").setValue("0")
@@ -238,6 +284,11 @@ class HomeScreen : AppCompatActivity() {
                                         }
                                     }
                                 }
+
+                                var timeleft=timecheck-currentTime
+                                val days = timeleft / (1000 * 60 * 60 * 24)
+                                val hours = (timeleft / (1000 * 60 * 60)) % 24
+                                dialogB.timeMsg.text = days.toString() + "d " + hours.toString() +"h"
                             }
 
                             override fun onCancelled(error: DatabaseError) {
@@ -245,6 +296,7 @@ class HomeScreen : AppCompatActivity() {
                             }
 
                         })
+                        dialog.show()
 
                         dialogB.ok.setOnClickListener {
                             dialog.dismiss()
@@ -253,7 +305,6 @@ class HomeScreen : AppCompatActivity() {
                             startActivity(intent)
                             finish()
                         }
-                        dialog.show()
 
                     }
                 }
@@ -272,8 +323,8 @@ class HomeScreen : AppCompatActivity() {
                 for (fetchuser in snapshot.children) {
                     var fetchuser1 = fetchuser.getValue(Users::class.java)
                     if (fetchuser1 != null && fetchuser1.userId.equals(id)) {
-                        name.setText(fetchuser1.name)
-                        email.setText(fetchuser1.email)
+                        name.text = fetchuser1.name
+                        email.text = fetchuser1.email
                         when (fetchuser1.profileValue) {
                             "1" -> profile.setImageResource(R.drawable.man1)
                             "2" -> profile.setImageResource(R.drawable.man2)
@@ -307,7 +358,7 @@ class HomeScreen : AppCompatActivity() {
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
             profile.setOnClickListener {
-                navController.navigate(R.id.profileFragment)
+                navController.navigate(R.id.profileFragment,profileBundle)
                 drawerLayout.close()
             }
 
@@ -334,7 +385,6 @@ class HomeScreen : AppCompatActivity() {
 
 
                     R.id.sensorShake -> {
-
                         sensorDialog = Dialog(this@HomeScreen)
                         var dialogB = ShakedialogBinding.inflate(layoutInflater)
                         sensorDialog.setContentView(dialogB.root)
@@ -345,11 +395,7 @@ class HomeScreen : AppCompatActivity() {
                                 for (eachuserr in snapshot.children) {
                                     var eachuser = eachuserr.getValue(Users::class.java)
                                     if (eachuser != null && eachuser.userId.equals(id)) {
-                                        if (eachuser.userSensor.equals("1")) {
-                                            dialogB.onswitch.isChecked = true
-                                        } else {
-                                            dialogB.onswitch.isChecked = false
-                                        }
+                                        dialogB.onswitch.isChecked = eachuser.userSensor.equals("1")
                                     }
                                 }
                             }
@@ -403,7 +449,7 @@ class HomeScreen : AppCompatActivity() {
                         dialogBinding.btnSignup.visibility = View.GONE
                         dialogBinding.passw.visibility = View.VISIBLE
                         dialogBinding.btn.visibility = View.VISIBLE
-                        dialogBinding.tv.setText("Enter the 6 digit password which you entered while making your account")
+                        dialogBinding.tv.text = "Enter the 6 digit password which you entered while making your account"
                         dialogBinding.btn.setOnClickListener {
                             if (dialogBinding.etpass.text.toString().isNullOrEmpty()) {
                                 dialogBinding.etpass.error = "Enter Password"
@@ -416,7 +462,7 @@ class HomeScreen : AppCompatActivity() {
                                 val isConnected: Boolean =
                                     activeNetwork?.isConnectedOrConnecting == true
                                 if (isConnected) {
-                                    dialogBinding.tv.setText("Enter the 5 digit passcode which will help \n to keep your app safe")
+                                    dialogBinding.tv.text = "Enter the 5 digit passcode which will help \n to keep your app safe"
                                     dialogBinding.etPasswordLayout1.visibility = View.VISIBLE
                                     dialogBinding.etPasswordLayout2.visibility = View.VISIBLE
                                     dialogBinding.btnSignup.visibility = View.VISIBLE
@@ -538,26 +584,26 @@ class HomeScreen : AppCompatActivity() {
             when (it.itemId) {
                 R.id.bnHome -> {
                     navController.navigate(R.id.homeFragment)
-                    this.setTitle("Home")
+                    this.title = "Home"
 
                 }
                 R.id.bnAddComplaint -> {
                     navController.navigate(R.id.addComplaintFragment)
-                    this.setTitle("Add Complaint")
+                    this.title = "Add Complaint"
                 }
                 R.id.bnDemandLetter -> {
                     navController.navigate(R.id.addDemandLetterFragment)
-                    this.setTitle("Demand Letter")
+                    this.title = "Demand Letter"
 
                 }
                 R.id.audio -> {
                     navController.navigate(R.id.audiorecordingListFragment)
-                    this.setTitle("Audio Recordings")
+                    this.title = "Audio Recordings"
 
                 }
                 R.id.video -> {
                     navController.navigate(R.id.videoRecordingList)
-                    this.setTitle("Video Recordings")
+                    this.title = "Video Recordings"
 
                 }
                 else -> {}
@@ -568,133 +614,6 @@ class HomeScreen : AppCompatActivity() {
     }
 
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (toggle.onOptionsItemSelected(item)) {
-            true
-        }
-//        if (item.title?.equals("Home") == true) {
-//            navController.navigate(R.id.homeFragment)
-//        } else if (item.title?.equals("Profile") == true) {
-//            navController.navigate(R.id.profileFragment)
-//        } else if (item.title?.equals("Change Passcode") == true) {
-//            println(pass.toString())
-//            var dialog = Dialog(this)
-//            var dialogBinding = PasscodeDialogBinding.inflate(layoutInflater)
-//            dialog.setContentView(dialogBinding.root)
-//            dialog.window?.setLayout(
-//                WindowManager.LayoutParams.MATCH_PARENT,
-//                WindowManager.LayoutParams.WRAP_CONTENT
-//            )
-//            dialogBinding.etPasswordLayout1.visibility = View.GONE
-//            dialogBinding.etPasswordLayout2.visibility = View.GONE
-//            dialogBinding.btnSignup.visibility = View.GONE
-//            dialogBinding.passw.visibility = View.VISIBLE
-//            dialogBinding.btn.visibility = View.VISIBLE
-//            dialogBinding.tv.setText("Enter the 6 digit password which you entered while making your account")
-//            dialogBinding.btn.setOnClickListener {
-//                if (dialogBinding.etpass.text.toString().isNullOrEmpty()) {
-//                    dialogBinding.etpass.error = "Enter Password"
-//                    dialogBinding.etpass.requestFocus()
-//                } else if (dialogBinding.etpass.text.toString().equals(pass)) {
-//                    val connectivityManager =
-//                        getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//                    val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
-//                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-//                    if (isConnected) {
-//                        dialogBinding.tv.setText("Enter the 5 digit passcode which will help \n to keep your app safe")
-//                        dialogBinding.etPasswordLayout1.visibility = View.VISIBLE
-//                        dialogBinding.etPasswordLayout2.visibility = View.VISIBLE
-//                        dialogBinding.btnSignup.visibility = View.VISIBLE
-//                        dialogBinding.passw.visibility = View.GONE
-//                        dialogBinding.btn.visibility = View.GONE
-//                    } else {
-//                        Toast.makeText(
-//                            this,
-//                            "Check you internet connection please",
-//                            Toast.LENGTH_LONG
-//                        ).show()
-//                    }
-//                } else {
-//                    Toast.makeText(this, "Wrong Password", Toast.LENGTH_LONG).show()
-//                }
-//            }
-//
-//
-//            dialogBinding.btnSignup.setOnClickListener {
-//                if (dialogBinding.etPassword.text.toString().isNullOrEmpty()) {
-//                    dialogBinding.etPassword.error = "Enter Passcode"
-//                    dialogBinding.etPassword.requestFocus()
-//                } else if (dialogBinding.etPassword.text.toString().length < 5) {
-//                    dialogBinding.etPassword.error = "Passcode must be of at least 5 characters"
-//                    dialogBinding.etPassword.requestFocus()
-//                } else if (dialogBinding.etPassword.text.toString().length > 5) {
-//                    dialogBinding.etPassword.error = "Passcode must be of 5 characters only "
-//                    dialogBinding.etPassword.requestFocus()
-//                } else if (dialogBinding.etREPassword.text.toString().isNullOrEmpty()) {
-//                    dialogBinding.etREPassword.error = "Enter Passcode again"
-//                    dialogBinding.etREPassword.requestFocus()
-//                } else if ((!dialogBinding.etPassword.text.toString()
-//                        .equals(dialogBinding.etREPassword.text.toString()))
-//                ) {
-//                    dialogBinding.etREPassword.error = "Passcode must be same"
-//                    dialogBinding.etREPassword.requestFocus()
-//                } else {
-//                    dialogBinding.btnSignup.visibility = View.GONE
-//                    dialogBinding.progressbar.visibility = View.VISIBLE
-//                    useref.addValueEventListener(object : ValueEventListener {
-//                        override fun onDataChange(snapshot: DataSnapshot) {
-//                            for (eachUser in snapshot.children) {
-//                                var userr = eachUser.getValue(Users::class.java)
-//                                if (userr != null && userr.userId.equals(id)) {
-//                                    useref.child(id).child("passcode")
-//                                        .setValue(dialogBinding.etPassword.text.toString())
-//                                        .addOnCompleteListener {
-//                                            if (it.isSuccessful) {
-//                                                dialogBinding.btnSignup.visibility = View.VISIBLE
-//                                                dialogBinding.progressbar.visibility = View.GONE
-//                                                dialog.dismiss()
-//                                            } else {
-//                                                dialogBinding.btnSignup.visibility = View.VISIBLE
-//                                                dialogBinding.progressbar.visibility = View.GONE
-//                                                Toast.makeText(
-//                                                    this@HomeScreen,
-//                                                    it.exception.toString(),
-//                                                    Toast.LENGTH_LONG
-//                                                ).show()
-//                                            }
-//                                        }
-//                                }
-//                            }
-//                        }
-//
-//                        override fun onCancelled(error: DatabaseError) {
-//                            TODO("Not yet implemented")
-//                        }
-//
-//                    })
-//                }
-//            }
-//
-//            dialog.show()
-//        } else {
-//            val builder = AlertDialog.Builder(this)
-//            builder.setTitle("Logout")
-//            builder.setMessage("Are you sure you want to logout?")
-//            builder.setPositiveButton("Yes") { dialog, which ->
-//                var intent = Intent(this, LoginActivity::class.java)
-//                startActivity(intent)
-//                finish()
-//                FirebaseAuth.getInstance().signOut()
-//                Toast.makeText(this, "Logout Successful", Toast.LENGTH_LONG).show()
-//            }
-//            builder.setNegativeButton("No") { dialog, which ->
-//                dialog.dismiss()
-//            }
-//            builder.show()
-//
-//        }
-        return super.onOptionsItemSelected(item)
-    }
 
     override fun onRequestPermissionsResult(
         requestCode: Int,

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.renderscript.Sampler.Value
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -72,9 +73,10 @@ class PasscodeFragment : Fragment() {
             }
 
             override fun onSuccess(number: String?) {
-                var intent= Intent(splashScreen,LoginActivity::class.java)
+                var intent= Intent(splashScreen,HomeScreen::class.java)
                 intent.putExtra("uid",id)
                 intent.putExtra("pass",pass)
+                println("Password : " + pass)
                 splashScreen.startActivity(intent)
                splashScreen.finish()
             }
@@ -156,8 +158,8 @@ class PasscodeFragment : Fragment() {
                                             else{
                                                 dialogBinding.btnSignup.visibility = View.VISIBLE
                                                 dialogBinding.progressbar.visibility = View.GONE
-                                                Toast.makeText(splashScreen,it.exception.toString(),
-                                                    Toast.LENGTH_LONG).show()
+                                                    Toast.makeText(splashScreen,it.exception.toString(),
+                                                        Toast.LENGTH_LONG).show()
                                             }
                                         }
                                     }

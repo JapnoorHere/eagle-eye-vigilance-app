@@ -180,7 +180,6 @@ class AddDemandLetterFragment : Fragment() {
         }
 
         binding.addImage.setOnClickListener {
-            if (imageUri == null)
                 if(imageUri==null){
                     if (Build.VERSION.RELEASE >= "13") {
                         var intent = Intent()
@@ -296,7 +295,7 @@ class AddDemandLetterFragment : Fragment() {
                         binding.DemandSubject.text.toString(),
                         binding.DemandDetails.text.toString(),
                         demDate.toString(), binding.District.text.toString(), homeScreen.id,
-                        did.toString(), imageUrl, imageName, userName, userEmail, "",demandNumber,demandTime
+                        did.toString(), imageUrl, imageName, userName, userEmail,userEmail, "",demandNumber,demandTime
                     )
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {

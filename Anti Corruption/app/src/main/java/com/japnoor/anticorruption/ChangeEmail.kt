@@ -4,7 +4,6 @@ import android.content.Context
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
-import android.provider.ContactsContract.Data
 import android.util.Patterns
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -25,9 +24,10 @@ class ChangeEmail : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    lateinit var homeScreen: HomeScreen
+    lateinit var emailChangeActivity: EmailChangeActivity
     var email: String = ""
     var pass: String = ""
+    var demarraylist = ArrayList<String>()
     lateinit var user: FirebaseAuth
     lateinit var database: FirebaseDatabase
     lateinit var userRef: DatabaseReference
@@ -44,7 +44,7 @@ class ChangeEmail : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        homeScreen = activity as HomeScreen
+        emailChangeActivity = activity as EmailChangeActivity
         database = FirebaseDatabase.getInstance()
         userRef = database.reference.child("Users")
 
@@ -53,6 +53,7 @@ class ChangeEmail : Fragment() {
         arguments.let {
             email = it?.getString("email").toString()
             pass = it?.getString("pass").toString()
+            demarraylist= it?.getStringArrayList("ddids") as ArrayList<String>
         }
         var binding = FragmentChangeEmailBinding.inflate(layoutInflater, container, false)
 
@@ -64,13 +65,13 @@ class ChangeEmail : Fragment() {
                 binding.etEmail.error = "Enter Email"
                 binding.etEmail.requestFocus()
             } else if (binding.etEmail.text.toString().equals(email)) {
-                homeScreen.navController.navigate(R.id.profileFragment)
+                emailChangeActivity.navController.navigate(R.id.profileFragment)
             } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString()).matches()) {
                 binding.etEmail.error = "Enter valid email"
                 binding.etEmail.requestFocus()
             } else {
                 val connectivityManager =
-                    homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
@@ -85,7 +86,7 @@ class ChangeEmail : Fragment() {
                                     binding.progressbar.visibility = View.GONE
                                     binding.btnNext.visibility = View.VISIBLE
                                     Toast.makeText(
-                                        homeScreen,
+                                        emailChangeActivity,
                                         "Email already exists",
                                         Toast.LENGTH_LONG
                                     )
@@ -100,44 +101,34 @@ class ChangeEmail : Fragment() {
                                         ?.addOnCompleteListener { task ->
                                             if (task.isSuccessful) {
                                                 Toast.makeText(
-                                                    homeScreen,
+                                                    emailChangeActivity,
                                                     "OTP sent",
                                                     Toast.LENGTH_LONG
                                                 ).show()
-                                                var checkvaluevent =false
-                                                var arrayList = ArrayList<String>()
+                                                var checkvaluevent = false
+                                                var comparraylist = ArrayList<String>()
+                                                var bundle = Bundle()
 
                                                 FirebaseDatabase.getInstance().reference.child("Complaints")
-                                                    .addValueEventListener(object :
-                                                        ValueEventListener {
+                                                    .addValueEventListener(object : ValueEventListener {
                                                         override fun onDataChange(snapshot: DataSnapshot) {
                                                             for (eachcompl in snapshot.children) {
                                                                 var complaintdetail =
                                                                     eachcompl.getValue(Complaints::class.java)
                                                                 if (complaintdetail != null && complaintdetail.userId.equals(
-                                                                        homeScreen.id
-                                                                    )
-                                                                ) {
-                                                                    var check =
-                                                                        complaintdetail.complaintId
-                                                                    checkvaluevent=true
-                                                                    arrayList.add(complaintdetail.complaintId)
-                                                                    println("Array->" + arrayList)
-                                                                    println("CID" + check)
-                                                                    println("SEt" + email)
+                                                                        emailChangeActivity.id)) {
+                                                                    comparraylist.add(complaintdetail.complaintId)
+                                                                    println("Array->" + comparraylist)
+                                                                    println("Array Dem->" + demarraylist)
+
                                                                 }
                                                             }
-                                                                binding.btnNext.visibility = View.VISIBLE
-                                                                binding.progressbar.visibility = View.GONE
-                                                                var bundle = Bundle()
-                                                                bundle.putString(
-                                                                    "email", binding.etEmail.text.toString()
-                                                                )
-                                                                bundle.putStringArrayList("cids", arrayList)
-                                                                homeScreen.navController.navigate(
-                                                                    R.id.OTPEmailChange,
-                                                                    bundle
-                                                                )
+                                                            binding.btnNext.visibility = View.VISIBLE
+                                                            binding.progressbar.visibility = View.GONE
+                                                            bundle.putString("email", binding.etEmail.text.toString())
+                                                            bundle.putStringArrayList("cids", comparraylist)
+                                                            bundle.putStringArrayList("ddids", demarraylist)
+                                                            emailChangeActivity.navController.navigate(R.id.OTPEmailChange, bundle)
                                                         }
 
                                                         override fun onCancelled(error: DatabaseError) {
@@ -158,7 +149,7 @@ class ChangeEmail : Fragment() {
                         }
                 } else {
                     Toast.makeText(
-                        homeScreen,
+                        emailChangeActivity,
                         "Check your internet connection please",
                         Toast.LENGTH_LONG
                     )

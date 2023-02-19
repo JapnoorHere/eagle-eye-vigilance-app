@@ -45,24 +45,55 @@
                     android:background="@color/rejected"
                     android:textSize="29dp"
                     android:textColor="@color/white" />
+
                 <TextView
                     android:id="@+id/textmessage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:textSize="15dp"
+                    android:text="Authorities have prohibited your access due to
+ inappropriate behavior, you will be able to access your account after : "
+                    android:textColor="@color/black"
+                    android:textSize="15dp" />
+
+                <TextView
+                    android:id="@+id/timeMsg"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:text="0d 0h"
+                    android:padding="4dp"
+                    android:layout_marginTop="5dp"
+                    android:textStyle="bold"
+                    android:textSize="20dp"
                     android:textColor="@color/black" />
 
 
                 <Button
-                    android:layout_margin="5dp"
                     android:id="@+id/ok"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_marginLeft="20dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginTop="10dp"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
                     android:text="Logout"
 
                       />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:padding="5dp"
+                    android:layout_margin="10dp"
+                    android:textColor="@color/black"
+                    android:drawableLeft="@drawable/ic_baseline_notes_24"
+                    android:background="@drawable/no_btn"
+                    android:text=" Contact Us "
+                    android:textSize="15dp"
+
+                    />
             </LinearLayout>
 
         </androidx.cardview.widget.CardView>

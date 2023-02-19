@@ -441,7 +441,7 @@ class AddComplaintFragment : Fragment() {
                         audioName, audioUrl,
                         "",
                         videoUrl, userName,
-                        userEmail, "", complaintNumber,complaintTime
+                        userEmail, userEmail,"", complaintNumber,complaintTime
                     )
 
                     compRef.child(cid.toString()).setValue(complaints)
@@ -451,8 +451,7 @@ class AddComplaintFragment : Fragment() {
                                     requireContext(),
                                     "Complaint Submit",
                                     Toast.LENGTH_LONG
-                                )
-                                    .show()
+                                ).show()
                                 binding.progressbar.visibility = View.GONE
                                 binding.btnSubmit.visibility = View.VISIBLE
                                 homeScreen.navController.navigate(R.id.homeFragment)
@@ -483,10 +482,12 @@ class AddComplaintFragment : Fragment() {
                     var complaintDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var cid = compRef.push().key
                     videoUrl = it.toString()
+
                     var timestamp = System.currentTimeMillis()
                     val randomNumber = (100..999).random()
                     var timestamp1 = timestamp.toString().substring(0, 5)
                     var complaintNumber = "$timestamp1$randomNumber"
+
                     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val complaintTime = format.format(Date())
                     var complaints = Complaints(
@@ -497,7 +498,7 @@ class AddComplaintFragment : Fragment() {
                         homeScreen.id,
                         complaintDate.toString(),
                         cid.toString(), "", audioUrl, videoName, videoUrl,
-                        userName, userEmail, "", complaintNumber,
+                        userName, userEmail,userEmail, "", complaintNumber,
                         complaintTime
                     )
 

@@ -13,8 +13,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import com.google.android.material.transition.Hold
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentCheckPasswordBinding
 
 private const val ARG_PARAM1 = "param1"
@@ -24,9 +23,10 @@ class CheckPassword : Fragment() {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
-    lateinit var homeScreen: HomeScreen
+    lateinit var emailChangeActivity: EmailChangeActivity
      var email: String=""
      var pass: String=""
+     var id: String=""
 
     lateinit var database: FirebaseDatabase
     lateinit var userReference: DatabaseReference
@@ -43,11 +43,9 @@ class CheckPassword : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        homeScreen=activity as HomeScreen
-arguments.let {
-     email=it?.getString("email").toString()
-     pass=it?.getString("pass").toString()
-}
+        emailChangeActivity=activity as EmailChangeActivity
+     email=emailChangeActivity.intent.getStringExtra("email").toString()
+     pass=emailChangeActivity.intent.getStringExtra("pass").toString()
         var binding=FragmentCheckPasswordBinding.inflate(layoutInflater,container,false)
 
         binding.lottie.playAnimation()
@@ -63,25 +61,48 @@ arguments.let {
             }
             else if(pass.equals(binding.etEmail.text.toString())){
                 val connectivityManager =
-                    homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                    emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
-                    var bundle = Bundle()
-                    bundle.putString("email", email)
-                    bundle.putString("pass", pass)
-                    homeScreen.navController.navigate(
-                        R.id.action_checkPassword_to_changeEmail,
-                        bundle
-                    )
+                    var demarraylist = ArrayList<String>()
+                    var bundle =Bundle()
+                    FirebaseDatabase.getInstance().reference.child("Demand Letter")
+                        .addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                println("checking hogi start")
+                                for(eachdem in snapshot.children){
+                                    var demdetail=eachdem.getValue(DemandLetter::class.java)
+                                    if( demdetail!=null && demdetail.userId.equals(emailChangeActivity.id)){
+                                        demarraylist.add(demdetail.demandId.toString())
+                                        println("dem : "+ demarraylist)
+                                    }
+                                }
+                                println("dem : "+ demarraylist)
+                                bundle.putString("email", email)
+                                bundle.putString("pass", pass)
+                                bundle.putStringArrayList("ddids",demarraylist)
+                                emailChangeActivity.navController.navigate(
+                                    R.id.changeEmail,
+                                    bundle
+                                )
+
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                                TODO("Not yet implemented")
+                            }
+
+                        })
+
                 }
                 else{
-                    Toast.makeText(homeScreen,"Check your internet connection please",Toast.LENGTH_LONG).show()
+                    Toast.makeText(emailChangeActivity,"Check your internet connection please",Toast.LENGTH_LONG).show()
 
                 }
             }
             else{
-                Toast.makeText(homeScreen,"Password is Wrong",Toast.LENGTH_LONG).show()
+                Toast.makeText(emailChangeActivity,"Password is Wrong",Toast.LENGTH_LONG).show()
             }
         }
 

@@ -40,7 +40,6 @@
             android:textStyle="bold"
             android:layout_marginTop="10dp"
             android:id="@+id/movText"
-            android:text="@string/want_to_get_tips_or_knowledge_about_corruption_ntap_here"
             />
         </FrameLayout>
 
@@ -108,7 +107,6 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="We have Successfully Resolved n cases"
             android:layout_margin="10dp"
             android:gravity="center"
             android:id="@+id/success"

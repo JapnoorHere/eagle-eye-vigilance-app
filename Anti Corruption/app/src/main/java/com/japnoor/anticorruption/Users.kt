@@ -8,6 +8,8 @@ data class Users(var name : String="",
                  var userStatus : String="",
                  var passcode : String="",
                  var birthdate : String = "",
-                 var userSensor : String = ""
+                 var userSensor : String = "",
+                 var userDate : String = "",
+                 var userTime : String = ""
 ) {
 }

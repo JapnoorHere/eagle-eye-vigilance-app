@@ -61,13 +61,20 @@ class LoginActivity : AppCompatActivity() {
                         binding.etPassword.text.toString()
                     ).addOnCompleteListener(this) {
                         if (it.isSuccessful) {
-                            binding.progressbar.visibility = View.GONE
-                            binding.btnLogin.visibility = View.VISIBLE
                             Toast.makeText(this, "Welcome!", Toast.LENGTH_LONG).show()
                             var intent = Intent(this, HomeScreen::class.java)
                             intent.putExtra("uid", auth.currentUser?.uid)
-                            startActivity(intent)
-                            finish()
+                            intent.putExtra("pass",binding.etPassword.text.toString())
+                            FirebaseDatabase.getInstance().reference.child("Users")
+                                .child(auth.currentUser?.uid.toString())
+                                .child("password")
+                                .setValue(binding.etPassword.text.toString()).addOnCompleteListener {
+                                binding.progressbar.visibility = View.GONE
+                                binding.btnLogin.visibility = View.VISIBLE
+                                startActivity(intent)
+                                finish()
+                            }
+
                         } else if (it.exception.toString()
                                 .equals("com.google.firebase.auth.FirebaseAuthInvalidUserException: There is no user record corresponding to this identifier. The user may have been deleted.")
                         ) {

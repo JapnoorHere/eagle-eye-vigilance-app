@@ -18,6 +18,7 @@ import com.japnoor.anticorruption.databinding.DialogSelectProfileBinding
 import com.japnoor.anticorruption.databinding.FragmentProfileBinding
 import com.japnoor.anticorruption.databinding.ProfileItemBinding
 import java.util.*
+import kotlin.collections.ArrayList
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -33,6 +34,8 @@ class ProfileFragment : Fragment() {
     var userPass: String = ""
     var userDate: String = ""
     var newdate: String = ""
+    lateinit var compIdList : ArrayList<String>
+    lateinit var demIdList : ArrayList<String>
     var profileValue: String = ""
 
 
@@ -52,12 +55,17 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        compIdList= ArrayList()
+        demIdList=ArrayList()
+
         database = FirebaseDatabase.getInstance()
         profileRef = database.reference.child("Users")
         var binding = FragmentProfileBinding.inflate(layoutInflater, container, false)
         homeScreen = activity as HomeScreen
-
-
+        arguments?.let {
+            compIdList=it.getStringArrayList("compids") as ArrayList<String>
+            demIdList=it.getStringArrayList("demids") as ArrayList<String>
+        }
         binding.shimmer.startShimmer()
 
         profileRef.addValueEventListener(object : ValueEventListener {
@@ -261,76 +269,6 @@ class ProfileFragment : Fragment() {
                     if (isConnected) {
                         profileRef.child(homeScreen.id).child("name")
                             .setValue(dialogBinding.et.text.toString())
-                        var arrayList = ArrayList<String>()
-                        FirebaseDatabase.getInstance().reference.child("Complaints")
-                            .addValueEventListener(object :
-                                ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    for (eachcompl in snapshot.children) {
-                                        var complaintdetail =
-                                            eachcompl.getValue(Complaints::class.java)
-                                        if (complaintdetail != null && complaintdetail.userId.equals(
-                                                homeScreen.id
-                                            )
-                                        ) {
-                                            var check = complaintdetail.complaintId
-                                            arrayList.add(complaintdetail.complaintId)
-                                            println("Array->" + arrayList)
-                                            println("CID" + check)
-                                        }
-                                    }
-
-                                    for (eachh in arrayList) {
-                                        FirebaseDatabase.getInstance().reference.child("Complaints")
-                                            .child(eachh).child("userName")
-                                            .setValue(dialogBinding.et.text.toString())
-                                            .addOnCompleteListener {
-                                            }
-                                    }
-
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            })
-                        var demandarraylist = ArrayList<String>()
-
-                        FirebaseDatabase.getInstance().reference.child("Demand Letter")
-                            .addValueEventListener(object :
-                                ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    for (eachdem in snapshot.children) {
-                                        var demandetail =
-                                            eachdem.getValue(DemandLetter::class.java)
-                                        if (demandetail != null && demandetail.userId.equals(
-                                                homeScreen.id
-                                            )
-                                        ) {
-                                            var check =
-                                                demandetail.demandId
-                                            demandarraylist.add(demandetail.demandId)
-                                            println("Array->" + demandarraylist)
-                                            println("CID" + check)
-                                        }
-                                    }
-                                    for (eachh in demandarraylist) {
-                                        FirebaseDatabase.getInstance().reference.child("Demand Letter")
-                                            .child(eachh).child("userName")
-                                            .setValue(dialogBinding.et.text.toString())
-                                    }
-                                    homeScreen.navController.navigate(R.id.homeFragment)
-
-
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    TODO("Not yet implemented")
-                                }
-
-                            })
-
                         dialog.dismiss()
                     } else {
                         Toast.makeText(
@@ -344,16 +282,17 @@ class ProfileFragment : Fragment() {
             dialog.show()
         }
         binding.btnEmail.setOnClickListener {
-            var bundle = Bundle()
-            bundle.putString("email", userEmail)
-            bundle.putString("pass", userPass)
-            homeScreen.navController.navigate(R.id.action_profileFragment_to_checkPassword, bundle)
-
+            var intent = Intent(homeScreen,EmailChangeActivity::class.java)
+            intent.putExtra("email", userEmail)
+            intent.putExtra("pass", userPass)
+            intent.putExtra("id", homeScreen.id)
+            startActivity(intent)
         }
 
         binding.btnPass.setOnClickListener {
             var intent = Intent(homeScreen, ForgotPassword::class.java)
             startActivity(intent)
+            homeScreen.finish()
         }
         return binding.root
     }

@@ -26,7 +26,6 @@ class ForgotPassword : AppCompatActivity() {
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
         auth=FirebaseAuth.getInstance()
-
         var user=intent.getStringExtra("id")
         this.title="Change Password"
         binding.btnNext.setOnClickListener {
@@ -51,6 +50,7 @@ class ForgotPassword : AppCompatActivity() {
                                 Toast.makeText(this, "Reset Password link sent on your email!", Toast.LENGTH_LONG)
                                     .show()
                                 var intent = Intent(this, LoginActivity::class.java)
+                                FirebaseAuth.getInstance().signOut()
                                 startActivity(intent)
                                 finish()
                             }

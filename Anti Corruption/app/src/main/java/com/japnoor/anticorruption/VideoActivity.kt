@@ -14,84 +14,61 @@ import android.widget.MediaController
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.video.VideoSize
 import com.japnoor.anticorruption.databinding.ActivityVideoBinding
 
 
 class VideoActivity : AppCompatActivity() {
 
+
     lateinit var binding: ActivityVideoBinding
+    private lateinit var playerView: PlayerView
+    private lateinit var player: SimpleExoPlayer
+    override fun onDestroy() {
+        super.onDestroy()
+        player.release()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding= ActivityVideoBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
+        playerView = binding.playerView
+        player = SimpleExoPlayer.Builder(this).build()
+        var video = intent.getStringExtra("video")
         val connectivityManager =
             getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
         if (isConnected) {
-            binding.videoView.setOnPreparedListener { mp ->
-                val videoWidth = mp.videoWidth
-                val videoHeight = mp.videoHeight
-                val deviceOrientation = getDeviceOrientation()
-                if (videoWidth > videoHeight && deviceOrientation == ORIENTATION_PORTRAIT) {
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                } else if (videoWidth < videoHeight && deviceOrientation == ORIENTATION_LANDSCAPE) {
-                    requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
+            playerView.player = player
+            player.addListener(object : Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    when (state) {
+                        Player.STATE_BUFFERING -> {
+                            binding.progressBar.visibility = View.VISIBLE
+                        }
+                        Player.STATE_READY, Player.STATE_ENDED -> {
+                            binding.progressBar.visibility = View.GONE
+                        }
+                    }
                 }
-                mp.start()
-            }
-            var video = intent.getStringExtra("video")
-            binding.videoView.setVideoURI(video?.toUri())
-            binding.videoView.start()
+            })
+            val mediaItem = MediaItem.fromUri(video.toString().toUri())
+            player.setMediaItem(mediaItem)
+            player.prepare()
 
-            var mediaController = MediaController(this)
-            binding.videoView.setMediaController(mediaController)
-            mediaController.setAnchorView(binding.videoView)
+            player.play()
 
         }
-        else{
-            Toast.makeText(this,"Check you internet connection please",Toast.LENGTH_LONG).show()
+        else {
+            Toast.makeText(this, "Check you internet connection please", Toast.LENGTH_LONG).show()
         }
 
-//        binding.btn.setOnClickListener{
-//            finish()
-//        }
-
-
-    }
-
-    override fun onStart() {
-        super.onStart()
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
-    }
-    private fun getDeviceOrientation(): Int {
-        val rotation = windowManager.defaultDisplay.rotation
-        val dm = resources.displayMetrics
-        val width = dm.widthPixels
-        val height = dm.heightPixels
-        val orientation: Int
-        if (width < height) {
-            orientation = if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_270) {
-                ORIENTATION_PORTRAIT
-            } else {
-                ORIENTATION_LANDSCAPE
-            }
-        } else {
-            orientation = if (rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_90) {
-                ORIENTATION_PORTRAIT
-            } else {
-                ORIENTATION_LANDSCAPE
-            }
-        }
-        return orientation
-    }
-
-    companion object {
-        private const val ORIENTATION_PORTRAIT = 1
-        private const val ORIENTATION_LANDSCAPE = 2
     }
 
 }

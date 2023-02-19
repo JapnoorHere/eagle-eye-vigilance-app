@@ -11,7 +11,7 @@
 <TextView
     android:layout_width="match_parent"
     android:padding="10dp"
-    android:textColor="@color/rejected1"
+    android:textColor="@color/rejected"
     android:textStyle="bold"
     android:id="@+id/movText"
     android:text="These Recordings will be saved to Your Internal Storage !"

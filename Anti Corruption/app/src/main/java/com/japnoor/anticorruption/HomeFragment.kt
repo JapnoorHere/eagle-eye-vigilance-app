@@ -33,6 +33,7 @@ class HomeFragment : Fragment() {
     private lateinit var handler: Handler
     private lateinit var imageList: ArrayList<Int>
     private lateinit var adapter: ImageAdapter
+
     lateinit var database: FirebaseDatabase
 
     lateinit var useRef: DatabaseReference
@@ -57,11 +58,10 @@ class HomeFragment : Fragment() {
         compref = database.reference.child("Complaints")
         binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
 
-
-
-
+        binding.movText.setText(R.string.want_to_get_tips_or_knowledge_about_corruption_ntap_here)
+        val screenWidth = resources.displayMetrics.widthPixels.toFloat()
         val textView = binding.movText
-        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", 1100f, -1100f)
+        val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", screenWidth, -screenWidth)
 
         objectAnimator.duration = 12000
         objectAnimator.repeatCount = ObjectAnimator.INFINITE
@@ -79,7 +79,8 @@ class HomeFragment : Fragment() {
                 }
                 val success = binding.success
                 success.setText("We have Successfully Resolved $resolvedcount bribery cases.")
-                val objectAnimator1 = ObjectAnimator.ofFloat(success, "translationX", 1100f, -1100f)
+                val screenWidth = resources.displayMetrics.widthPixels.toFloat()
+                val objectAnimator1 = ObjectAnimator.ofFloat(success, "translationX", screenWidth, -screenWidth)
                 objectAnimator1.duration = 12000
                 objectAnimator1.repeatCount = ObjectAnimator.INFINITE
                 objectAnimator1.start()
