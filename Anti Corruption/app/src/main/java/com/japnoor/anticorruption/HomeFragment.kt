@@ -59,7 +59,7 @@ class HomeFragment : Fragment() {
         binding = FragmentHomeBinding.inflate(layoutInflater, container, false)
 
         binding.movText.setText(R.string.want_to_get_tips_or_knowledge_about_corruption_ntap_here)
-        val screenWidth = resources.displayMetrics.widthPixels.toFloat()
+        val screenWidth = homeScreen.resources.displayMetrics.widthPixels.toFloat()
         val textView = binding.movText
         val objectAnimator = ObjectAnimator.ofFloat(textView, "translationX", screenWidth, -screenWidth)
 
@@ -79,7 +79,7 @@ class HomeFragment : Fragment() {
                 }
                 val success = binding.success
                 success.setText("We have Successfully Resolved $resolvedcount bribery cases.")
-                val screenWidth = resources.displayMetrics.widthPixels.toFloat()
+                val screenWidth = homeScreen.resources.displayMetrics.widthPixels.toFloat()
                 val objectAnimator1 = ObjectAnimator.ofFloat(success, "translationX", screenWidth, -screenWidth)
                 objectAnimator1.duration = 12000
                 objectAnimator1.repeatCount = ObjectAnimator.INFINITE
@@ -120,7 +120,6 @@ class HomeFragment : Fragment() {
 
     override fun onPause() {
         super.onPause()
-
         handler.removeCallbacks(runnable)
     }
 

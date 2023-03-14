@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Punjab Vigilance Bureau</string>
+    <string name="app_name">Eagle Eye Vigilance</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="open">Open</string>
@@ -21,6 +21,9 @@
         <item>Jalandhar</item>
         <item>Kapurthala</item>
         <item>Ludhiana</item>
+        <item>Malerkotla</item>
+        <item>Mansa</item>
+        <item>Moga</item>
         <item>Sri Muktsar Sahib</item>
         <item>Pathankot</item>
         <item>Patiala</item>
@@ -30,6 +33,13 @@
         <item>Shahid Bhagat Singh Nagar</item>
         <item>Taran Taran</item>
     </string-array>
+
+    <string-array name="SuspectCategory">
+        <item>Gazzeted Officer</item>
+        <item>Non Gazzeted Officer</item>
+        <item>Private</item>
+    </string-array>
+
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">This is an app widget description</string>

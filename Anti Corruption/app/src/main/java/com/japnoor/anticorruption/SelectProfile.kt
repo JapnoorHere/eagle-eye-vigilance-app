@@ -5,6 +5,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.SharedPreferences.Editor
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -32,6 +34,8 @@ class SelectProfile : Fragment() {
 
     lateinit var sharedPreferences: SharedPreferences
     lateinit var editor: Editor
+    lateinit var sharedPreferencesInst: SharedPreferences
+    lateinit var editorInst: Editor
     var id : String=""
     var pass : String=""
     var passcode : String=""
@@ -66,6 +70,9 @@ class SelectProfile : Fragment() {
         editor.remove("instRemind")
         editor.apply()
         editor.commit()
+
+        sharedPreferencesInst=signUp.getSharedPreferences("instructions",Context.MODE_PRIVATE)
+        editorInst=sharedPreferencesInst.edit()
 
         arguments.let {
             id = it?.getString("id").toString()
@@ -129,13 +136,15 @@ class SelectProfile : Fragment() {
             val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
             val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
             if (isConnected) {
-                binding.donebtn.visibility = View.GONE
-                binding.progressbar.visibility = View.VISIBLE
+                var loaddialog=Dialog(signUp)
+                loaddialog.setContentView(R.layout.dialog_sign_loading)
+                loaddialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                loaddialog.show()
+                loaddialog.setCancelable(false)
                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, pass)
                     .addOnCompleteListener {
                         val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                         val userTime = format.format(Date())
-
                         var userDate: CharSequence = DateFormat.format("MMMM d,yyyy", Date().time)
                         if (it.isSuccessful) {
                             var user = FirebaseAuth.getInstance().currentUser
@@ -151,8 +160,13 @@ class SelectProfile : Fragment() {
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
                                 if (it.isSuccessful) {
-                                    binding.donebtn.visibility = View.VISIBLE
-                                    binding.progressbar.visibility = View.GONE
+                                    editorInst.remove("tapTarget")
+                                    editorInst.remove("tapTargetAudio")
+                                    editorInst.remove("tapTargetProfile")
+                                    editorInst.remove("tapTargetVideo")
+                                    editorInst.apply()
+                                    editorInst.commit()
+                                  loaddialog.dismiss()
                                     var intent = Intent(signUp, HomeScreen::class.java)
                                     intent.putExtra("uid", id.toString())
                                     intent.putExtra("pass", pass.toString())
@@ -163,8 +177,7 @@ class SelectProfile : Fragment() {
                         } else {
                             Toast.makeText(signUp, it.exception.toString(), Toast.LENGTH_LONG)
                                 .show()
-                            binding.donebtn.visibility = View.VISIBLE
-                            binding.progressbar.visibility = View.GONE
+                            loaddialog.dismiss()
                         }
                     }
             }

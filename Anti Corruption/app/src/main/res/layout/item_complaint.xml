@@ -20,11 +20,21 @@
             <View
                 android:id="@+id/leftline"
                 android:layout_width="4dp"
-                android:layout_height="100dp"
+                android:layout_height="130dp"
                 android:layout_marginStart="10dp"
                 android:layout_gravity="center_vertical"
                 android:background="@drawable/purpleback1" />
-
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:id="@+id/more"
+                android:layout_margin="3dp"
+                android:src="@drawable/ic_baseline_more_vert_24"
+                />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -50,7 +60,7 @@
                         android:text="123445678"
                         android:layout_gravity="center"
                         android:textColor="@color/black"
-                        android:textSize="10sp" />
+                        android:textSize="15sp" />
                 </LinearLayout>
 
 
@@ -60,17 +70,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
+                    android:layout_marginTop="7dp"
                     android:gravity="end">
                     <TextView
                         android:id="@+id/date"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="January 26,2023"
+                        android:textSize="12sp"
                         android:layout_marginEnd="10dp"
                         android:textColor="@color/black" />
                     <View
                         android:id="@+id/rightline"
-                        android:layout_width="120dp"
+                        android:layout_width="110dp"
                         android:layout_height="2dp"
                         android:background="@drawable/purpleback"/>
                     <LinearLayout
@@ -83,11 +95,35 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:hint="Against : "
-                            android:textColor="@color/black"
-                            android:textSize="17sp" />
+                            android:text="Against : "
+                            android:textColor="#777373"
+                            android:textSize="14sp" />
                         <TextView
                             android:id="@+id/compAgainst"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Society"
+                            android:textColor="@color/black"
+                            android:textSize="17sp" />
+
+
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginStart="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="District : "
+                            android:textColor="#777373"
+                            android:textSize="15sp" />
+                        <TextView
+                            android:id="@+id/tvDistrict"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Society"
@@ -103,12 +139,11 @@
                         >
                         <TextView
                             android:layout_marginStart="6dp"
-                            android:id="@+id/compSumm"
+                            android:id="@+id/compdetails"
+                            android:maxLines="1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:textColor="@color/black"
-                            android:hint="Dahsfvlahrsg fauerh jbelrkgf ;aeuypfuer lkglkjahsifya kf;ieha rufg akg aisuhd; ahvpiua "/>
-
+                            android:textColor="#777373"/>
                     </LinearLayout>
 
                 </LinearLayout>
@@ -122,6 +157,7 @@
                     android:textColor="@color/black" />
 
             </LinearLayout>
+            </RelativeLayout>
 
         </androidx.cardview.widget.CardView>
 

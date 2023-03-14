@@ -4,6 +4,9 @@ import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.content.SharedPreferences.Editor
+import android.graphics.Typeface
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -13,6 +16,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.DialogSelectProfileBinding
 import com.japnoor.anticorruption.databinding.FragmentProfileBinding
@@ -34,9 +39,11 @@ class ProfileFragment : Fragment() {
     var userPass: String = ""
     var userDate: String = ""
     var newdate: String = ""
-    lateinit var compIdList : ArrayList<String>
-    lateinit var demIdList : ArrayList<String>
+    lateinit var compIdList: ArrayList<String>
+    lateinit var demIdList: ArrayList<String>
     var profileValue: String = ""
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: Editor
 
 
     lateinit var database: FirebaseDatabase
@@ -55,17 +62,80 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        compIdList= ArrayList()
-        demIdList=ArrayList()
+        compIdList = ArrayList()
+        demIdList = ArrayList()
 
         database = FirebaseDatabase.getInstance()
         profileRef = database.reference.child("Users")
         var binding = FragmentProfileBinding.inflate(layoutInflater, container, false)
         homeScreen = activity as HomeScreen
         arguments?.let {
-            compIdList=it.getStringArrayList("compids") as ArrayList<String>
-            demIdList=it.getStringArrayList("demids") as ArrayList<String>
+            compIdList = it.getStringArrayList("compids") as ArrayList<String>
+            demIdList = it.getStringArrayList("demids") as ArrayList<String>
         }
+
+        sharedPreferences = homeScreen.getSharedPreferences("instructions", Context.MODE_PRIVATE)
+        editor = sharedPreferences.edit()
+
+        if(!(sharedPreferences.contains("tapTargetProfile"))) {
+            TapTargetView.showFor(homeScreen,
+                TapTarget.forView(
+                    binding.Profile,
+                    "Profile",
+                    "Click here to change your Profile"
+                )
+                    .outerCircleColor(R.color.accepted)
+                    .outerCircleAlpha(0.96f)
+                    .targetCircleColor(R.color.blue)
+                    .titleTextSize(20)
+                    .titleTextColor(R.color.blue)
+                    .descriptionTextSize(10)
+                    .descriptionTextColor(R.color.blue)
+                    .textColor(R.color.white)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.blue)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .titleTextSize(20)
+                    .transparentTarget(true)
+                    .targetRadius(60),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                        TapTargetView.showFor(homeScreen,
+                            TapTarget.forView(
+                                binding.btnName,
+                                "Edit Profile",
+                                "Click on these buttons to change your Name,Email,Birth date and Password"
+                            )
+                                .outerCircleColor(R.color.accepted)
+                                .outerCircleAlpha(0.96f)
+                                .targetCircleColor(R.color.blue)
+                                .titleTextSize(20)
+                                .titleTextColor(R.color.blue)
+                                .descriptionTextSize(10)
+                                .descriptionTextColor(R.color.blue)
+                                .textColor(R.color.white)
+                                .textTypeface(Typeface.SANS_SERIF)
+                                .dimColor(R.color.blue)
+                                .drawShadow(true)
+                                .cancelable(false)
+                                .tintTarget(true)
+                                .transparentTarget(true)
+                                .targetRadius(60),
+                            object : TapTargetView.Listener() {
+                                override fun onTargetClick(view: TapTargetView) {
+                                    super.onTargetClick(view)
+                                    editor.putString("tapTargetProfile", "1")
+                                    editor.apply()
+                                    editor.commit()
+                                }
+                            })
+                    }
+                })
+        }
+
         binding.shimmer.startShimmer()
 
         profileRef.addValueEventListener(object : ValueEventListener {
@@ -244,7 +314,6 @@ class ProfileFragment : Fragment() {
 
 
         binding.btnName.setOnClickListener {
-
             var dialog = Dialog(requireContext())
             var dialogBinding = ProfileItemBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
@@ -254,35 +323,39 @@ class ProfileFragment : Fragment() {
             )
             dialogBinding.et.setText(userName)
             dialogBinding.fab.setOnClickListener {
-                val input: String = dialogBinding.et.getText().toString().trim()
-                if (dialogBinding.et.text.isNullOrEmpty()) {
-                    dialogBinding.et.error = "Cannot be empty!"
-                } else if (input.length == 0) {
-                    dialogBinding.et.requestFocus()
-                    dialogBinding.et.error = "Enter Some characters "
+                if (dialogBinding.et.text.toString().equals(userName)) {
+                    dialog.dismiss()
                 } else {
-
-                    val connectivityManager =
-                        homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-                    val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
-                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-                    if (isConnected) {
-                        profileRef.child(homeScreen.id).child("name")
-                            .setValue(dialogBinding.et.text.toString())
-                        dialog.dismiss()
+                    val input: String = dialogBinding.et.getText().toString().trim()
+                    if (dialogBinding.et.text.isNullOrEmpty()) {
+                        dialogBinding.et.error = "Cannot be empty!"
+                    } else if (input.length == 0) {
+                        dialogBinding.et.requestFocus()
+                        dialogBinding.et.error = "Enter Some characters "
                     } else {
-                        Toast.makeText(
-                            homeScreen,
-                            "Check you internet connection please",
-                            Toast.LENGTH_LONG
-                        ).show()
+
+                        val connectivityManager =
+                            homeScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+                        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+                        if (isConnected) {
+                            profileRef.child(homeScreen.id).child("name")
+                                .setValue(dialogBinding.et.text.toString())
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                homeScreen,
+                                "Check you internet connection please",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
                 }
             }
             dialog.show()
         }
         binding.btnEmail.setOnClickListener {
-            var intent = Intent(homeScreen,EmailChangeActivity::class.java)
+            var intent = Intent(homeScreen, EmailChangeActivity::class.java)
             intent.putExtra("email", userEmail)
             intent.putExtra("pass", userPass)
             intent.putExtra("id", homeScreen.id)

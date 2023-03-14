@@ -1,8 +1,11 @@
 package com.japnoor.anticorruption
 
+import android.app.Dialog
 import com.japnoor.anticorruption.R
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -129,6 +132,7 @@ class OTPEmailChange : Fragment() {
                 ).show()
             }
         }
+        var dialog= Dialog(emailChangeActivity)
 
         binding.btnVerify.setOnClickListener {
             var otp1 = binding.otp1.text.toString()
@@ -153,17 +157,17 @@ class OTPEmailChange : Fragment() {
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
-
-                    binding.btnVerify.visibility = View.GONE
-                    binding.progressbar.visibility = View.VISIBLE
+                    dialog.setContentView(R.layout.dialog_loading)
+                    dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                    dialog.setCancelable(false)
+                    dialog.show()
                     user.currentUser?.updateEmail(email)?.addOnCompleteListener {
                         if (it.isSuccessful) {
-
                             userRef.child(emailChangeActivity.id).child("email")
                                 .setValue(email)
-                            binding.progressbar.visibility = View.GONE
-                            binding.btnVerify.visibility = View.VISIBLE
                             var intent=Intent(emailChangeActivity,HomeScreen::class.java)
+                            intent.putExtra("uid",emailChangeActivity.id)
+                            intent.putExtra("pass",emailChangeActivity.pass)
                             emailChangeActivity.startActivity(intent)
                             emailChangeActivity.finish()
                             for(eachh in comparraylist){
@@ -175,11 +179,11 @@ class OTPEmailChange : Fragment() {
                         } else if (it.exception.toString()
                                 .equals("com.google.firebase.auth.FirebaseAuthUserCollisionException: The email address is already in use by another account.")
                         ) {
+                            dialog.dismiss()
                             Toast.makeText(emailChangeActivity, "Email already Exists", Toast.LENGTH_LONG)
                                 .show()
                         } else {
-                            binding.progressbar.visibility = View.GONE
-                            binding.btnVerify.visibility = View.VISIBLE
+                            dialog.dismiss()
                             Toast.makeText(emailChangeActivity, it.exception.toString(), Toast.LENGTH_LONG)
                                 .show()
                             println("Emaol " + it.exception.toString())
@@ -196,8 +200,7 @@ class OTPEmailChange : Fragment() {
 
                 }
             } else {
-                binding.btnVerify.visibility = View.VISIBLE
-                binding.progressbar.visibility = View.GONE
+                dialog.dismiss()
                 Toast.makeText(emailChangeActivity, "Wrong Otp", Toast.LENGTH_LONG).show()
             }
         }
@@ -208,9 +211,9 @@ class OTPEmailChange : Fragment() {
     fun OTP() {
         random = Random.nextInt(100000..999999)
         val mail = SendMail(
-            "bpunjabvigilance@gmail.com", "wwpxryeuxsavbhur",
+            "eagleeyevigilance@gmail.com", "kopbxcdsbqqzaldq",
             email, "Your One Time Password",
-            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
+            "Use the following One Time Password (OTP) to log into Eagle Eye Vigilance App : $random"
         )
         mail.execute()
     }

@@ -2,17 +2,16 @@ package com.japnoor.anticorruption
 
 import android.annotation.SuppressLint
 import android.app.*
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.*
-import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
@@ -20,7 +19,6 @@ import androidx.activity.result.ActivityResultCallback
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
@@ -30,10 +28,8 @@ import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
-import com.japnoor.anticorruption.databinding.FileDownloadBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
-import java.io.File
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -50,20 +46,26 @@ class UserComplaints : Fragment(), UserComplaintClick {
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storegeref: StorageReference
 
-    lateinit var dialogBindEdit : EditUserComplaintDialogBinding
+    lateinit var dialogBindEdit: EditUserComplaintDialogBinding
 
 
     lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
     lateinit var activityResulLauncher2: ActivityResultLauncher<Intent>
+    lateinit var activityResulLauncher3: ActivityResultLauncher<Intent>
     var audioUrl: String = ""
     var audioUri: Uri? = null
 
     var videoUrl: String = ""
     var videoUri: Uri? = null
 
+    var imageUrl: String = ""
+    var imageUri: Uri? = null
+
     lateinit var database: FirebaseDatabase
     lateinit var compRef: DatabaseReference
-    var c=0
+    var c = 0
+    lateinit var loadDialog: Dialog
+
 
     lateinit var binding: FragmentUserComplaintsBinding
 
@@ -74,6 +76,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
         registerActivityforResult()
         registerActivityforResult2()
+        registerActivityforResult3()
 
         arguments?.let {
             param1 = it.getString(ARG_PARAM1)
@@ -95,7 +98,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
 
-
+        loadDialog = Dialog(homeScreen)
+        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
 //        val notificationManager = homeScreen.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 //        val channelId = "default"
@@ -137,7 +142,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
         binding.search.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 if (event.rawX >= (binding.search.right - binding.search.compoundDrawables[2].bounds.width())) {
-                             binding.search.text.clear()
+                    binding.search.text.clear()
                     return@setOnTouchListener true
                 }
             }
@@ -151,31 +156,46 @@ class UserComplaints : Fragment(), UserComplaintClick {
             override fun onDataChange(snapshot: DataSnapshot) {
                 complaintsList.clear()
                 for (eachComplaint in snapshot.children) {
-                         val complaint = eachComplaint.getValue(Complaints::class.java)
+                    val complaint = eachComplaint.getValue(Complaints::class.java)
 
-                         if (complaint != null && complaint.userId.equals(homeScreen.id)) {
-                             complaintsList.add(complaint)
-                         }
+                    if (complaint != null && complaint.userId.equals(homeScreen.id)) {
+                        complaintsList.add(complaint)
+                    }
+                    complaintsList.reverse()
                     myComplaintsAdapter = MyComplaintsAdapter(homeScreen, complaintsList, this)
                     binding.recyclerView.layoutManager = LinearLayoutManager(homeScreen)
                     binding.recyclerView.adapter = myComplaintsAdapter
-                    binding.shimmer.visibility=View.GONE
+                    binding.shimmer.visibility = View.GONE
                     binding.shimmer.stopShimmer()
-                    binding.recyclerView.visibility=View.VISIBLE
-                    binding.search.addTextChangedListener(object : TextWatcher{
-                        override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
+                    binding.recyclerView.visibility = View.VISIBLE
+                    binding.search.addTextChangedListener(object : TextWatcher {
+                        override fun beforeTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            count: Int,
+                            after: Int
+                        ) {
                         }
 
-                        override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                        override fun onTextChanged(
+                            s: CharSequence?,
+                            start: Int,
+                            before: Int,
+                            count: Int
+                        ) {
                         }
 
                         override fun afterTextChanged(s: Editable?) {
                             var filteredList = ArrayList<Complaints>()
-                            for (item in complaintsList){
-                                if(item.complaintAgainst.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.complaintNumber.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.complaintDate.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.complaintTime.toLowerCase().contains(s.toString().toLowerCase())
+                            for (item in complaintsList) {
+                                if (item.complaintAgainst.toLowerCase()
+                                        .contains(s.toString().toLowerCase())
+                                    || item.complaintNumber.toLowerCase()
+                                        .contains(s.toString().toLowerCase())
+                                    || item.complaintDate.toLowerCase()
+                                        .contains(s.toString().toLowerCase())
+                                    || item.complaintTime.toLowerCase()
+                                        .contains(s.toString().toLowerCase())
                                 )
                                     filteredList.add(item)
                             }
@@ -184,9 +204,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                     })
                 }
-                binding.shimmer.visibility=View.GONE
+                binding.shimmer.visibility = View.GONE
                 binding.shimmer.stopShimmer()
-                binding.recyclerView.visibility=View.VISIBLE
+                binding.recyclerView.visibility = View.VISIBLE
 
             }
 
@@ -204,10 +224,12 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
-
+                    dialogBind.actionsTakenLayout.visibility = View.GONE
                     dialogBind.Framelayout.setBackgroundResource(R.color.accepted1)
                     dialogBind.stamp.setImageResource(R.drawable.accpeted_stamp)
-                    dialogBind.tvSummary.setText(complaints.complaintSummary)
+                    dialogBind.tvDept.setText(complaints.complaintDept)
+                    dialogBind.tvLocation.setText(complaints.complaintLoc)
+                    dialogBind.tvCategory.setText(complaints.complaintCategory)
                     dialogBind.tvDetails.setText(complaints.complaintDetails)
                     dialogBind.tvAgainst.setText(complaints.complaintAgainst)
                     dialogBind.comDate.setText(complaints.complaintDate)
@@ -216,12 +238,21 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     dialogBind.fabAdd1.setOnClickListener {
                         dialog.dismiss()
                     }
+                    dialogBind.image.setOnClickListener {
+                        val fileUri: Uri = complaints.imageUrl.toUri()
+
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setDataAndType(fileUri, "image/*")
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+
+                        startActivity(intent)
+                    }
+
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        var intent=Intent(homeScreen,AudioActivity::class.java)
-                        intent.putExtra("audio",fileUri.toString())
+                        var intent = Intent(homeScreen, AudioActivity::class.java)
+                        intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
-
                     }
                     dialogBind.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
@@ -233,6 +264,11 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
 
                     if (complaints.audioUrl.isNullOrEmpty()) {
+                        dialogBind.audio.visibility = View.GONE
+                        dialogBind.audio.visibility = View.GONE
+                    }
+
+                    if (complaints.imageUrl.isNullOrEmpty()) {
                         dialogBind.audio.visibility = View.GONE
                         dialogBind.audio.visibility = View.GONE
                     }
@@ -251,9 +287,12 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
+                    dialogBind.actionsTaken.setText(complaints.statusDescription)
                     dialogBind.stamp.setImageResource(R.drawable.resolved_stamp)
                     dialogBind.Framelayout.setBackgroundResource(R.color.resolved1)
-                    dialogBind.tvSummary.setText(complaints.complaintSummary)
+                    dialogBind.tvDept.setText(complaints.complaintDept)
+                    dialogBind.tvLocation.setText(complaints.complaintLoc)
+                    dialogBind.tvCategory.setText(complaints.complaintCategory)
                     dialogBind.tvDetails.setText(complaints.complaintDetails)
                     dialogBind.tvAgainst.setText(complaints.complaintAgainst)
                     dialogBind.comDate.setText(complaints.complaintDate)
@@ -262,10 +301,19 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     dialogBind.fabAdd1.setOnClickListener {
                         dialog.dismiss()
                     }
+                    dialogBind.image.setOnClickListener {
+                        val fileUri: Uri = complaints.imageUrl.toUri()
+
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setDataAndType(fileUri, "image/*")
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+
+                        startActivity(intent)
+                    }
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        var intent=Intent(homeScreen,AudioActivity::class.java)
-                        intent.putExtra("audio",fileUri.toString())
+                        var intent = Intent(homeScreen, AudioActivity::class.java)
+                        intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
 
                     }
@@ -283,6 +331,12 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         dialogBind.audio.visibility = View.GONE
                     }
 
+                    if (complaints.imageUrl.isNullOrEmpty()) {
+                        dialogBind.audio.visibility = View.GONE
+                        dialogBind.audio.visibility = View.GONE
+                    }
+
+
                     if (complaints.videoUrl.isNullOrEmpty()) {
                         dialogBind.video.visibility = View.GONE
                         dialogBind.video.visibility = View.GONE
@@ -291,15 +345,19 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                     dialog.show()
                 } else if (complaints.status.equals("3")) {
+
                     var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
+                    dialogBind.actionsTaken.setText(complaints.statusDescription)
                     dialogBind.Framelayout.setBackgroundResource(R.color.rejected1)
                     dialogBind.stamp.setImageResource(R.drawable.rejected_stamp)
-                    dialogBind.tvSummary.setText(complaints.complaintSummary)
+                    dialogBind.tvDept.setText(complaints.complaintDept)
+                    dialogBind.tvLocation.setText(complaints.complaintLoc)
+                    dialogBind.tvCategory.setText(complaints.complaintCategory)
                     dialogBind.tvDetails.setText(complaints.complaintDetails)
                     dialogBind.tvAgainst.setText(complaints.complaintAgainst)
                     dialogBind.comDate.setText(complaints.complaintDate)
@@ -310,18 +368,31 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     }
                     dialogBind.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        var intent=Intent(homeScreen,AudioActivity::class.java)
-                        intent.putExtra("audio",fileUri.toString())
+                        var intent = Intent(homeScreen, AudioActivity::class.java)
+                        intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
 
                     }
+                    dialogBind.image.setOnClickListener {
+                        val fileUri: Uri = complaints.imageUrl.toUri()
 
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setDataAndType(fileUri, "image/*")
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+
+                        startActivity(intent)
+
+                    }
                     dialogBind.video.setOnClickListener {
                         val fileUri: Uri = complaints.videoUrl.toUri()
 
                         var intent = Intent(homeScreen, VideoActivity::class.java)
                         intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
+                    }
+                    if (complaints.imageUrl.isNullOrEmpty()) {
+                        dialogBind.audio.visibility = View.GONE
+                        dialogBind.audio.visibility = View.GONE
                     }
 
 
@@ -338,14 +409,16 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                     dialog.show()
                 } else {
-                     dialogBindEdit = EditUserComplaintDialogBinding.inflate(layoutInflater)
+                    dialogBindEdit = EditUserComplaintDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBindEdit.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.MATCH_PARENT
                     )
 
-                    dialogBindEdit.compSumm.setText(complaints.complaintSummary)
+                    dialogBindEdit.compDept.setText(complaints.complaintDept)
+                    dialogBindEdit.compLoca.setText(complaints.complaintLoc)
+                    dialogBindEdit.compCategory.setText(complaints.complaintCategory)
                     dialogBindEdit.comDetails.setText(complaints.complaintDetails)
                     dialogBindEdit.compAgainst.setText(complaints.complaintAgainst)
                     dialogBindEdit.comDate.setText(complaints.complaintDate)
@@ -354,50 +427,78 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     arrayAdapter =
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
                     dialogBindEdit.District.setAdapter(arrayAdapter)
+
+                    var suspectCatory = resources.getStringArray(R.array.SuspectCategory)
+                    arrayAdapter =
+                        ArrayAdapter(requireContext(), R.layout.drop_down_item, suspectCatory)
+                    dialogBindEdit.compCategory.setAdapter(arrayAdapter)
+
+
                     dialogBindEdit.fabAdd1.setOnClickListener {
-                        val input: String = dialogBindEdit.compSumm.getText().toString().trim()
+                        val input: String = dialogBindEdit.compDept.getText().toString().trim()
                         val input1: String = dialogBindEdit.compAgainst.getText().toString().trim()
                         val input2: String = dialogBindEdit.comDetails.getText().toString().trim()
-                        if(input.length==0){
-                            dialogBindEdit.compSumm.requestFocus()
-                            dialogBindEdit.compSumm.error = "Cannot be empty"
-                        }
-                        else if(input1.length==0){
+                        val input3: String = dialogBindEdit.compLoca.getText().toString().trim()
+                        if (input.length == 0) {
+                            dialogBindEdit.compDept.requestFocus()
+                            dialogBindEdit.compDept.error = "Cannot be empty"
+                        } else if (input1.length == 0) {
                             dialogBindEdit.compAgainst.requestFocus()
                             dialogBindEdit.compAgainst.error = "Cannot be empty"
-                        }
-                        else if(input2.length==0){
+                        } else if (input2.length == 0) {
                             dialogBindEdit.comDetails.requestFocus()
                             dialogBindEdit.comDetails.error = "Cannot be empty"
-                        }
-                        else if (dialogBindEdit.District.text.isNullOrEmpty()) {
+                        } else if (input3.length == 0) {
+                            dialogBindEdit.compLoca.requestFocus()
+                            dialogBindEdit.compLoca.error = "Cannot be empty"
+                        } else if (dialogBindEdit.District.text.isNullOrEmpty()) {
                             dialogBindEdit.District.requestFocus()
-                            dialogBindEdit  .District.error = "Cannot be empty"
-                        }
-                        else if (audioUri == null && videoUri == null) {
-                            update(dialogBindEdit,complaints,dialog)
+                            dialogBindEdit.District.error = "Cannot be empty"
+                        } else if (dialogBindEdit.compCategory.text.isNullOrEmpty()) {
+                            dialogBindEdit.compCategory.requestFocus()
+                            dialogBindEdit.compCategory.error = "Cannot be empty"
+                        } else if (audioUri == null && videoUri == null && imageUri == null) {
+                            update(dialogBindEdit, complaints, dialog)
+
                         } else {
-                            dialogBindEdit.progressbar.visibility = View.VISIBLE
+                            loadDialog.show()
+                            loadDialog.setCancelable(false)
                             uploadComplaintandAudio(dialogBindEdit, complaints, dialog)
                         }
                     }
                     dialogBindEdit.audio.setOnClickListener {
                         val fileUri: Uri = complaints.audioUrl.toUri()
-                        var intent=Intent(homeScreen,AudioActivity::class.java)
-                        intent.putExtra("audio",fileUri.toString())
+                        var intent = Intent(homeScreen, AudioActivity::class.java)
+                        intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
+                    }
+
+                    dialogBindEdit.image.setOnClickListener {
+                        val fileUri: Uri = complaints.imageUrl.toUri()
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.setDataAndType(fileUri, "image/*")
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
+
+                        startActivity(intent)
 
                     }
 
                     dialogBindEdit.video.setOnClickListener {
-                            val fileUri: Uri = complaints.videoUrl.toUri()
-                            var intent = Intent(homeScreen, VideoActivity::class.java)
-                            intent.putExtra("video", fileUri.toString())
-                            homeScreen.startActivity(intent)
+                        val fileUri: Uri = complaints.videoUrl.toUri()
+                        var intent = Intent(homeScreen, VideoActivity::class.java)
+                        intent.putExtra("video", fileUri.toString())
+                        homeScreen.startActivity(intent)
                     }
+
+
                     if (complaints.audioUrl.isNullOrEmpty()) {
                         dialogBindEdit.audioUpload.visibility = View.GONE
                         dialogBindEdit.audio.visibility = View.GONE
+                    }
+
+                    if (complaints.imageUrl.isNullOrEmpty()) {
+                        dialogBindEdit.imageUpload.visibility = View.GONE
+                        dialogBindEdit.image.visibility = View.GONE
                     }
 
                     if (complaints.videoUrl.isNullOrEmpty()) {
@@ -406,11 +507,10 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     }
 
                     dialogBindEdit.audioUpload.setOnClickListener {
-                        if(audioUri==null) {
+                        if (audioUri == null) {
                             chooseAudio()
-                        }
-                        else if(audioUri!=null){
-                                audioUri=null
+                        } else if (audioUri != null) {
+                            audioUri = null
                             dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg)
                             dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
 
@@ -418,14 +518,23 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     }
 
                     dialogBindEdit.videoUpload.setOnClickListener {
-                        if(videoUri==null) {
+                        if (videoUri == null) {
                             chooseVideo()
-                        }
-                        else if(videoUri!=null){
-                            videoUri=null
+                        } else if (videoUri != null) {
+                            videoUri = null
                             dialogBindEdit.videoUpload.setBackgroundResource(R.drawable.buttonbg)
                             dialogBindEdit.videoUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
 
+                        }
+                    }
+
+                    dialogBindEdit.imageUpload.setOnClickListener {
+                        if (imageUri == null) {
+                            chooseImage()
+                        } else if (imageUri != null) {
+                            imageUri = null
+                            dialogBindEdit.imageUpload.setBackgroundResource(R.drawable.buttonbg)
+                            dialogBindEdit.imageUpload.setImageResource(R.drawable.ic_baseline_file_upload_24)
                         }
                     }
 
@@ -443,10 +552,10 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         tvYes?.setOnClickListener {
                             compRef.child(complaints.complaintId).removeValue()
 
-                            if(complaints.videoUrl.isNullOrEmpty())
-                            storegeref.child("audios").child(complaints.audioName).delete()
-                            else if(complaints.audioUrl.isNullOrEmpty())
-                            storegeref.child("videos").child(complaints.videoName).delete()
+                            if (complaints.videoUrl.isNullOrEmpty())
+                                storegeref.child("audios").child(complaints.audioName).delete()
+                            else if (complaints.audioUrl.isNullOrEmpty())
+                                storegeref.child("videos").child(complaints.videoName).delete()
 
 //                            complaints?.audioName?.let { it1 ->
 //                                storegeref.child("audios").child(it1).delete()
@@ -527,8 +636,26 @@ class UserComplaints : Fragment(), UserComplaintClick {
         }
     }
 
-    fun registerActivityforResult() {
+    fun chooseImage() {
+        if (ContextCompat.checkSelfPermission(
+                homeScreen,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                homeScreen,
+                arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE),
+                1
+            )
+        } else {
+            var intent = Intent()
+            intent.type = "image/*"
+            intent.action = Intent.ACTION_GET_CONTENT
+            activityResulLauncher3.launch(intent)
+        }
+    }
 
+    fun registerActivityforResult() {
         activityResulLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
             ActivityResultCallback { result ->
@@ -537,7 +664,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                 if (resultcode == Activity.RESULT_OK && audioData != null)
                     audioUri = audioData.data
-                if(audioUri!=null){
+                if (audioUri != null) {
                     dialogBindEdit.audioUpload.setBackgroundResource(R.drawable.buttonbg1)
                     dialogBindEdit.audioUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
                 }
@@ -554,7 +681,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                 if (resultcode == Activity.RESULT_OK && videoData != null) {
                     videoUri = videoData.data
-                    if(videoUri!=null){
+                    if (videoUri != null) {
                         dialogBindEdit.videoUpload.setBackgroundResource(R.drawable.buttonbg1)
                         dialogBindEdit.videoUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
                     }
@@ -564,11 +691,35 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
     }
 
-    fun update(dialogBind: EditUserComplaintDialogBinding,
-                    complaints: Complaints,
-                    dialog: Dialog){
+    fun registerActivityforResult3() {
+
+        activityResulLauncher3 = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+            ActivityResultCallback { result ->
+                var resultcode = result.resultCode
+                var imageData = result.data
+
+                if (resultcode == Activity.RESULT_OK && imageData != null) {
+                    imageUri = imageData.data
+                    if (imageUri != null) {
+                        dialogBindEdit.imageUpload.setBackgroundResource(R.drawable.buttonbg1)
+                        dialogBindEdit.imageUpload.setImageResource(R.drawable.ic_baseline_cancel_241)
+                    }
+                }
+            })
+
+
+    }
+
+    fun update(
+        dialogBind: EditUserComplaintDialogBinding,
+        complaints: Complaints,
+        dialog: Dialog
+    ) {
         var compMap = mutableMapOf<String, Any>()
-        compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+        compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
+        compMap["complaintDept"] = dialogBind.compDept.text.toString()
+        compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
         compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
         compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
         compMap["complaintDistrict"] = dialogBind.District.text.toString()
@@ -595,9 +746,6 @@ class UserComplaints : Fragment(), UserComplaintClick {
         dialog: Dialog
     ) {
 
-
-
-
         audioUri?.let { uri ->
             var audioName = complaints.audioName
             val audioreference = storegeref.child("audios").child(audioName)
@@ -611,7 +759,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     audioUrl = it.toString()
 
                     var compMap = mutableMapOf<String, Any>()
-                    compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
+                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
+                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
                     compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
                     compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
                     compMap["complaintDistrict"] = dialogBind.District.text.toString()
@@ -619,6 +769,8 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     compMap["audioUrl"] = audioUrl
                     compMap["videoName"] = ""
                     compMap["videoUrl"] = ""
+                    compMap["imageName"] = ""
+                    compMap["imageUrl"] = ""
                     println("id->" + complaints.complaintId)
                     compRef.child(complaints.complaintId).updateChildren(compMap)
                         .addOnCompleteListener {
@@ -628,10 +780,11 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                     "Updated Successfully",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                dialogBind.progressbar.visibility = View.GONE
+                                loadDialog.dismiss()
                                 dialog.dismiss()
-                                audioUri=null
-                                videoUri=null
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
                             } else {
                                 Toast.makeText(
                                     requireContext(),
@@ -639,8 +792,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                     Toast.LENGTH_LONG
                                 ).show()
                                 dialogBind.progressbar.visibility = View.GONE
-                                audioUri=null
-                                videoUri=null
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
                             }
                         }
                     println("Url 2-> " + audioUrl)
@@ -664,7 +818,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     videoUrl = it.toString()
 
                     var compMap = mutableMapOf<String, Any>()
-                    compMap["complaintSummary"] = dialogBind.compSumm.text.toString()
+                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
+                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
+                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
                     compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
                     compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
                     compMap["complaintDistrict"] = dialogBind.District.text.toString()
@@ -672,19 +828,22 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     compMap["audioUrl"] = ""
                     compMap["videoName"] = videoName
                     compMap["videoUrl"] = videoUrl
+                    compMap["imageName"] = ""
+                    compMap["imageUrl"] = ""
                     println("id->" + complaints.complaintId)
                     compRef.child(complaints.complaintId).updateChildren(compMap)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
-                                dialogBind.progressbar.visibility = View.GONE
+                                loadDialog.dismiss()
                                 dialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
                                     "Updated Successfully",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                audioUri=null
-                                videoUri=null
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
                             } else {
                                 dialogBind.progressbar.visibility = View.GONE
                                 Toast.makeText(
@@ -692,8 +851,68 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                     it.exception.toString(),
                                     Toast.LENGTH_LONG
                                 ).show()
-                                audioUri=null
-                                videoUri=null
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
+                            }
+                        }
+                    println("Url 2-> " + audioUrl)
+                }
+            }.addOnFailureListener {
+
+            }
+        }
+
+        imageUri?.let { uri ->
+            var imageName = complaints.imageName
+            val imagereference = storegeref.child("cimages").child(imageName)
+            imagereference.putFile(uri).addOnSuccessListener {
+                var myUploadVideoRef = storegeref.child("cimages").child(imageName)
+
+                myUploadVideoRef.downloadUrl.addOnSuccessListener {
+                    var d = Date()
+                    var complaintDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
+                    var cid = compRef.push().key
+                    imageUrl = it.toString()
+
+                    var compMap = mutableMapOf<String, Any>()
+                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
+                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
+                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
+                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
+                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
+                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["audioName"] = ""
+                    compMap["audioUrl"] = ""
+                    compMap["videoName"] = ""
+                    compMap["videoUrl"] = ""
+                    compMap["imageName"] = imageName
+                    compMap["imageUrl"] = imageUrl
+                    println("id->" + complaints.complaintId)
+                    compRef.child(complaints.complaintId).updateChildren(compMap)
+                        .addOnCompleteListener {
+                            if (it.isSuccessful) {
+                                loadDialog.dismiss()
+
+                                dialog.dismiss()
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Updated Successfully",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
+                            } else {
+                                dialogBind.progressbar.visibility = View.GONE
+                                Toast.makeText(
+                                    requireContext(),
+                                    it.exception.toString(),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                audioUri = null
+                                videoUri = null
+                                imageUri = null
                             }
                         }
                     println("Url 2-> " + audioUrl)

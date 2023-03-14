@@ -25,11 +25,11 @@ class SplashScreenFragment : Fragment() {
     private var param1: String? = null
     private var param2: String? = null
     lateinit var auth: FirebaseAuth
-    var passcode : String?=null
-    var pass: String?=null
+    var passcode: String? = null
+    var pass: String? = null
     lateinit var splashScreen: SplashScreen
     lateinit var database: FirebaseDatabase
-    lateinit var useref : DatabaseReference
+    lateinit var useref: DatabaseReference
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -42,17 +42,17 @@ class SplashScreenFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-          var binding=FragmentSplashScreenBinding.inflate(layoutInflater)
-        splashScreen=activity as SplashScreen
+        var binding = FragmentSplashScreenBinding.inflate(layoutInflater)
+        splashScreen = activity as SplashScreen
         var downAnim = AnimationUtils.loadAnimation(splashScreen, R.anim.down_anim)
         auth = FirebaseAuth.getInstance()
-        database= FirebaseDatabase.getInstance()
-        useref=database.reference.child("Users")
+        database = FirebaseDatabase.getInstance()
+        useref = database.reference.child("Users")
 
-        binding.ivMAimg.animation = downAnim
+//        binding.ivMAimg.animation = downAnim
 
         Handler(Looper.getMainLooper()).postDelayed({
-            val connectivityManager =  splashScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val connectivityManager=splashScreen.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
             val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
             if (isConnected) {
@@ -70,7 +70,10 @@ class SplashScreenFragment : Fragment() {
                                     bundle.putString("passcode", passcode)
                                     bundle.putString("pass", pass)
                                     bundle.putString("uid", auth.currentUser?.uid.toString())
-                                    splashScreen.navController.navigate(R.id.passcodeFragment,bundle)
+                                    splashScreen.navController.navigate(
+                                        R.id.passcodeFragment,
+                                        bundle
+                                    )
                                 }
                             }
                         }
@@ -84,15 +87,19 @@ class SplashScreenFragment : Fragment() {
                     var intent = Intent(splashScreen, LoginActivity::class.java)
                     startActivity(intent)
                     splashScreen.finish()
-
                 }
+            } else {
+                Toast.makeText(
+                    splashScreen,
+                    "Check your internet connection please",
+                    Toast.LENGTH_LONG
+                ).show()
+                FirebaseAuth.getInstance().signOut()
+                var intent = Intent(splashScreen, LoginActivity::class.java)
+                startActivity(intent)
+                splashScreen.finish()
             }
-            else {
-                Toast.makeText(splashScreen,"Check your internet connection please", Toast.LENGTH_LONG).show()
-            }
-        }, 2500)
-
-
+        },2500)
 
         return binding.root
     }

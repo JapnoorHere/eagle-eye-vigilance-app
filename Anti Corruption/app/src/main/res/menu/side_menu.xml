@@ -15,6 +15,18 @@
         />
 
     <item
+        android:id="@+id/pdf"
+        android:icon="@drawable/ic_baseline_local_phone_24"
+        android:title="Telephone Numbers of Police Officers"
+        />
+
+    <item
+        android:id="@+id/links"
+        android:icon="@drawable/ic_baseline_link_24"
+        android:title="Important Links"
+        />
+
+    <item
         android:id="@+id/sensorShake"
         android:icon="@drawable/shakes"
         android:title="Shake 2 Record"
@@ -23,7 +35,7 @@
     <item
         android:id="@+id/report"
         android:icon="@drawable/ic_baseline_report_problem_24"
-        android:title="Report an Issue"
+        android:title="Report a Bug"
         />
 
     <item

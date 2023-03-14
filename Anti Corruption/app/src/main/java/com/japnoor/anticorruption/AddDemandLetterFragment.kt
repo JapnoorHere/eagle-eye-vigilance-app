@@ -45,6 +45,7 @@ class AddDemandLetterFragment : Fragment() {
     lateinit var editor : SharedPreferences.Editor
     private var param1: String? = null
     private var param2: String? = null
+    lateinit var loadDialog: Dialog
     lateinit var homeScreen: HomeScreen
     lateinit var arrayAdapter: ArrayAdapter<String>
     lateinit var binding: FragmentAddDemandLetterBinding
@@ -91,6 +92,10 @@ class AddDemandLetterFragment : Fragment() {
         binding = FragmentAddDemandLetterBinding.inflate(layoutInflater, container, false)
 
 
+        loadDialog=Dialog(homeScreen)
+        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
         sharedPreferences = homeScreen.getSharedPreferences("Instructions", Context.MODE_PRIVATE)
         editor=sharedPreferences.edit()
         var checkInstOnce=sharedPreferences.getString("instructionsOnceDem",null)
@@ -119,10 +124,23 @@ class AddDemandLetterFragment : Fragment() {
                 editor.commit()
             }
         }
-
+        binding.radiogroup.setOnCheckedChangeListener { group, id ->
+            when(id) {
+                R.id.rbUnion -> binding.unionName.visibility = View.VISIBLE
+                else -> {
+                    binding.unionName.visibility = View.GONE
+                }
+            }
+        }
         binding.btnSubmit.setOnClickListener {
+
+
+
             val input: String = binding.DemandSubject.getText().toString().trim()
             val input1: String = binding.DemandDetails.getText().toString().trim()
+
+
+
             if (input.length == 0) {
                 binding.DemandSubject.requestFocus()
                 binding.DemandSubject.error = "Cannot be empty"
@@ -138,7 +156,15 @@ class AddDemandLetterFragment : Fragment() {
             } else if (binding.District.text.isNullOrEmpty()) {
                 binding.District.setError("Cannot be empty")
                 binding.District.requestFocus()
-            } else if (imageUri == null) {
+            }
+            else if(!binding.rbIndividual.isChecked && !binding.rbUnion.isChecked){
+                Toast.makeText(homeScreen, "Please choose who is submitting Demand Letter", Toast.LENGTH_SHORT).show()
+            }
+            else if(!binding.rbIndividual.isChecked && binding.unionName.text.toString().trim().length==0){
+                binding.unionName.error="Cannot be Empty"
+                binding.unionName.requestFocus()
+            }
+            else if (imageUri == null) {
                 Toast.makeText(homeScreen, "Upload an Image", Toast.LENGTH_LONG).show()
             } else {
                 val connectivityManager =
@@ -147,8 +173,8 @@ class AddDemandLetterFragment : Fragment() {
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
                     binding.addImage.isClickable = false
-                    binding.progressbar.visibility = View.VISIBLE
-                    binding.btnSubmit.visibility = View.GONE
+                    loadDialog.show()
+                    loadDialog.setCancelable(false)
                     uploadDemandLetterAndImage()
                     demuserrRef.addValueEventListener(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
@@ -183,9 +209,9 @@ class AddDemandLetterFragment : Fragment() {
                 if(imageUri==null){
                     if (Build.VERSION.RELEASE >= "13") {
                         var intent = Intent()
-                        intent.type="audio/*"
-                        intent.action= Intent.ACTION_GET_CONTENT
-                        activityResulLauncher.launch(intent)}
+                         intent.action= Intent.ACTION_GET_CONTENT
+                        activityResulLauncher.launch(intent)
+                    }
                     else{
                         chooseImage()
                     }
@@ -201,11 +227,7 @@ class AddDemandLetterFragment : Fragment() {
                 )
                 binding.addImage.setBackgroundResource(R.drawable.upload_photo)
             }
-
-
         }
-
-
         return binding.root
     }
 
@@ -225,7 +247,8 @@ class AddDemandLetterFragment : Fragment() {
     }
 
 
-    fun chooseImage() {
+    fun
+            chooseImage() {
         if (ContextCompat.checkSelfPermission(homeScreen, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION
             )
@@ -281,6 +304,13 @@ class AddDemandLetterFragment : Fragment() {
                 var myUploadImageRef = storegeref.child("images").child(imageName)
 
                 myUploadImageRef.downloadUrl.addOnSuccessListener {
+                    var unionName =""
+                    if(binding.rbUnion.isChecked){
+                        unionName=binding.unionName.text.toString().trim()
+                    }
+                    else if(binding.rbIndividual.isChecked){
+                        unionName="None"
+                    }
                     var d = Date()
                     var demDate: CharSequence = DateFormat.format("MMMM d,yyyy", d.time)
                     var did = demRef.push().key
@@ -295,7 +325,7 @@ class AddDemandLetterFragment : Fragment() {
                         binding.DemandSubject.text.toString(),
                         binding.DemandDetails.text.toString(),
                         demDate.toString(), binding.District.text.toString(), homeScreen.id,
-                        did.toString(), imageUrl, imageName, userName, userEmail,userEmail, "",demandNumber,demandTime
+                        did.toString(), imageUrl, imageName, userName, userEmail,userEmail, "",demandNumber,demandTime,"",unionName
                     )
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {
@@ -306,12 +336,10 @@ class AddDemandLetterFragment : Fragment() {
                                 Toast.LENGTH_LONG
                             )
                                 .show()
-                            binding.progressbar.visibility = View.GONE
-                            binding.btnSubmit.visibility = View.VISIBLE
+                           loadDialog.dismiss()
                             homeScreen.navController.navigate(R.id.homeFragment)
                         } else {
-                            binding.progressbar.visibility = View.GONE
-                            binding.btnSubmit.visibility = View.VISIBLE
+                            loadDialog.dismiss()
                             Toast.makeText(
                                 requireContext(),
                                 it.exception.toString(),

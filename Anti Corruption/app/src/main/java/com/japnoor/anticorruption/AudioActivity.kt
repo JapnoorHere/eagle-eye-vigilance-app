@@ -28,27 +28,35 @@ class AudioActivity : AppCompatActivity() {
         setContentView(binding.root)
         requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
-        val connectivityManager =
-            getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
-        val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-        if (isConnected) {
+        var offlineAudio = intent.getStringExtra("audioo")?.toUri()
+        var type = intent.getStringExtra("type")?.toString()
 
-            var audio = intent.getStringExtra("audio")?.toUri()
-            if (audio != null) {
-                controlSound(audio)
-            }
-
-
-        }
-        else{
-            Toast.makeText(this,"Check you internet connection please",Toast.LENGTH_LONG).show()
-        }
         binding.btn.setOnClickListener {
             mediaPlayer?.stop()
             finish()
         }
 
+        if (type.equals("o")) {
+            if (offlineAudio != null) {
+                controlSound(offlineAudio)
+            }
+        } else {
+            val connectivityManager =
+                getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
+            val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
+            if (isConnected) {
+                var audio = intent.getStringExtra("audio")?.toUri()
+                if (audio != null) {
+                    controlSound(audio)
+                }
+            } else {
+                Toast.makeText(this, "Check you internet connection please", Toast.LENGTH_LONG)
+                    .show()
+            }
+
+
+        }
     }
 
     fun controlSound(audio : Uri){

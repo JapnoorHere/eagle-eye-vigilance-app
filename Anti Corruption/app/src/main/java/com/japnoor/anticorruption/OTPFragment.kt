@@ -52,9 +52,9 @@ class OTPFragment : Fragment() {
     fun OTP() {
         random = Random.nextInt(100000..999999)
         val mail = SendMail(
-            "bpunjabvigilance@gmail.com", "wwpxryeuxsavbhur",
+            "eagleeyevigilance@gmail.com", "kopbxcdsbqqzaldq",
             email, "Your One Time Password",
-            "Use the following One Time Password (OTP) to log into Anti Corruption App : $random"
+            "Use the following One Time Password (OTP) to log into Eagle Eye Vigilance App : $random"
         )
         mail.execute()
     }

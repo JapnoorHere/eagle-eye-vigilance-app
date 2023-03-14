@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout>
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    >
+<LinearLayout
+    android:layout_width="match_parent"
+    android:orientation="horizontal"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:layout_width="150dp"
+        android:scaleType="fitXY"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="10dp"
+        android:layout_height="230dp"
+        android:src="@drawable/bhagwant"
+        />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:justificationMode="inter_word"
+        android:layout_height="wrap_content"
+        android:text="Whether perpetrated by service providers or customers, corruption is just as deadly as a horrible crime against the honour and dignity of a nation and its people. I reaffirm the zero tolerance approach to corruption that the Punjab Government has taken, and I make a commitment to combat it firmly.
+My vision of a Corruption-free Punjab is one in which the public and private sectors continue to grow , bringing and preserving smiles to the faces of all, especially to the youth of Punjab."
+        android:textColor="#5C5858"
+        android:textStyle="bold"
+        android:layout_margin="5dp"
+
+        />
+
+</LinearLayout>
+
+<TextView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="About this app"
+    android:textSize="20sp"
+    android:layout_margin="5dp"
+    android:textColor="@color/black"
+    android:textStyle="bold"
+    android:gravity="center"
+    android:layout_marginTop="10dp"
+    />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:background="@color/black"
+        />
+
+    <TextView
+        android:layout_margin="10dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:layout_marginTop="20dp"
+        android:text="1.) The Eagle Eye Vigilance App is a comprehensive solution for addressing corruption in the Punjab. The app is designed to make it easy for citizens to report instances of corruption and misconduct by government officials, and to track the progress of their complaints.
+\n2.) Users can then receive updates on the status of their complaints, including any action taken by the government in response.
+\n3.) It allows users to submit audio and video evidence as proof of their complaints. This feature enables users to provide detailed and accurate information about the incidents they are reporting, and increases the chances of a successful investigation.
+\n4.) It also provides a special section of Demand Letter where users can send the letters of their demand according to their requirement in the form of text or image containing handwritten letter. Users can track the status on their letters.
+\n5.) The goal of the Eagle Eye Vigilance App is to empower citizens to take a stand against corruption and to increase transparency and accountability in government. The app is intended to serve as a tool for citizens to hold government officials accountable for their actions, and to create a culture of integrity and accountability in the Punjab province.
+"
+        />
+
+</LinearLayout>
+    </ScrollView>
+</layout>

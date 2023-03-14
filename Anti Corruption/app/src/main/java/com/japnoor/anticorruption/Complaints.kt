@@ -1,6 +1,8 @@
 package com.japnoor.anticorruption
 
-data class Complaints(var complaintSummary : String="",
+data class Complaints(var complaintDept : String="",
+                      var complaintLoc : String="",
+                      var complaintCategory : String="",
                       var complaintAgainst : String="",
                       var complaintDetails : String="",
                       var complaintDistrict : String="",
@@ -16,5 +18,8 @@ data class Complaints(var complaintSummary : String="",
                       var userOldEmail : String="",
                       var status : String="",
                       var complaintNumber : String="",
-                      var complaintTime : String=""
+                      var complaintTime : String="",
+                      var statusDescription: String = "",
+                      var imageName : String="",
+                      var imageUrl : String=""
 )

@@ -86,6 +86,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
                     android:padding="5dp"
+                    android:id="@+id/contactus"
                     android:layout_margin="10dp"
                     android:textColor="@color/black"
                     android:drawableLeft="@drawable/ic_baseline_notes_24"

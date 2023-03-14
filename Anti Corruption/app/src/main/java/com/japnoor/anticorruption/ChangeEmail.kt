@@ -1,6 +1,9 @@
 package com.japnoor.anticorruption
 
+import android.app.Dialog
 import android.content.Context
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -53,7 +56,7 @@ class ChangeEmail : Fragment() {
         arguments.let {
             email = it?.getString("email").toString()
             pass = it?.getString("pass").toString()
-            demarraylist= it?.getStringArrayList("ddids") as ArrayList<String>
+            demarraylist = it?.getStringArrayList("ddids") as ArrayList<String>
         }
         var binding = FragmentChangeEmailBinding.inflate(layoutInflater, container, false)
 
@@ -65,26 +68,28 @@ class ChangeEmail : Fragment() {
                 binding.etEmail.error = "Enter Email"
                 binding.etEmail.requestFocus()
             } else if (binding.etEmail.text.toString().equals(email)) {
-                emailChangeActivity.navController.navigate(R.id.profileFragment)
+                emailChangeActivity.finish()
             } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString()).matches()) {
                 binding.etEmail.error = "Enter valid email"
                 binding.etEmail.requestFocus()
             } else {
+                var dialog = Dialog(emailChangeActivity)
+                dialog.setContentView(R.layout.dialog_loading)
+                dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                dialog.setCancelable(false)
                 val connectivityManager =
                     emailChangeActivity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
-                    binding.progressbar.visibility = View.VISIBLE
-                    binding.btnNext.visibility = View.GONE
+                    dialog.show()
                     user.fetchSignInMethodsForEmail(binding.etEmail.text.toString())
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
                                 val signInMethods = task.result.signInMethods
                                 println(signInMethods.toString())
                                 if (signInMethods != null && signInMethods.contains("password")) {
-                                    binding.progressbar.visibility = View.GONE
-                                    binding.btnNext.visibility = View.VISIBLE
+                                    dialog.dismiss()
                                     Toast.makeText(
                                         emailChangeActivity,
                                         "Email already exists",
@@ -92,8 +97,7 @@ class ChangeEmail : Fragment() {
                                     )
                                         .show()
                                 } else {
-                                    binding.btnNext.visibility = View.GONE
-                                    binding.progressbar.visibility = View.VISIBLE
+                                    dialog.dismiss()
                                     val credential = EmailAuthProvider.getCredential(email, pass)
                                     FirebaseAuth.getInstance().currentUser?.reauthenticate(
                                         credential
@@ -110,25 +114,41 @@ class ChangeEmail : Fragment() {
                                                 var bundle = Bundle()
 
                                                 FirebaseDatabase.getInstance().reference.child("Complaints")
-                                                    .addValueEventListener(object : ValueEventListener {
+                                                    .addValueEventListener(object :
+                                                        ValueEventListener {
                                                         override fun onDataChange(snapshot: DataSnapshot) {
                                                             for (eachcompl in snapshot.children) {
                                                                 var complaintdetail =
                                                                     eachcompl.getValue(Complaints::class.java)
                                                                 if (complaintdetail != null && complaintdetail.userId.equals(
-                                                                        emailChangeActivity.id)) {
-                                                                    comparraylist.add(complaintdetail.complaintId)
+                                                                        emailChangeActivity.id
+                                                                    )
+                                                                ) {
+                                                                    comparraylist.add(
+                                                                        complaintdetail.complaintId
+                                                                    )
                                                                     println("Array->" + comparraylist)
                                                                     println("Array Dem->" + demarraylist)
 
                                                                 }
                                                             }
-                                                            binding.btnNext.visibility = View.VISIBLE
-                                                            binding.progressbar.visibility = View.GONE
-                                                            bundle.putString("email", binding.etEmail.text.toString())
-                                                            bundle.putStringArrayList("cids", comparraylist)
-                                                            bundle.putStringArrayList("ddids", demarraylist)
-                                                            emailChangeActivity.navController.navigate(R.id.OTPEmailChange, bundle)
+                                                            dialog.dismiss()
+                                                            bundle.putString(
+                                                                "email",
+                                                                binding.etEmail.text.toString()
+                                                            )
+                                                            bundle.putStringArrayList(
+                                                                "cids",
+                                                                comparraylist
+                                                            )
+                                                            bundle.putStringArrayList(
+                                                                "ddids",
+                                                                demarraylist
+                                                            )
+                                                            emailChangeActivity.navController.navigate(
+                                                                R.id.OTPEmailChange,
+                                                                bundle
+                                                            )
                                                         }
 
                                                         override fun onCancelled(error: DatabaseError) {
@@ -139,8 +159,7 @@ class ChangeEmail : Fragment() {
 
 
                                             } else {
-                                                binding.btnNext.visibility = View.VISIBLE
-                                                binding.progressbar.visibility = View.GONE
+                                                dialog.dismiss()
                                             }
                                         }
                                 }

@@ -33,11 +33,19 @@
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="wrap_content"
-            android:text="Punjab Vigilance Bureau"
+            android:text="Eagle Eye Vigilance"
             android:textColor="@color/white"
             android:textStyle="bold"
             android:layout_gravity="center"
-            android:textSize="15sp"
+            android:textSize="20sp"            />
+
+        <ImageView
+            android:id="@+id/announcements"
+            android:layout_width="25dp"
+            android:layout_marginEnd="20dp"
+            android:layout_height="25dp"
+            android:layout_gravity="center"
+            android:src="@drawable/announcement"
             />
 
         <ImageView

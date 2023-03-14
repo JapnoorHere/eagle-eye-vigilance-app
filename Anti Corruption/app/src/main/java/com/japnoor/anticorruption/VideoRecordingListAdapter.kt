@@ -48,7 +48,8 @@ class VideoRecordingListAdapter (var context: HomeScreen, var videoFiles: List<F
 
         holder.binding.playpause.setOnClickListener {
             var intent=Intent(context,VideoActivity::class.java)
-            intent.putExtra("video",videoFiles[position].toUri().toString())
+            intent.putExtra("videoo",videoFiles[position].toUri().toString())
+            intent.putExtra("type","o")
             context.startActivity(intent)
         }
 

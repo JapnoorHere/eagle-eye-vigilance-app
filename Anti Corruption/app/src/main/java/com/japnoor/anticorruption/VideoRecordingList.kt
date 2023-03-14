@@ -2,8 +2,11 @@ package com.japnoor.anticorruption
 
 import android.animation.ObjectAnimator
 import android.app.Activity.RESULT_OK
+import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.graphics.Typeface
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -14,6 +17,8 @@ import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
@@ -42,6 +47,8 @@ class VideoRecordingList : Fragment() {
     var arrayList: ArrayList<Int> = ArrayList()
     lateinit var videoRecordingListAdapter: VideoRecordingListAdapter
     lateinit var binding: FragmentVideoRecordingListBinding
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor : SharedPreferences.Editor
 
     companion object {
         private const val REQUEST_VIDEO_CAPTURE = 1
@@ -64,6 +71,9 @@ class VideoRecordingList : Fragment() {
         videoref=database.reference.child("videoRecording")
         firebaseStorage=FirebaseStorage.getInstance()
         storageReference=firebaseStorage.reference.child("videoRecording")
+        sharedPreferences=homeScreen.getSharedPreferences("instructions", Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+
          binding = FragmentVideoRecordingListBinding.inflate(layoutInflater,container,false)
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
         val textView = binding.movText
@@ -71,7 +81,38 @@ class VideoRecordingList : Fragment() {
         objectAnimator.duration =11000
         objectAnimator.repeatCount = ObjectAnimator.DURATION_INFINITE.toInt()
         objectAnimator.start()
+        if(!sharedPreferences.contains("tapTargetVideo")) {
+            TapTargetView.showFor(homeScreen,
+                TapTarget.forView(
+                    binding.fabbtn,
+                    "Record Video",
+                    "Click on this button to Start Recording Video"
+                )
+                    .outerCircleColor(R.color.accepted)
+                    .outerCircleAlpha(0.96f)
+                    .targetCircleColor(R.color.blue)
+                    .titleTextSize(20)
+                    .titleTextColor(R.color.blue)
+                    .descriptionTextSize(10)
+                    .descriptionTextColor(R.color.blue)
+                    .textColor(R.color.white)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.blue)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(60),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                        editor.putString("tapTargetVideo", "1")
+                        editor.apply()
+                        editor.commit()
+                    }
 
+                })
+        }
         val videoDir = File("/storage/emulated/0/Android/data/com.japnoor.anticorruption/files/Movies/")
         val videoFiles = videoDir.listFiles { file ->
             val mimeType = URLConnection.guessContentTypeFromName(file.name)

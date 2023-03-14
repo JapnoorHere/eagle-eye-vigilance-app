@@ -3,8 +3,11 @@ package com.japnoor.anticorruption
 import android.Manifest.permission.RECORD_AUDIO
 import android.animation.ObjectAnimator
 import android.app.Dialog
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.media.MediaRecorder
 import android.net.Uri
@@ -19,6 +22,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentAudioRecordBinding
 import com.japnoor.anticorruption.databinding.FragmentAudioRecordingListBinding
@@ -38,6 +43,9 @@ companion object{
     lateinit var audioRecordingListAdapter: AudioRecordingListAdapter
     lateinit var userRef : DatabaseReference
     var userSensor=""
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor : SharedPreferences.Editor
+
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
@@ -53,7 +61,8 @@ companion object{
         homeScreen=activity as HomeScreen
         database=FirebaseDatabase.getInstance()
         userRef=database.reference.child("Users")
-
+        sharedPreferences=homeScreen.getSharedPreferences("instructions", Context.MODE_PRIVATE)
+        editor=sharedPreferences.edit()
         val screenWidth = resources.displayMetrics.widthPixels.toFloat()
 
         val textView = binding.movText
@@ -63,6 +72,37 @@ companion object{
         objectAnimator.start()
         arguments.let {
             uri=it?.getString("uri").toString().toUri()
+        }
+        if(!sharedPreferences.contains("tapTargetAudio")) {
+            TapTargetView.showFor(homeScreen,
+                TapTarget.forView(
+                    binding.fabbtn,
+                    "Record Audio",
+                    "Click on this button to Start Recording Audio"
+                )
+                    .outerCircleColor(R.color.accepted)
+                    .outerCircleAlpha(0.96f)
+                    .targetCircleColor(R.color.blue)
+                    .titleTextSize(20)
+                    .titleTextColor(R.color.blue)
+                    .descriptionTextSize(10)
+                    .descriptionTextColor(R.color.blue)
+                    .textColor(R.color.white)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.blue)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(60),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                        editor.putString("tapTargetAudio", "1")
+                        editor.apply()
+                        editor.commit()
+                    }
+                })
         }
 
         println("URI- > " + uri.toString())

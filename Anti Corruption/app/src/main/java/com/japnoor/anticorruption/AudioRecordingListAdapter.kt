@@ -53,7 +53,8 @@ class AudioRecordingListAdapter(var context: HomeScreen, val audioList:List<File
         holder.binding.Date.setText(dateString)
         holder.binding.playpause.setOnClickListener {
             var intent=Intent(context,AudioActivity::class.java)
-            intent.putExtra("audio",audioList[position].toUri().toString())
+            intent.putExtra("audioo",audioList[position].toUri().toString())
+            intent.putExtra("type","o")
             context.startActivity(intent)
 //                    if(!isplayi) {
 //                        mediaPlayer = MediaPlayer.create(context, audioList[position].toUri())

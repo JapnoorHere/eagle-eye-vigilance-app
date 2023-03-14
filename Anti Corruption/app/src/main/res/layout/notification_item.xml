@@ -1,6 +1,111 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <androidx.cardview.widget.CardView
+        android:layout_margin="5dp"
+        android:layout_width="match_parent"
+        app:cardCornerRadius="10dp"
+        app:cardBackgroundColor="#CCDAFF"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"
+                android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    >
+                    <TextView
+                        android:layout_marginStart="20dp"
+                        android:id="@+id/compnum"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Complaint Number : "
+                        android:layout_gravity="center"
+                        android:textColor="@color/black"
+                        android:textSize="10sp" />
+                    <TextView
+                        android:id="@+id/complaintNumber"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="123445678"
+                        android:textStyle="bold"
+                        android:layout_gravity="center"
+                        android:textColor="@color/black"
+                        android:textSize="15sp" />
+                </LinearLayout>
+
+
+<View
+    android:layout_width="match_parent"
+    android:layout_height="2dp"
+    android:layout_marginEnd="190dp"
+    android:layout_marginStart="20dp"
+    android:background="@color/black"
+    android:id="@+id/underLine"
+    />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="end">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:textStyle="bold"
+                        android:textSize="15sp"
+                        android:layout_marginTop="3dp"
+                        android:id="@+id/compMessage"
+                        android:textColor="@color/black"
+                        android:layout_marginEnd="20dp"
+                        android:text="Your Complaint has been accepted for further actions to be taken"
+                        />
+                    <LinearLayout
+                        android:layout_marginTop="3dp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="start"
+                        android:layout_marginStart="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Against : "
+                            android:id="@+id/aga"
+                            android:textColor="#8C8989"
+                            android:textSize="14sp" />
+                        <TextView
+                            android:id="@+id/compAgainst"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Society"
+                            android:textColor="@color/black"
+                            android:textSize="17sp" />
+
+
+                    </LinearLayout>
+
+                    </LinearLayout>
+
+
+                <TextView
+                    android:id="@+id/time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="21:12"
+                    android:layout_marginEnd="10dp"
+                    android:layout_gravity="end"
+                    android:textColor="@color/black" />
+
+            </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+</layout>

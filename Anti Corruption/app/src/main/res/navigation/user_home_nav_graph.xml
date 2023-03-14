@@ -48,4 +48,12 @@
         android:id="@+id/profileFragment"
         android:name="com.japnoor.anticorruption.ProfileFragment"
         android:label="ProfileFragment" />
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.japnoor.anticorruption.NotificationActivity"
+        android:label="NotificationFragment" />
+    <fragment
+        android:id="@+id/importantLinks"
+        android:name="com.japnoor.anticorruption.ImportantLinks"
+        android:label="ImportantLinks" />
 </navigation>

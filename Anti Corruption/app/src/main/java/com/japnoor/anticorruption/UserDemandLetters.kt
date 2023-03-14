@@ -5,6 +5,8 @@ import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
@@ -29,6 +31,7 @@ import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.EditUserDemandDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserDemandLettersBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
+import com.japnoor.anticorruption.databinding.ShowUserDemandDialogBinding
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -44,6 +47,7 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
     lateinit var demRef : DatabaseReference
 
     lateinit var dialogBindEdit : EditUserDemandDialogBinding
+    lateinit var loadDialog : Dialog
 
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storegeref: StorageReference
@@ -83,6 +87,10 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
 
         binding = FragmentUserDemandLettersBinding.inflate(layoutInflater, container, false)
 
+        loadDialog = Dialog(homeScreen)
+        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+
         binding.search.setOnTouchListener { v, event ->
             if (event.action == MotionEvent.ACTION_UP) {
                 if (event.rawX >= (binding.search.right - binding.search.compoundDrawables[2].bounds.width())) {
@@ -104,6 +112,7 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     if (demand != null && demand.userId.equals(homeScreen.id)) {
                         demandList.add(demand)
                     }
+                    demandList.reverse()
                     userDemandAdapter = UserDemandAdapter(homeScreen, demandList, this)
                     binding.recyclerView.layoutManager = LinearLayoutManager(homeScreen)
                     binding.recyclerView.adapter = userDemandAdapter
@@ -144,12 +153,13 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
             override fun onClick(demandLetter: DemandLetter) {
                 var dialog = Dialog(requireContext())
                 if (demandLetter.status.equals("1")) {
-                    var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
+                    var dialogBind = ShowUserDemandDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
+                    dialogBind.actionsTakenLayout.visibility=View.GONE
                     dialogBind.CS.setText("Demand Summary : ")
                     dialogBind.CD.setText("Demand Details : ")
                     dialogBind.CA.visibility=View.GONE
@@ -183,12 +193,13 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     dialog.show()
                 }
                  else if (demandLetter.status.equals("2")) {
-                    var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
+                    var dialogBind = ShowUserDemandDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
+                    dialogBind.actionsTaken.setText(demandLetter.statusDescription)
                     dialogBind.CS.setText("Demand Summary : ")
                     dialogBind.CD.setText("Demand Details : ")
                     dialogBind.CA.visibility=View.GONE
@@ -223,12 +234,13 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                 }
 
                 else if (demandLetter.status.equals("3")) {
-                    var dialogBind = ShowUserComplaintsDialogBinding.inflate(layoutInflater)
+                    var dialogBind = ShowUserDemandDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBind.root)
                     dialog.window?.setLayout(
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
+                    dialogBind.actionsTaken.setText(demandLetter.statusDescription)
                     dialogBind.CS.setText("Demand Summary : ")
                     dialogBind.CD.setText("Demand Details : ")
                     dialogBind.CA.visibility=View.GONE
@@ -260,7 +272,8 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     }
 
                     dialog.show()
-                } else {
+                }
+                else {
                     dialogBindEdit = EditUserDemandDialogBinding.inflate(layoutInflater)
                     dialog.setContentView(dialogBindEdit.root)
                     dialog.window?.setLayout(
@@ -295,7 +308,8 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         else if (imageUri == null) {
                             update(demandLetter,dialogBindEdit,dialog)
                         } else {
-                            dialogBindEdit.progressbar.visibility = View.VISIBLE
+                             loadDialog.setCancelable(false)
+                            loadDialog.show()
                             uploadDemandLetterAndImage(dialogBindEdit, demandLetter, dialog)
                         }
                     }
@@ -333,7 +347,9 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                             bottomSheet.dismiss()
                         }
                         tvYes?.setOnClickListener {
-                            demRef.child(demandLetter.demandId).removeValue()
+                            demRef.child(demandLetter.demandId).removeValue().addOnCompleteListener {
+                                storegeref.child("images").child(demandLetter.imageName).delete()
+                            }
                             homeScreen.navController.navigate(R.id.homeFragment)
                             bottomSheet.dismiss()
                             dialog.dismiss()
@@ -445,8 +461,7 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     demRef.child(demandLetter.demandId).updateChildren(demMap).addOnCompleteListener {
                         if(it.isSuccessful){
                             Toast.makeText(requireContext(),"Updated Successfully", Toast.LENGTH_LONG).show()
-
-                            dialogBind.progressbar.visibility = View.GONE
+                            loadDialog.dismiss()
                             dialog.dismiss()
                             imageUri=null
                              }

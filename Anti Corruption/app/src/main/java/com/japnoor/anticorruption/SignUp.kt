@@ -16,7 +16,6 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.ActivitySignUpBinding
-import com.japnoor.anticorruption.databinding.OtpBinding
 import papaya.`in`.sendmail.SendMail
 import kotlin.random.Random
 import kotlin.random.nextInt

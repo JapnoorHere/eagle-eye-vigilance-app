@@ -9,19 +9,19 @@ import android.content.SharedPreferences.Editor
 import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.icu.util.Calendar
 import android.media.MediaRecorder
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.view.MenuItem
+import android.os.Vibrator
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
@@ -34,13 +34,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
-import com.japnoor.anticorruption.databinding.ActivityHomeScreenBinding
-import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
-import com.japnoor.anticorruption.databinding.FragmentAudioRecordBinding
-import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
-import com.japnoor.anticorruption.databinding.ShakedialogBinding
+import com.japnoor.anticorruption.databinding.*
 import java.io.File
 import java.lang.Math.sqrt
 import java.util.*
@@ -63,16 +62,19 @@ class HomeScreen : AppCompatActivity() {
     private var acceleration = 0f
     var isRecording = false
     lateinit var profileBundle: Bundle
-    lateinit var compProfileList : ArrayList<String>
-    lateinit var demProfileList : ArrayList<String>
+    lateinit var compProfileList: ArrayList<String>
+    lateinit var demProfileList: ArrayList<String>
     private var currentAcceleration = 0f
     private var lastAcceleration = 0f
     lateinit var filee: File
     lateinit var mediaRecorder: MediaRecorder
     var sense = true
     var userSensor = ""
-
     var isSensorActive = true
+
+    lateinit var sharedPreferences: SharedPreferences
+    lateinit var editor: Editor
+
 
 
     private val sensorListener: SensorEventListener = object : SensorEventListener {
@@ -116,6 +118,9 @@ class HomeScreen : AppCompatActivity() {
                                     val delta: Float = currentAcceleration - lastAcceleration
                                     acceleration = acceleration * 0.9f + delta
                                     if (acceleration > 17) {
+                                        val vibrator =
+                                            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                                        vibrator.vibrate(500)
                                         var dialog = Dialog(this@HomeScreen)
                                         var dialogB =
                                             FragmentAudioRecordBinding.inflate(layoutInflater)
@@ -183,24 +188,122 @@ class HomeScreen : AppCompatActivity() {
     }
 
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        profileBundle=Bundle()
-        compProfileList= ArrayList()
-        demProfileList=ArrayList()
+        profileBundle = Bundle()
+        compProfileList = ArrayList()
+        demProfileList = ArrayList()
         navController = findNavController(R.id.navController)
 
         id = intent.getStringExtra("uid").toString()
         pass = intent.getStringExtra("pass").toString()
+
+        sharedPreferences=getSharedPreferences("instructions", MODE_PRIVATE)
+        editor=sharedPreferences.edit()
+
+        if(!sharedPreferences.contains("tapTarget")) {
+            TapTargetView.showFor(this,
+                TapTarget.forView(
+                    binding.notifications,
+                    "Notifications",
+                    "Click here to open Notifications Panel"
+                )
+                    .outerCircleColor(R.color.accepted)
+                    .outerCircleAlpha(0.96f)
+                    .targetCircleColor(R.color.blue)
+                    .titleTextSize(20)
+                    .titleTextColor(R.color.blue)
+                    .descriptionTextSize(10)
+                    .descriptionTextColor(R.color.blue)
+                    .textColor(R.color.white)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.blue)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(60),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                        TapTargetView.showFor(this@HomeScreen,
+                            TapTarget.forView(
+                                binding.announcements,
+                                "Announcements",
+                                "Click here to open Announcements Panel"
+                            )
+                                .outerCircleColor(R.color.accepted)
+                                .outerCircleAlpha(0.96f)
+                                .targetCircleColor(R.color.blue)
+                                .titleTextSize(20)
+                                .titleTextColor(R.color.blue)
+                                .descriptionTextSize(10)
+                                .descriptionTextColor(R.color.blue)
+                                .textColor(R.color.white)
+                                .textTypeface(Typeface.SANS_SERIF)
+                                .dimColor(R.color.blue)
+                                .drawShadow(true)
+                                .cancelable(false)
+                                .tintTarget(true)
+                                .transparentTarget(true)
+                                .targetRadius(60),
+                            object : TapTargetView.Listener() {
+                                override fun onTargetClick(view: TapTargetView) {
+                                    super.onTargetClick(view)
+                                    TapTargetView.showFor(this@HomeScreen,
+                                        TapTarget.forView(
+                                            binding.sidebar,
+                                            "More Options",
+                                            "Click here to open Side Bar for more options"
+                                        )
+                                            .outerCircleColor(R.color.accepted)
+                                            .outerCircleAlpha(0.96f)
+                                            .targetCircleColor(R.color.blue)
+                                            .titleTextSize(20)
+                                            .titleTextColor(R.color.blue)
+                                            .descriptionTextSize(10)
+                                            .descriptionTextColor(R.color.blue)
+                                            .textColor(R.color.white)
+                                            .textTypeface(Typeface.SANS_SERIF)
+                                            .dimColor(R.color.blue)
+                                            .drawShadow(true)
+                                            .cancelable(false)
+                                            .tintTarget(true)
+                                            .transparentTarget(true)
+                                            .targetRadius(60),
+                                        object : TapTargetView.Listener() {
+                                            override fun onTargetClick(view: TapTargetView) {
+                                                super.onTargetClick(view)
+                                                editor.putString("tapTarget", "1")
+                                                editor.apply()
+                                                editor.commit()
+                                            }
+                                        })
+                                }
+                            })
+                    }
+                })
+        }
+
+
+        binding.notifications.setOnClickListener {
+            var intent = Intent(this, NotificationActivity::class.java)
+            intent.putExtra("id", id)
+            startActivity(intent)
+        }
 
 
         database = FirebaseDatabase.getInstance()
         useref = database.reference.child("Users")
         println("password->$pass")
         println("password->$id")
+
+
+//            var bottomSheetDialog = BottomSheetDialog(this)
+//            bottomSheetDialog.setContentView(R.layout.start_inst_notifi)
+//            bottomSheetDialog.show()
 
 
         val headerView = binding.navView.getHeaderView(0)
@@ -218,65 +321,72 @@ class HomeScreen : AppCompatActivity() {
         lastAcceleration = SensorManager.GRAVITY_EARTH
 
 
-        FirebaseDatabase.getInstance().reference.child("Complaints").addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(each in snapshot.children){
-                    var compdetail=each.getValue(Complaints::class.java)
-                    if (compdetail != null) {
-                        if(compdetail.equals(id)){
-                            compProfileList.add(compdetail.complaintId.toString())
+        FirebaseDatabase.getInstance().reference.child("Complaints")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (each in snapshot.children) {
+                        var compdetail = each.getValue(Complaints::class.java)
+                        if (compdetail != null) {
+                            if (compdetail.equals(id)) {
+                                compProfileList.add(compdetail.complaintId.toString())
+                            }
                         }
                     }
+                    profileBundle.putStringArrayList("compids", compProfileList)
                 }
-                profileBundle.putStringArrayList("compids",compProfileList)
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
 
-        })
+            })
 
-        FirebaseDatabase.getInstance().reference.child("Demand Letter").addValueEventListener(object : ValueEventListener{
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(each in snapshot.children){
-                    var demdetail=each.getValue(DemandLetter::class.java)
-                    if (demdetail != null) {
-                        if(demdetail.equals(id)){
-                            demProfileList.add(demdetail.demandId.toString())
+        FirebaseDatabase.getInstance().reference.child("Demand Letter")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    for (each in snapshot.children) {
+                        var demdetail = each.getValue(DemandLetter::class.java)
+                        if (demdetail != null) {
+                            if (demdetail.equals(id)) {
+                                demProfileList.add(demdetail.demandId.toString())
+                            }
                         }
                     }
+                    profileBundle.putStringArrayList("demids", demProfileList)
                 }
-                profileBundle.putStringArrayList("demids",demProfileList)
-            }
 
-            override fun onCancelled(error: DatabaseError) {
-                TODO("Not yet implemented")
-            }
+                override fun onCancelled(error: DatabaseError) {
+                    TODO("Not yet implemented")
+                }
 
-        })
+            })
 
         useref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 var dialog = Dialog(this@HomeScreen)
                 for (each in snapshot.children) {
                     var userr = each.getValue(Users::class.java)
-                    if (userr != null && userr.userId.equals(id) && userr.userStatus!="0"
+                    if (userr != null && userr.userId.equals(id) && userr.userStatus != "0"
                     ) {
                         var dialogB = BlockedUserDialogBinding.inflate(layoutInflater)
                         dialog.setContentView(dialogB.root)
                         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                         dialog.setCancelable(false)
+                        dialogB.contactus.setOnClickListener {
+                            var intent = Intent(this@HomeScreen, ChatActivity::class.java)
+                            startActivity(intent)
+                        }
                         val currentTime = System.currentTimeMillis()
                         //                    val sevenDaysInMillisecond = 7 * 24 * 60 * 60 * 1000
-                        val sevenDaysInMillisecond : Long = 604800000
-                        var timecheck : Long=0
-                        useref.addValueEventListener(object  : ValueEventListener{
+                        val sevenDaysInMillisecond: Long = 604800000
+                        var timecheck: Long = 0
+                        useref.addValueEventListener(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
-                                for(each in snapshot.children){
-                                    var userdetail=each.getValue(Users::class.java)
-                                    if(userdetail!=null && userdetail.userId.equals(id) && userdetail.userStatus!="0"){
-                                         timecheck=userdetail.userStatus.toLong() + sevenDaysInMillisecond
+                                for (each in snapshot.children) {
+                                    var userdetail = each.getValue(Users::class.java)
+                                    if (userdetail != null && userdetail.userId.equals(id) && userdetail.userStatus != "0") {
+                                        timecheck =
+                                            userdetail.userStatus.toLong() + sevenDaysInMillisecond
                                         println("Time->" + timecheck)
                                         if (currentTime >= timecheck) {
                                             useref.child(id).child("userStatus").setValue("0")
@@ -285,10 +395,30 @@ class HomeScreen : AppCompatActivity() {
                                     }
                                 }
 
-                                var timeleft=timecheck-currentTime
+                                var timeleft = timecheck - currentTime
                                 val days = timeleft / (1000 * 60 * 60 * 24)
                                 val hours = (timeleft / (1000 * 60 * 60)) % 24
-                                dialogB.timeMsg.text = days.toString() + "d " + hours.toString() +"h"
+                                dialogB.timeMsg.text =
+                                    days.toString() + "d " + hours.toString() + "h"
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+
+                            }
+
+                        })
+
+                        useref.addValueEventListener(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                for (each in snapshot.children) {
+                                    var userdetail = each.getValue(Users::class.java)
+                                    if (userdetail != null && userdetail.userId.equals(id) && userdetail.userStatus == "0") {
+                                        timecheck =
+                                            userdetail.userStatus.toLong() + sevenDaysInMillisecond
+                                        println("Time->" + timecheck)
+                                        dialog.dismiss()
+                                    }
+                                }
                             }
 
                             override fun onCancelled(error: DatabaseError) {
@@ -347,6 +477,12 @@ class HomeScreen : AppCompatActivity() {
 
         })
 
+
+        binding.announcements.setOnClickListener {
+            var intent = Intent(this@HomeScreen, AnnouncementsActivity::class.java)
+            startActivity(intent)
+        }
+
         binding.apply {
             toggle =
                 ActionBarDrawerToggle(this@HomeScreen, drawerLayout, R.string.open, R.string.close)
@@ -357,8 +493,8 @@ class HomeScreen : AppCompatActivity() {
             }
             supportActionBar?.setDisplayHomeAsUpEnabled(true)
 
-            profile.setOnClickListener {
-                navController.navigate(R.id.profileFragment,profileBundle)
+            headerView.setOnClickListener {
+                navController.navigate(R.id.profileFragment, profileBundle)
                 drawerLayout.close()
             }
 
@@ -382,7 +518,16 @@ class HomeScreen : AppCompatActivity() {
                         }
                         builder.show()
                     }
+                    R.id.pdf -> {
+                        drawerLayout.close()
+                        var intent = Intent(this@HomeScreen, PdfActivity::class.java)
+                        startActivity(intent)
+                    }
 
+                    R.id.links->{
+                        navController.navigate(R.id.importantLinks)
+                        drawerLayout.close()
+                    }
 
                     R.id.sensorShake -> {
                         sensorDialog = Dialog(this@HomeScreen)
@@ -440,16 +585,14 @@ class HomeScreen : AppCompatActivity() {
                         var dialog = Dialog(this@HomeScreen)
                         var dialogBinding = PasscodeDialogBinding.inflate(layoutInflater)
                         dialog.setContentView(dialogBinding.root)
-                        dialog.window?.setLayout(
-                            WindowManager.LayoutParams.MATCH_PARENT,
-                            WindowManager.LayoutParams.WRAP_CONTENT
-                        )
+                        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                         dialogBinding.etPasswordLayout1.visibility = View.GONE
                         dialogBinding.etPasswordLayout2.visibility = View.GONE
                         dialogBinding.btnSignup.visibility = View.GONE
                         dialogBinding.passw.visibility = View.VISIBLE
                         dialogBinding.btn.visibility = View.VISIBLE
-                        dialogBinding.tv.text = "Enter the 6 digit password which you entered while making your account"
+                        dialogBinding.tv.text =
+                            "Enter the 6 digit password which you entered while making your account"
                         dialogBinding.btn.setOnClickListener {
                             if (dialogBinding.etpass.text.toString().isNullOrEmpty()) {
                                 dialogBinding.etpass.error = "Enter Password"
@@ -462,7 +605,8 @@ class HomeScreen : AppCompatActivity() {
                                 val isConnected: Boolean =
                                     activeNetwork?.isConnectedOrConnecting == true
                                 if (isConnected) {
-                                    dialogBinding.tv.text = "Enter the 5 digit passcode which will help \n to keep your app safe"
+                                    dialogBinding.tv.text =
+                                        "Enter the 5 digit passcode which will help \n to keep your app safe"
                                     dialogBinding.etPasswordLayout1.visibility = View.VISIBLE
                                     dialogBinding.etPasswordLayout2.visibility = View.VISIBLE
                                     dialogBinding.btnSignup.visibility = View.VISIBLE
@@ -549,7 +693,7 @@ class HomeScreen : AppCompatActivity() {
                     R.id.report -> {
                         drawerLayout.close()
                         val builder = AlertDialog.Builder(this@HomeScreen)
-                        builder.setTitle("Report a Problem")
+                        builder.setTitle("Report a Bug")
                         builder.setMessage("Dear valued user, we hope you're enjoying our Android app. We sincerely appreciate your taking the time to let us know if you run into any bugs or problems by sending an email to us.")
                         builder.setPositiveButton("Report") { dialog, which ->
                             val email = "anticorruptionpunjab75@gmail.com"
@@ -561,6 +705,16 @@ class HomeScreen : AppCompatActivity() {
                             dialog.dismiss()
                         }
                         builder.show()
+                    }
+
+                    R.id.about -> {
+                        var dialog = Dialog(this@HomeScreen)
+                        dialog.setContentView(R.layout.about_page)
+                        dialog.show()
+                        dialog.window?.setLayout(
+                            WindowManager.LayoutParams.MATCH_PARENT,
+                            WindowManager.LayoutParams.MATCH_PARENT
+                        )
                     }
 
                     R.id.credit -> {
@@ -585,7 +739,6 @@ class HomeScreen : AppCompatActivity() {
                 R.id.bnHome -> {
                     navController.navigate(R.id.homeFragment)
                     this.title = "Home"
-
                 }
                 R.id.bnAddComplaint -> {
                     navController.navigate(R.id.addComplaintFragment)
@@ -614,7 +767,6 @@ class HomeScreen : AppCompatActivity() {
     }
 
 
-
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -623,7 +775,6 @@ class HomeScreen : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                sensorDialog
             }
         }
     }

@@ -39,16 +39,24 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:digits="qwertyuiopasdfghjklzxcvbnm QWERTYUIOPASDFGHJKLZXCVBNM "
-                    android:hint="Name"
+                    android:hint="Name (Optional) * "
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="end"
+                android:layout_marginEnd="20dp"
+                android:textColor="@color/rejected"
+                android:text=" * By deafult your name will be set to Anonymous"
+                />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
                 android:layout_marginLeft="20dp"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginRight="20dp"
                 android:background="@drawable/edit_text">
 

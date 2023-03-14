@@ -1,127 +1,143 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:app="http://schemas.android.com/apk/res-auto">
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:background="@drawable/dialobg"
-    android:orientation="vertical"
-    android:layout_height="match_parent">
+    <layout xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <TextView
-        android:id="@+id/tv"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Enter the 5 digit passcode which will help \nto keep your app safe"
-        android:textAlignment="center"
-        android:textColor="@color/accepted"
-        android:textStyle="italic"
-        android:textSize="20sp"
-        android:layout_margin="10dp"
-        />
+        <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_height="match_parent"
+            android:layout_width="match_parent">
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/etPasswordLayout1"
-        android:layout_marginLeft="20dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        android:background="@drawable/edit_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:passwordToggleEnabled="true">
-    <EditText
-        android:digits="1234567890"
-        android:maxLength="5"
-        android:inputType="numberPassword"
-        android:id="@+id/etPassword"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Passcode"
-        android:maxLines="1"
-        />
+            <androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
 
-</com.google.android.material.textfield.TextInputLayout>
+                app:cardCornerRadius="20dp">
 
-<com.google.android.material.textfield.TextInputLayout
-android:id="@+id/etPasswordLayout2"
-android:layout_marginLeft="20dp"
-android:layout_alignParentStart="true"
-android:layout_marginTop="20dp"
-android:layout_marginRight="20dp"
-android:background="@drawable/edit_text"
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-app:passwordToggleEnabled="true">
-<EditText
-    android:digits="1234567890"
-    android:maxLength="5"
-    android:inputType="numberPassword"
-    android:id="@+id/etREPassword"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:hint="Confirm Passcode"
-    android:maxLines="1"
-    />
-</com.google.android.material.textfield.TextInputLayout>
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    <Button
-        android:layout_marginBottom="20dp"
-        android:layout_gravity="center"
-        android:id="@+id/btnSignup"
-        android:layout_width="match_parent"
-        android:layout_marginEnd="40dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="40dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:padding="10dp"
-        android:backgroundTint="#FFB92B"
-        android:text="Next"
-        android:textStyle="bold" />
-<ProgressBar
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="center"
-    android:layout_marginTop="10dp"
-    android:id="@+id/progressbar"
-    android:visibility="gone"
-    />
-    </FrameLayout>
-    <com.google.android.material.textfield.TextInputLayout
-        android:id="@+id/passw"
-        android:visibility="gone"
-        android:layout_marginLeft="20dp"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="20dp"
-        android:layout_marginRight="20dp"
-        android:background="@drawable/edit_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:passwordToggleEnabled="true">
-        <EditText
-            android:inputType="textPassword"
-            android:id="@+id/etpass"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Password"
-            android:maxLines="1"
-            />
-    </com.google.android.material.textfield.TextInputLayout>
+                <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/dialobg"
+                    android:orientation="vertical">
 
-    <Button
-        android:layout_gravity="center"
-        android:id="@+id/btn"
-        android:layout_width="match_parent"
-        android:layout_marginEnd="40dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginStart="40dp"
-        android:layout_height="wrap_content"
-        android:textColor="@color/black"
-        android:padding="10dp"
-        android:backgroundTint="#FFB92B"
-        android:text="Next"
-        android:visibility="gone"
-        android:textStyle="bold" />
-</LinearLayout>
-</layout>
+                    <TextView
+                        android:id="@+id/tv"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_margin="10dp"
+                        android:text="Enter the 5 digit passcode which will help \nto keep your app safe"
+                        android:textAlignment="center"
+                        android:textColor="@color/accepted"
+                        android:textSize="13sp"
+                        android:textStyle="italic" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/etPasswordLayout1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginLeft="20dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginRight="20dp"
+                        android:background="@drawable/edit_text"
+                        app:passwordToggleEnabled="true">
+
+                        <EditText
+                            android:id="@+id/etPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="1234567890"
+                            android:hint="Passcode"
+                            android:inputType="numberPassword"
+                            android:maxLength="5"
+                            android:maxLines="1" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/etPasswordLayout2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginLeft="20dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginRight="20dp"
+                        android:background="@drawable/edit_text"
+                        app:passwordToggleEnabled="true">
+
+                        <EditText
+                            android:id="@+id/etREPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:digits="1234567890"
+                            android:hint="Confirm Passcode"
+                            android:inputType="numberPassword"
+                            android:maxLength="5"
+                            android:maxLines="1" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <Button
+                            android:id="@+id/btnSignup"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginStart="40dp"
+                            android:layout_marginTop="20dp"
+                            android:layout_marginEnd="40dp"
+                            android:layout_marginBottom="20dp"
+                            android:backgroundTint="#FFB92B"
+                            android:padding="10dp"
+                            android:text="Next"
+                            android:textColor="@color/black"
+                            android:textStyle="bold" />
+
+                        <ProgressBar
+                            android:id="@+id/progressbar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_gravity="center"
+                            android:layout_marginTop="10dp"
+                            android:visibility="gone" />
+                    </FrameLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/passw"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginLeft="20dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginRight="20dp"
+                        android:background="@drawable/edit_text"
+                        android:visibility="gone"
+                        app:passwordToggleEnabled="true">
+
+                        <EditText
+                            android:id="@+id/etpass"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:hint="Password"
+                            android:inputType="textPassword"
+                            android:maxLines="1" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <Button
+                        android:id="@+id/btn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginStart="40dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginEnd="40dp"
+                        android:backgroundTint="#FFB92B"
+                        android:padding="10dp"
+                        android:text="Next"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+        </RelativeLayout>
+    </layout>

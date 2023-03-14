@@ -3,7 +3,8 @@ package com.japnoor.anticorruption
 import android.app.DatePickerDialog
 import android.app.Dialog
 import android.content.Context
-import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -14,21 +15,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
-import androidx.core.widget.doOnTextChanged
-import androidx.databinding.DataBindingUtil.bind
-import androidx.databinding.DataBindingUtil.setContentView
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentSignUpBinding
-import com.japnoor.anticorruption.databinding.OtpBinding
 import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
-import papaya.`in`.sendmail.SendMail
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.math.sign
-import kotlin.random.Random
-import kotlin.random.nextInt
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -104,10 +96,7 @@ class SignUpFragment : Fragment() {
 
 
             binding.btnSignup.setOnClickListener {
-                if (binding.etName.text.toString().isNullOrEmpty()) {
-                    binding.etName.error = "Enter Name"
-                    binding.etName.requestFocus()
-                } else if (binding.etEmail.text.toString().isNullOrEmpty()) {
+                 if (binding.etEmail.text.toString().isNullOrEmpty()) {
                     binding.etEmail.error = "Enter email"
                     binding.etEmail.requestFocus()
 
@@ -139,16 +128,19 @@ class SignUpFragment : Fragment() {
                     val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                     val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (isConnected) {
-                        binding.progressbar.visibility = View.VISIBLE
-                        binding.btnSignup.visibility = View.GONE
+                        var loaddialog=Dialog(signUp)
+                        loaddialog.setContentView(R.layout.dialog_sign_loading)
+                        loaddialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+                        loaddialog.show()
+                        loaddialog.setCancelable(false)
+
                         auth.fetchSignInMethodsForEmail(binding.etEmail.text.toString().trim())
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     val signInMethods = task.result.signInMethods
                                     println(signInMethods.toString())
                                     if (signInMethods != null && signInMethods.contains("password")) {
-                                        binding.progressbar.visibility = View.GONE
-                                        binding.btnSignup.visibility = View.VISIBLE
+                                        loaddialog.dismiss()
                                         Toast.makeText(
                                             signUp,
                                             "Email already exists",
@@ -156,16 +148,12 @@ class SignUpFragment : Fragment() {
                                         ).show()
                                     } else {
                                         println("Age : " + age)
-                                        binding.progressbar.visibility = View.GONE
-                                        binding.btnSignup.visibility = View.VISIBLE
+                                        loaddialog.dismiss()
                                         var dialog = Dialog(signUp)
                                         var dialogBinding =
                                             PasscodeDialogBinding.inflate(layoutInflater)
                                         dialog.setContentView(dialogBinding.root)
-                                        dialog.window?.setLayout(
-                                            WindowManager.LayoutParams.MATCH_PARENT,
-                                            WindowManager.LayoutParams.WRAP_CONTENT
-                                        )
+                                        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
                                         dialogBinding.btnSignup.setOnClickListener {
                                             if (dialogBinding.etPassword.text.toString()
                                                     .isNullOrEmpty()
@@ -193,6 +181,14 @@ class SignUpFragment : Fragment() {
                                             }
 
                                             else {
+                                                var name=""
+                                                if(binding.etName.text.toString().isNullOrEmpty() || binding.etName.text.toString().trim().length==0){
+                                                    name="Anonymous"
+                                                }
+                                                else{
+                                                    name=binding.etName.text.toString().trim()
+                                                }
+
                                                 var bundle = Bundle()
                                                 bundle.putString(
                                                     "email",
@@ -200,7 +196,7 @@ class SignUpFragment : Fragment() {
                                                 )
                                                 bundle.putString(
                                                     "name",
-                                                    binding.etName.text.toString()
+                                                    name
                                                 )
                                                 bundle.putString(
                                                     "pass",

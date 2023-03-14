@@ -3,6 +3,8 @@ package com.japnoor.anticorruption
 import android.app.Dialog
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
@@ -86,7 +88,7 @@ class PasscodeFragment : Fragment() {
             var dialog= Dialog(splashScreen)
             var dialogBinding= PasscodeDialogBinding.inflate(layoutInflater)
             dialog.setContentView(dialogBinding.root)
-            dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT)
+            dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
             dialogBinding.etPasswordLayout1.visibility=View.GONE
             dialogBinding.etPasswordLayout2.visibility=View.GONE
             dialogBinding.btnSignup.visibility=View.GONE
