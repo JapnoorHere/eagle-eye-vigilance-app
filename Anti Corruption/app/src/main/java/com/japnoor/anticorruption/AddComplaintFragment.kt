@@ -17,6 +17,8 @@ import android.os.Build
 import android.os.Bundle
 
 import android.text.format.DateFormat
+import android.util.Base64
+import android.util.Base64.encodeToString
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -37,6 +39,8 @@ import com.japnoor.anticorruption.databinding.FragmentAddComplaintBinding
 import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 
 private const val ARG_PARAM1 = "param1"
@@ -79,6 +83,9 @@ class AddComplaintFragment : Fragment() {
     var imageUrl: String = ""
     var imageUri: Uri? = null
 
+     var encryptionKey: String? =null
+     var secretKeySpec: SecretKeySpec? =null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         registerActivityforResult()
@@ -90,12 +97,32 @@ class AddComplaintFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
     @SuppressLint("SetTextI18n")
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         binding = FragmentAddComplaintBinding.inflate(layoutInflater, container, false)
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+          secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
+
+//        var str="I am Japnoor Singh"
+//        println("PPP " + encrypt(str))
+//        println("PPP " + decrypt(encrypt(str)))
 
         firebaseStorage = FirebaseStorage.getInstance()
         storegeref = firebaseStorage.reference
@@ -315,6 +342,7 @@ class AddComplaintFragment : Fragment() {
                 val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                 val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                 if (isConnected) {
+                    homeScreen.isSensorActive=false
                     binding.addAudio.isClickable = false
                     binding.addVideo.isClickable = false
                     binding.addImage.isClickable = false
@@ -327,8 +355,8 @@ class AddComplaintFragment : Fragment() {
                                 var user = eachUser.getValue(Users::class.java)
                                 println("uSers" + user?.userId)
                                 if (user != null && user.userId.equals(homeScreen.id)) {
-                                    userName = user.name.toString()
-                                    userEmail = user.email.toString()
+                                    userName = decrypt(user.name).toString()
+                                    userEmail = decrypt(user.email).toString()
                                     println("name" + userName)
                                     break
                                 }
@@ -521,24 +549,25 @@ class AddComplaintFragment : Fragment() {
                     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val complaintTime = format.format(Date())
                     var complaints = Complaints(
-                        binding.comDetails.text.toString(),
-                        binding.compLoc.text.toString(),
-                        binding.compCategory.text.toString(),
-                        binding.compAgainst.text.toString(),
-                        binding.comDetails.text.toString(),
-                        binding.District.text.toString(),
+                        encrypt(binding.comDetails.text.toString()),
+                        encrypt(binding.compLoc.text.toString()),
+                        encrypt(binding.compCategory.text.toString()),
+                        encrypt(binding.compAgainst.text.toString()),
+                        encrypt(binding.comDetails.text.toString()),
+                        encrypt(binding.District.text.toString()),
                         homeScreen.id,
-                        complaintDate.toString(),
+                        encrypt(complaintDate.toString()),
                         cid.toString(),
-                        audioName, audioUrl,
+                        audioName, encrypt(audioUrl),
                         "",
-                        videoUrl, userName,
-                        userEmail, userEmail, "", complaintNumber, complaintTime, "","",imageUrl
+                        videoUrl, encrypt(userName),
+                        encrypt(userEmail), encrypt(userEmail), "", encrypt(complaintNumber), encrypt(complaintTime), "","",imageUrl
                     )
 
                     compRef.child(cid.toString()).setValue(complaints)
                         .addOnCompleteListener { task ->
                             if (task.isSuccessful) {
+                                homeScreen.isSensorActive=true
                                 Toast.makeText(
                                     requireContext(),
                                     "Complaint Submit",
@@ -548,6 +577,7 @@ class AddComplaintFragment : Fragment() {
 
                                 homeScreen.navController.navigate(R.id.homeFragment)
                             } else {
+                                homeScreen.isSensorActive=true
                                 loadDialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
@@ -582,23 +612,24 @@ class AddComplaintFragment : Fragment() {
                     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val complaintTime = format.format(Date())
                     var complaints = Complaints(
-                        binding.compDept.text.toString(),
-                        binding.compLoc.text.toString(),
-                        binding.compCategory.text.toString(),
-                        binding.compAgainst.text.toString(),
-                        binding.comDetails.text.toString(),
-                        binding.District.text.toString(),
+                        encrypt(binding.compDept.text.toString()),
+                        encrypt(binding.compLoc.text.toString()),
+                        encrypt(binding.compCategory.text.toString()),
+                        encrypt(binding.compAgainst.text.toString()),
+                        encrypt(binding.comDetails.text.toString()),
+                        encrypt(binding.District.text.toString()),
                         homeScreen.id,
-                        complaintDate.toString(),
-                        cid.toString(), "", audioUrl, videoName, videoUrl,
-                        userName, userEmail, userEmail, "", complaintNumber,
-                        complaintTime, "","",imageUrl
+                        encrypt(complaintDate.toString()),
+                        cid.toString(), "", audioUrl, videoName, encrypt(videoUrl),
+                        encrypt(userName), encrypt(userEmail), encrypt(userEmail), "", encrypt(complaintNumber),
+                        encrypt(complaintTime), "","",imageUrl
                     )
 
                     compRef.child(cid.toString()).setValue(complaints)
                         .addOnCompleteListener { task ->
-
                             if (task.isSuccessful) {
+                                homeScreen.isSensorActive=true
+
                                 Toast.makeText(
                                     requireContext(),
                                     "Complaint Submit",
@@ -608,6 +639,8 @@ class AddComplaintFragment : Fragment() {
                                 loadDialog.dismiss()
                                 homeScreen.navController.navigate(R.id.homeFragment)
                             } else {
+                                homeScreen.isSensorActive=true
+
                                 loadDialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
@@ -643,23 +676,25 @@ class AddComplaintFragment : Fragment() {
                     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val complaintTime = format.format(Date())
                     var complaints = Complaints(
-                        binding.compDept.text.toString(),
-                        binding.compLoc.text.toString(),
-                        binding.compCategory.text.toString(),
-                        binding.compAgainst.text.toString(),
-                        binding.comDetails.text.toString(),
-                        binding.District.text.toString(),
+                        encrypt(binding.compDept.text.toString()),
+                        encrypt(binding.compLoc.text.toString()),
+                        encrypt(binding.compCategory.text.toString()),
+                        encrypt(binding.compAgainst.text.toString()),
+                        encrypt(binding.comDetails.text.toString()),
+                        encrypt(binding.District.text.toString()),
                         homeScreen.id,
-                        complaintDate.toString(),
+                        encrypt(complaintDate.toString()),
                         cid.toString(), "", audioUrl, "", videoUrl,
-                        userName, userEmail, userEmail, "", complaintNumber,
-                        complaintTime, "",imageName.toString(),imageUrl.toString()
+                        encrypt(userName), encrypt(userEmail), encrypt(userEmail), "", encrypt(complaintNumber),
+                        encrypt(complaintTime), "",imageName.toString(),encrypt(imageUrl)
                     )
 
                     compRef.child(cid.toString()).setValue(complaints)
                         .addOnCompleteListener { task ->
 
                             if (task.isSuccessful) {
+                                homeScreen.isSensorActive=true
+
                                 Toast.makeText(
                                     requireContext(),
                                     "Complaint Submit",
@@ -669,6 +704,8 @@ class AddComplaintFragment : Fragment() {
                                 loadDialog.dismiss()
                                 homeScreen.navController.navigate(R.id.homeFragment)
                             } else {
+                                homeScreen.isSensorActive=true
+
                                 loadDialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),

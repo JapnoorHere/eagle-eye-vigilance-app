@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Base64
 import android.view.WindowManager
 import android.view.animation.AnimationUtils
 import android.widget.Toast
@@ -20,6 +21,8 @@ import androidx.navigation.findNavController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.ActivitySplashScreenBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class SplashScreen : AppCompatActivity() {
 
@@ -36,18 +39,10 @@ class SplashScreen : AppCompatActivity() {
         sharedPreferences=getSharedPreferences("Instructions", Context.MODE_PRIVATE)
         editor=sharedPreferences.edit()
 
-
         binding=ActivitySplashScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         navController=findNavController(R.id.navController)
-
-        editor.putString("instructionsOnce","0")
-        editor.putString("instructionsOnceDem","0")
-        editor.apply()
-        editor.commit()
-
-
 
     }
 

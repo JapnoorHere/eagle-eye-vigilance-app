@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.net.Uri
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -24,6 +25,8 @@ import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.ItemComplaintBinding
 import com.japnoor.anticorruption.databinding.ItemDemandtBinding
 import com.japnoor.anticorruption.databinding.NotificationItemBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class NotificationAdapter(
     var context: NotificationActivity,
@@ -116,12 +119,12 @@ class NotificationAdapter(
                             var intent = Intent(context, ComplaintChatActivity::class.java)
                             intent.putExtra("uid", notificationList[position].userId)
                             intent.putExtra("profile", "")
-                            intent.putExtra("cnumber", notificationList[position].complaintNumber)
+                            intent.putExtra("cnumber", decrypt(notificationList[position].complaintNumber))
                             intent.putExtra("type", "c")
                             intent.putExtra("status", notificationList[position].complaintStatus)
-                            intent.putExtra("against", notificationList[position].complaintAgainst)
+                            intent.putExtra("against", decrypt(notificationList[position].complaintAgainst))
                             intent.putExtra("cid", notificationList[position].complaintId)
-                            intent.putExtra("name", notificationList[position].userName)
+                            intent.putExtra("name", decrypt(notificationList[position].userName))
                             context.startActivity(intent)
                         }
                         else{
@@ -165,12 +168,12 @@ class NotificationAdapter(
                             var intent = Intent(context, ComplaintChatActivity::class.java)
                             intent.putExtra("uid", notificationList[position].userId)
                             intent.putExtra("profile", "")
-                            intent.putExtra("cnumber", notificationList[position].complaintNumber)
+                            intent.putExtra("cnumber", decrypt(notificationList[position].complaintNumber))
                             intent.putExtra("type", "d")
                             intent.putExtra("status", notificationList[position].complaintStatus)
-                            intent.putExtra("against", notificationList[position].complaintAgainst)
+                            intent.putExtra("against", decrypt(notificationList[position].complaintAgainst))
                             intent.putExtra("cid", notificationList[position].complaintId)
-                            intent.putExtra("name", notificationList[position].userName)
+                            intent.putExtra("name", decrypt(notificationList[position].userName))
                             context.startActivity(intent)
                         }
                         else{
@@ -203,9 +206,9 @@ class NotificationAdapter(
                 }
                 holder.binding.compnum.setText("Complaint Number : ")
                 holder.binding.aga.setText("Against : ")
-                holder.binding.time.setText(notificationList[position].notificationTime)
-                holder.binding.complaintNumber.setText(notificationList[position].complaintNumber)
-                holder.binding.compAgainst.setText(notificationList[position].complaintAgainst)
+                holder.binding.time.setText(decrypt(notificationList[position].notificationTime))
+                holder.binding.complaintNumber.setText(decrypt(notificationList[position].complaintNumber))
+                holder.binding.compAgainst.setText(decrypt(notificationList[position].complaintAgainst))
             }
             "d" -> {
                 when (notificationList[position].complaintStatus) {
@@ -224,9 +227,9 @@ class NotificationAdapter(
                 }
                 holder.binding.compnum.setText("Demand Number : ")
                 holder.binding.aga.setText("Subject : ")
-                holder.binding.time.setText(notificationList[position].notificationTime)
-                holder.binding.complaintNumber.setText(notificationList[position].complaintNumber)
-                holder.binding.compAgainst.setText(notificationList[position].complaintAgainst)
+                holder.binding.time.setText(decrypt(notificationList[position].notificationTime))
+                holder.binding.complaintNumber.setText(decrypt(notificationList[position].complaintNumber))
+                holder.binding.compAgainst.setText(decrypt(notificationList[position].complaintAgainst))
             }
         }
     }
@@ -234,6 +237,24 @@ class NotificationAdapter(
     override fun getItemCount(): Int {
         return notificationList.size
     }
+    private fun decrypt(input: String): String {
+        var forgot = ForogotPasscode()
+        var encryptionKey=forgot.key()
+        var secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
 
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
+    private fun encrypt(input: String): String {
+        var forgot = ForogotPasscode()
+        var encryptionKey=forgot.key()
+        var secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
 
 }

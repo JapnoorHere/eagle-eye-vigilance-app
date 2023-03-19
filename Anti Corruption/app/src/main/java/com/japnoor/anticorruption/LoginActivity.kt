@@ -11,12 +11,15 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Base64
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.ActivityLoginBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class LoginActivity : AppCompatActivity() {
 
@@ -27,10 +30,28 @@ class LoginActivity : AppCompatActivity() {
     lateinit var useref: DatabaseReference
     lateinit var sharedPreferencesInst: SharedPreferences
     lateinit var editorInst: SharedPreferences.Editor
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         binding = ActivityLoginBinding.inflate(layoutInflater)
         setContentView(binding.root)
         auth = FirebaseAuth.getInstance()
@@ -82,7 +103,7 @@ class LoginActivity : AppCompatActivity() {
                             FirebaseDatabase.getInstance().reference.child("Users")
                                 .child(auth.currentUser?.uid.toString())
                                 .child("password")
-                                .setValue(binding.etPassword.text.toString()).addOnCompleteListener {
+                                .setValue(encrypt(binding.etPassword.text.toString())).addOnCompleteListener {
                                     editorInst.remove("tapTarget")
                                     editorInst.remove("tapTargetAudio")
                                     editorInst.remove("tapTargetProfile")

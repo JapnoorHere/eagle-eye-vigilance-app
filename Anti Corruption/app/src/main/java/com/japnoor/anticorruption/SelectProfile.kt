@@ -11,6 +11,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -20,8 +21,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.japnoor.anticorruption.databinding.FragmentSelectProfileBinding
+import java.lang.Byte.decode
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 import kotlin.math.sign
 
 private const val ARG_PARAM1 = "param1"
@@ -46,6 +50,22 @@ class SelectProfile : Fragment() {
     lateinit var userRef : DatabaseReference
     lateinit var database : FirebaseDatabase
     lateinit var signUp: SignUp
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,6 +79,9 @@ class SelectProfile : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         var binding=FragmentSelectProfileBinding.inflate(layoutInflater,container,false)
 
         signUp=activity as SignUp
@@ -75,12 +98,12 @@ class SelectProfile : Fragment() {
         editorInst=sharedPreferencesInst.edit()
 
         arguments.let {
-            id = it?.getString("id").toString()
+            id = encrypt(it?.getString("id").toString())
             pass = it?.getString("pass").toString()
-            name = it?.getString("name").toString()
+            name = encrypt(it?.getString("name").toString())
             email = it?.getString("email").toString()
-            passcode = it?.getString("passcode").toString()
-            birthdate = it?.getString("birthdate").toString()
+            passcode = encrypt(it?.getString("passcode").toString())
+            birthdate = encrypt(it?.getString("birthdate").toString())
 
         }
         println("Password pro -> " + pass)
@@ -151,12 +174,12 @@ class SelectProfile : Fragment() {
                             var id = user?.uid
                             var users = Users(
                                 name,
-                                email,
+                                encrypt(email),
                                 id.toString(),
                                 profileValue,
-                                pass,
+                                encrypt(pass),
                                 "0",
-                                passcode,birthdate,"",userDate.toString(),userTime.toString()
+                                passcode,birthdate,"",encrypt(userDate.toString()),encrypt(userTime.toString())
                             )
                             userRef.child(id.toString()).setValue(users).addOnCompleteListener {
                                 if (it.isSuccessful) {

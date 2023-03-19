@@ -9,6 +9,7 @@ import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,8 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.japnoor.anticorruption.databinding.FragmentOTPEmailChangeBinding
 import papaya.`in`.sendmail.SendMail
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 import kotlin.random.Random
 import kotlin.random.nextInt
 
@@ -39,6 +42,21 @@ class OTPEmailChange : Fragment() {
     lateinit var demarraylist: ArrayList<String>
 
     lateinit var userArrayList: ArrayList<String>
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +70,9 @@ class OTPEmailChange : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         database = FirebaseDatabase.getInstance()
         userRef = database.reference.child("Users")
         emailChangeActivity = activity as EmailChangeActivity
@@ -164,17 +185,17 @@ class OTPEmailChange : Fragment() {
                     user.currentUser?.updateEmail(email)?.addOnCompleteListener {
                         if (it.isSuccessful) {
                             userRef.child(emailChangeActivity.id).child("email")
-                                .setValue(email)
+                                .setValue(encrypt(email))
                             var intent=Intent(emailChangeActivity,HomeScreen::class.java)
                             intent.putExtra("uid",emailChangeActivity.id)
                             intent.putExtra("pass",emailChangeActivity.pass)
                             emailChangeActivity.startActivity(intent)
                             emailChangeActivity.finish()
                             for(eachh in comparraylist){
-                                FirebaseDatabase.getInstance().reference.child("Complaints").child(eachh).child("userEmail").setValue(email)
+                                FirebaseDatabase.getInstance().reference.child("Complaints").child(eachh).child("userEmail").setValue(encrypt(email))
                             }
                             for(eachh1 in demarraylist){
-                                FirebaseDatabase.getInstance().reference.child("Demand Letter").child(eachh1).child("userEmail").setValue(email)
+                                FirebaseDatabase.getInstance().reference.child("Demand Letter").child(eachh1).child("userEmail").setValue(encrypt(email))
                             }
                         } else if (it.exception.toString()
                                 .equals("com.google.firebase.auth.FirebaseAuthUserCollisionException: The email address is already in use by another account.")

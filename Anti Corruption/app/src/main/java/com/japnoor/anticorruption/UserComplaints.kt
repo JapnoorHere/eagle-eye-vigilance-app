@@ -12,6 +12,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.text.format.DateFormat
 import android.view.*
+import android.util.Base64
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import android.widget.Toast
@@ -31,6 +32,8 @@ import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.ArrayList
 
 private const val ARG_PARAM1 = "param1"
@@ -47,6 +50,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
     lateinit var storegeref: StorageReference
 
     lateinit var dialogBindEdit: EditUserComplaintDialogBinding
+
+
+
 
 
     lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
@@ -66,10 +72,25 @@ class UserComplaints : Fragment(), UserComplaintClick {
     var c = 0
     lateinit var loadDialog: Dialog
 
-
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
     lateinit var binding: FragmentUserComplaintsBinding
 
     lateinit var homeScreen: HomeScreen
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(android.util.Base64.decode(input, android.util.Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
+
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -90,6 +111,9 @@ class UserComplaints : Fragment(), UserComplaintClick {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         firebaseStorage = FirebaseStorage.getInstance()
         storegeref = firebaseStorage.reference
         homeScreen = activity as HomeScreen
@@ -97,6 +121,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
         compRef = database.reference.child("Complaints")
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
+        binding.refreshlayout.setOnRefreshListener { homeScreen.navController.navigate(R.id.userComplaints) }
 
         loadDialog = Dialog(homeScreen)
         loadDialog.setContentView(R.layout.dialog_c_d_loading)
@@ -227,53 +252,52 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     dialogBind.actionsTakenLayout.visibility = View.GONE
                     dialogBind.Framelayout.setBackgroundResource(R.color.accepted1)
                     dialogBind.stamp.setImageResource(R.drawable.accpeted_stamp)
-                    dialogBind.tvDept.setText(complaints.complaintDept)
-                    dialogBind.tvLocation.setText(complaints.complaintLoc)
-                    dialogBind.tvCategory.setText(complaints.complaintCategory)
-                    dialogBind.tvDetails.setText(complaints.complaintDetails)
-                    dialogBind.tvAgainst.setText(complaints.complaintAgainst)
-                    dialogBind.comDate.setText(complaints.complaintDate)
-                    dialogBind.tvDistrict.setText(complaints.complaintDistrict)
+                    dialogBind.tvDept.setText(decrypt(complaints.complaintDept))
+                    dialogBind.tvLocation.setText(decrypt(complaints.complaintLoc))
+                    dialogBind.tvCategory.setText(decrypt(complaints.complaintCategory))
+                    dialogBind.tvDetails.setText(decrypt(complaints.complaintDetails))
+                    dialogBind.tvAgainst.setText(decrypt(complaints.complaintAgainst))
+                    dialogBind.comDate.setText(decrypt(complaints.complaintDate))
+                    dialogBind.tvDistrict.setText(decrypt(complaints.complaintDistrict))
 
                     dialogBind.fabAdd1.setOnClickListener {
                         dialog.dismiss()
                     }
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = complaints.imageUrl.toUri()
-
+                        var url=decrypt(complaints.imageUrl)
+                        val fileUri: Uri = url.toUri()
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
-
                         startActivity(intent)
                     }
-
                     dialogBind.audio.setOnClickListener {
-                        val fileUri: Uri = complaints.audioUrl.toUri()
+                        var url=decrypt(complaints.audioUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, AudioActivity::class.java)
                         intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
                     dialogBind.video.setOnClickListener {
-                        val fileUri: Uri = complaints.videoUrl.toUri()
-
+                        var url=decrypt(complaints.videoUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, VideoActivity::class.java)
                         intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
 
 
-                    if (complaints.audioUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.audioUrl).isNullOrEmpty()) {
                         dialogBind.audio.visibility = View.GONE
                         dialogBind.audio.visibility = View.GONE
                     }
 
-                    if (complaints.imageUrl.isNullOrEmpty()) {
-                        dialogBind.audio.visibility = View.GONE
-                        dialogBind.audio.visibility = View.GONE
+                    if (decrypt(complaints.imageUrl).isNullOrEmpty()) {
+                        dialogBind.image.visibility = View.GONE
+                        dialogBind.image.visibility = View.GONE
                     }
 
-                    if (complaints.videoUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.videoUrl).isNullOrEmpty()) {
                         dialogBind.video.visibility = View.GONE
                         dialogBind.video.visibility = View.GONE
                     }
@@ -287,23 +311,23 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
-                    dialogBind.actionsTaken.setText(complaints.statusDescription)
+                    dialogBind.actionsTaken.setText(decrypt(complaints.statusDescription))
                     dialogBind.stamp.setImageResource(R.drawable.resolved_stamp)
                     dialogBind.Framelayout.setBackgroundResource(R.color.resolved1)
-                    dialogBind.tvDept.setText(complaints.complaintDept)
-                    dialogBind.tvLocation.setText(complaints.complaintLoc)
-                    dialogBind.tvCategory.setText(complaints.complaintCategory)
-                    dialogBind.tvDetails.setText(complaints.complaintDetails)
-                    dialogBind.tvAgainst.setText(complaints.complaintAgainst)
-                    dialogBind.comDate.setText(complaints.complaintDate)
-                    dialogBind.tvDistrict.setText(complaints.complaintDistrict)
+                    dialogBind.tvDept.setText(decrypt(complaints.complaintDept))
+                    dialogBind.tvLocation.setText(decrypt(complaints.complaintLoc))
+                    dialogBind.tvCategory.setText(decrypt(complaints.complaintCategory))
+                    dialogBind.tvDetails.setText(decrypt(complaints.complaintDetails))
+                    dialogBind.tvAgainst.setText(decrypt(complaints.complaintAgainst))
+                    dialogBind.comDate.setText(decrypt(complaints.complaintDate))
+                    dialogBind.tvDistrict.setText(decrypt(complaints.complaintDistrict))
 
                     dialogBind.fabAdd1.setOnClickListener {
                         dialog.dismiss()
                     }
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = complaints.imageUrl.toUri()
-
+                        var url=decrypt(complaints.imageUrl)
+                        val fileUri: Uri = url.toUri()
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
@@ -311,33 +335,34 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         startActivity(intent)
                     }
                     dialogBind.audio.setOnClickListener {
-                        val fileUri: Uri = complaints.audioUrl.toUri()
+                        var url=decrypt(complaints.audioUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, AudioActivity::class.java)
                         intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
 
                     }
                     dialogBind.video.setOnClickListener {
-                        val fileUri: Uri = complaints.videoUrl.toUri()
-
+                        var url=decrypt(complaints.videoUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, VideoActivity::class.java)
                         intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
 
 
-                    if (complaints.audioUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.audioUrl).isNullOrEmpty()) {
                         dialogBind.audio.visibility = View.GONE
                         dialogBind.audio.visibility = View.GONE
                     }
 
-                    if (complaints.imageUrl.isNullOrEmpty()) {
-                        dialogBind.audio.visibility = View.GONE
-                        dialogBind.audio.visibility = View.GONE
+                    if (decrypt(complaints.imageUrl).isNullOrEmpty()) {
+                        dialogBind.image.visibility = View.GONE
+                        dialogBind.image.visibility = View.GONE
                     }
 
 
-                    if (complaints.videoUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.videoUrl).isNullOrEmpty()) {
                         dialogBind.video.visibility = View.GONE
                         dialogBind.video.visibility = View.GONE
                     }
@@ -352,30 +377,31 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
-                    dialogBind.actionsTaken.setText(complaints.statusDescription)
+                    dialogBind.actionsTaken.setText(decrypt(complaints.statusDescription))
                     dialogBind.Framelayout.setBackgroundResource(R.color.rejected1)
                     dialogBind.stamp.setImageResource(R.drawable.rejected_stamp)
-                    dialogBind.tvDept.setText(complaints.complaintDept)
-                    dialogBind.tvLocation.setText(complaints.complaintLoc)
-                    dialogBind.tvCategory.setText(complaints.complaintCategory)
-                    dialogBind.tvDetails.setText(complaints.complaintDetails)
-                    dialogBind.tvAgainst.setText(complaints.complaintAgainst)
-                    dialogBind.comDate.setText(complaints.complaintDate)
-                    dialogBind.tvDistrict.setText(complaints.complaintDistrict)
+                    dialogBind.tvDept.setText(decrypt(complaints.complaintDept))
+                    dialogBind.tvLocation.setText(decrypt(complaints.complaintLoc))
+                    dialogBind.tvCategory.setText(decrypt(complaints.complaintCategory))
+                    dialogBind.tvDetails.setText(decrypt(complaints.complaintDetails))
+                    dialogBind.tvAgainst.setText(decrypt(complaints.complaintAgainst))
+                    dialogBind.comDate.setText((decrypt(complaints.complaintDate)))
+                    dialogBind.tvDistrict.setText(decrypt(complaints.complaintDistrict))
 
                     dialogBind.fabAdd1.setOnClickListener {
                         dialog.dismiss()
                     }
                     dialogBind.audio.setOnClickListener {
-                        val fileUri: Uri = complaints.audioUrl.toUri()
+                        var url=decrypt(complaints.audioUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, AudioActivity::class.java)
                         intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
 
                     }
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = complaints.imageUrl.toUri()
-
+                        var url=decrypt(complaints.imageUrl)
+                        val fileUri: Uri = url.toUri()
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
@@ -384,24 +410,25 @@ class UserComplaints : Fragment(), UserComplaintClick {
 
                     }
                     dialogBind.video.setOnClickListener {
-                        val fileUri: Uri = complaints.videoUrl.toUri()
+                        var url=decrypt(complaints.videoUrl)
+                        val fileUri: Uri = url.toUri()
 
                         var intent = Intent(homeScreen, VideoActivity::class.java)
                         intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
-                    if (complaints.imageUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.imageUrl).isNullOrEmpty()) {
+                        dialogBind.image.visibility = View.GONE
+                        dialogBind.image.visibility = View.GONE
+                    }
+
+
+                    if (decrypt(complaints.audioUrl).isNullOrEmpty()) {
                         dialogBind.audio.visibility = View.GONE
                         dialogBind.audio.visibility = View.GONE
                     }
 
-
-                    if (complaints.audioUrl.isNullOrEmpty()) {
-                        dialogBind.audio.visibility = View.GONE
-                        dialogBind.audio.visibility = View.GONE
-                    }
-
-                    if (complaints.videoUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.videoUrl).isNullOrEmpty()) {
                         dialogBind.video.visibility = View.GONE
                         dialogBind.video.visibility = View.GONE
                     }
@@ -416,13 +443,13 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         WindowManager.LayoutParams.MATCH_PARENT
                     )
 
-                    dialogBindEdit.compDept.setText(complaints.complaintDept)
-                    dialogBindEdit.compLoca.setText(complaints.complaintLoc)
-                    dialogBindEdit.compCategory.setText(complaints.complaintCategory)
-                    dialogBindEdit.comDetails.setText(complaints.complaintDetails)
-                    dialogBindEdit.compAgainst.setText(complaints.complaintAgainst)
-                    dialogBindEdit.comDate.setText(complaints.complaintDate)
-                    dialogBindEdit.District.setText(complaints.complaintDistrict)
+                    dialogBindEdit.compDept.setText(decrypt(complaints.complaintDept))
+                    dialogBindEdit.compLoca.setText(decrypt(complaints.complaintLoc))
+                    dialogBindEdit.compCategory.setText(decrypt(complaints.complaintCategory))
+                    dialogBindEdit.comDetails.setText(decrypt(complaints.complaintDetails))
+                    dialogBindEdit.compAgainst.setText(decrypt(complaints.complaintAgainst))
+                    dialogBindEdit.comDate.setText(decrypt(complaints.complaintDate))
+                    dialogBindEdit.District.setText(decrypt(complaints.complaintDistrict))
                     var districts = resources.getStringArray(R.array.District)
                     arrayAdapter =
                         ArrayAdapter(requireContext(), R.layout.drop_down_item, districts)
@@ -467,14 +494,16 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         }
                     }
                     dialogBindEdit.audio.setOnClickListener {
-                        val fileUri: Uri = complaints.audioUrl.toUri()
+                        var url=decrypt(complaints.audioUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, AudioActivity::class.java)
                         intent.putExtra("audio", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
 
                     dialogBindEdit.image.setOnClickListener {
-                        val fileUri: Uri = complaints.imageUrl.toUri()
+                        var url=decrypt(complaints.imageUrl)
+                        val fileUri: Uri = url.toUri()
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
@@ -484,24 +513,25 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     }
 
                     dialogBindEdit.video.setOnClickListener {
-                        val fileUri: Uri = complaints.videoUrl.toUri()
+                        var url=decrypt(complaints.videoUrl)
+                        val fileUri: Uri = url.toUri()
                         var intent = Intent(homeScreen, VideoActivity::class.java)
                         intent.putExtra("video", fileUri.toString())
                         homeScreen.startActivity(intent)
                     }
 
 
-                    if (complaints.audioUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.audioUrl).isNullOrEmpty()) {
                         dialogBindEdit.audioUpload.visibility = View.GONE
                         dialogBindEdit.audio.visibility = View.GONE
                     }
 
-                    if (complaints.imageUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.imageUrl).isNullOrEmpty()) {
                         dialogBindEdit.imageUpload.visibility = View.GONE
                         dialogBindEdit.image.visibility = View.GONE
                     }
 
-                    if (complaints.videoUrl.isNullOrEmpty()) {
+                    if (decrypt(complaints.videoUrl).isNullOrEmpty()) {
                         dialogBindEdit.videoUpload.visibility = View.GONE
                         dialogBindEdit.video.visibility = View.GONE
                     }
@@ -717,12 +747,12 @@ class UserComplaints : Fragment(), UserComplaintClick {
         dialog: Dialog
     ) {
         var compMap = mutableMapOf<String, Any>()
-        compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
-        compMap["complaintDept"] = dialogBind.compDept.text.toString()
-        compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
-        compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
-        compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
-        compMap["complaintDistrict"] = dialogBind.District.text.toString()
+        compMap["complaintLoc"] = encrypt(dialogBind.compLoca.text.toString())
+        compMap["complaintDept"] = encrypt(dialogBind.compDept.text.toString())
+        compMap["complaintCategory"] = encrypt(dialogBind.compCategory.text.toString())
+        compMap["complaintAgainst"] = encrypt(dialogBind.compAgainst.text.toString())
+        compMap["complaintDetails"] = encrypt(dialogBind.comDetails.text.toString())
+        compMap["complaintDistrict"] = encrypt(dialogBind.District.text.toString())
         println("id->" + complaints.complaintId)
         compRef.child(complaints.complaintId).updateChildren(compMap)
             .addOnCompleteListener {
@@ -759,14 +789,14 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     audioUrl = it.toString()
 
                     var compMap = mutableMapOf<String, Any>()
-                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
-                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
-                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
-                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
-                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
-                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["complaintLoc"] = encrypt(dialogBind.compLoca.text.toString())
+                    compMap["complaintDept"] = encrypt(dialogBind.compDept.text.toString())
+                    compMap["complaintCategory"] = encrypt(dialogBind.compCategory.text.toString())
+                    compMap["complaintAgainst"] =encrypt(dialogBind.compAgainst.text.toString())
+                    compMap["complaintDetails"] = encrypt(dialogBind.comDetails.text.toString())
+                    compMap["complaintDistrict"] = encrypt(dialogBind.District.text.toString())
                     compMap["audioName"] = audioName
-                    compMap["audioUrl"] = audioUrl
+                    compMap["audioUrl"] = encrypt(audioUrl)
                     compMap["videoName"] = ""
                     compMap["videoUrl"] = ""
                     compMap["imageName"] = ""
@@ -791,7 +821,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                     it.exception.toString(),
                                     Toast.LENGTH_LONG
                                 ).show()
-                                dialogBind.progressbar.visibility = View.GONE
+                                loadDialog.dismiss()
                                 audioUri = null
                                 videoUri = null
                                 imageUri = null
@@ -818,16 +848,16 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     videoUrl = it.toString()
 
                     var compMap = mutableMapOf<String, Any>()
-                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
-                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
-                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
-                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
-                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
-                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["complaintLoc"] = encrypt(dialogBind.compLoca.text.toString())
+                    compMap["complaintDept"] = encrypt(dialogBind.compDept.text.toString())
+                    compMap["complaintCategory"] = encrypt(dialogBind.compCategory.text.toString())
+                    compMap["complaintAgainst"] = encrypt(dialogBind.compAgainst.text.toString())
+                    compMap["complaintDetails"] = encrypt(dialogBind.comDetails.text.toString())
+                    compMap["complaintDistrict"] = encrypt(dialogBind.District.text.toString())
                     compMap["audioName"] = ""
                     compMap["audioUrl"] = ""
                     compMap["videoName"] = videoName
-                    compMap["videoUrl"] = videoUrl
+                    compMap["videoUrl"] = encrypt(videoUrl)
                     compMap["imageName"] = ""
                     compMap["imageUrl"] = ""
                     println("id->" + complaints.complaintId)
@@ -845,7 +875,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                 videoUri = null
                                 imageUri = null
                             } else {
-                                dialogBind.progressbar.visibility = View.GONE
+                                loadDialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
                                     it.exception.toString(),
@@ -876,24 +906,23 @@ class UserComplaints : Fragment(), UserComplaintClick {
                     imageUrl = it.toString()
 
                     var compMap = mutableMapOf<String, Any>()
-                    compMap["complaintLoc"] = dialogBind.compLoca.text.toString()
-                    compMap["complaintDept"] = dialogBind.compDept.text.toString()
-                    compMap["complaintCategory"] = dialogBind.compCategory.text.toString()
-                    compMap["complaintAgainst"] = dialogBind.compAgainst.text.toString()
-                    compMap["complaintDetails"] = dialogBind.comDetails.text.toString()
-                    compMap["complaintDistrict"] = dialogBind.District.text.toString()
+                    compMap["complaintLoc"] = encrypt(dialogBind.compLoca.text.toString())
+                    compMap["complaintDept"] = encrypt(dialogBind.compDept.text.toString())
+                    compMap["complaintCategory"] = encrypt(dialogBind.compCategory.text.toString())
+                    compMap["complaintAgainst"] = encrypt(dialogBind.compAgainst.text.toString())
+                    compMap["complaintDetails"] = encrypt(dialogBind.comDetails.text.toString())
+                    compMap["complaintDistrict"] = encrypt(dialogBind.District.text.toString())
                     compMap["audioName"] = ""
                     compMap["audioUrl"] = ""
                     compMap["videoName"] = ""
                     compMap["videoUrl"] = ""
                     compMap["imageName"] = imageName
-                    compMap["imageUrl"] = imageUrl
+                    compMap["imageUrl"] = encrypt(imageUrl)
                     println("id->" + complaints.complaintId)
                     compRef.child(complaints.complaintId).updateChildren(compMap)
                         .addOnCompleteListener {
                             if (it.isSuccessful) {
                                 loadDialog.dismiss()
-
                                 dialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
@@ -904,7 +933,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
                                 videoUri = null
                                 imageUri = null
                             } else {
-                                dialogBind.progressbar.visibility = View.GONE
+                                loadDialog.dismiss()
                                 Toast.makeText(
                                     requireContext(),
                                     it.exception.toString(),

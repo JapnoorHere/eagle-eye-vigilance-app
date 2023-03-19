@@ -22,6 +22,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.os.Vibrator
+import android.util.Base64
 import android.view.View
 import android.view.WindowManager
 import android.widget.ImageView
@@ -39,10 +40,13 @@ import com.getkeepsafe.taptargetview.TapTargetView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
+import com.google.firebase.database.ktx.getValue
 import com.japnoor.anticorruption.databinding.*
 import java.io.File
 import java.lang.Math.sqrt
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 
 class HomeScreen : AppCompatActivity() {
@@ -74,7 +78,21 @@ class HomeScreen : AppCompatActivity() {
 
     lateinit var sharedPreferences: SharedPreferences
     lateinit var editor: Editor
+    var encryptionKey: String? = null
+    var secretKeySpec: SecretKeySpec? = null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
 
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
 
     private val sensorListener: SensorEventListener = object : SensorEventListener {
@@ -94,6 +112,7 @@ class HomeScreen : AppCompatActivity() {
             mediaRecorder.start()
             isRecording = true
         }
+
 
 
         override fun onSensorChanged(event: SensorEvent) {
@@ -190,20 +209,54 @@ class HomeScreen : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        var forgot = ForogotPasscode()
+        encryptionKey = forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         binding = ActivityHomeScreenBinding.inflate(layoutInflater)
         setContentView(binding.root)
         profileBundle = Bundle()
         compProfileList = ArrayList()
         demProfileList = ArrayList()
         navController = findNavController(R.id.navController)
-
         id = intent.getStringExtra("uid").toString()
         pass = intent.getStringExtra("pass").toString()
 
-        sharedPreferences=getSharedPreferences("instructions", MODE_PRIVATE)
-        editor=sharedPreferences.edit()
+        sharedPreferences = getSharedPreferences("instructions", MODE_PRIVATE)
+        editor = sharedPreferences.edit()
 
-        if(!sharedPreferences.contains("tapTarget")) {
+        FirebaseDatabase.getInstance().reference.child("Notifications").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for(each in snapshot.children){
+                    var notif=each.getValue(Notification::class.java)
+                    if(notif!=null && notif.userId.equals(id)){
+                        binding.notifications.setImageDrawable(resources.getDrawable(R.drawable.ic_baseline_notifications_none_241))
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+
+        FirebaseDatabase.getInstance().reference.child("Announcements").addValueEventListener(object : ValueEventListener{
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for(each in snapshot.children){
+                    var notif=each.getValue(Announcements::class.java)
+                    if(notif!=null){
+                        binding.announcements.setImageDrawable(resources.getDrawable(R.drawable.megaphone))
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                TODO("Not yet implemented")
+            }
+
+        })
+
+        if (!sharedPreferences.contains("tapTarget")) {
             TapTargetView.showFor(this,
                 TapTarget.forView(
                     binding.notifications,
@@ -453,8 +506,8 @@ class HomeScreen : AppCompatActivity() {
                 for (fetchuser in snapshot.children) {
                     var fetchuser1 = fetchuser.getValue(Users::class.java)
                     if (fetchuser1 != null && fetchuser1.userId.equals(id)) {
-                        name.text = fetchuser1.name
-                        email.text = fetchuser1.email
+                        name.text = decrypt(fetchuser1.name)
+                        email.text = decrypt(fetchuser1.email)
                         when (fetchuser1.profileValue) {
                             "1" -> profile.setImageResource(R.drawable.man1)
                             "2" -> profile.setImageResource(R.drawable.man2)
@@ -524,7 +577,7 @@ class HomeScreen : AppCompatActivity() {
                         startActivity(intent)
                     }
 
-                    R.id.links->{
+                    R.id.links -> {
                         navController.navigate(R.id.importantLinks)
                         drawerLayout.close()
                     }
@@ -649,54 +702,42 @@ class HomeScreen : AppCompatActivity() {
                             } else {
                                 dialogBinding.btnSignup.visibility = View.GONE
                                 dialogBinding.progressbar.visibility = View.VISIBLE
-                                useref.addValueEventListener(object : ValueEventListener {
-                                    override fun onDataChange(snapshot: DataSnapshot) {
-                                        for (eachUser in snapshot.children) {
-                                            var userr = eachUser.getValue(Users::class.java)
-                                            if (userr != null && userr.userId.equals(id)) {
-                                                useref.child(id).child("passcode")
-                                                    .setValue(dialogBinding.etPassword.text.toString())
-                                                    .addOnCompleteListener {
-                                                        if (it.isSuccessful) {
-                                                            dialogBinding.btnSignup.visibility =
-                                                                View.VISIBLE
-                                                            dialogBinding.progressbar.visibility =
-                                                                View.GONE
-                                                            dialog.dismiss()
-                                                        } else {
-                                                            dialogBinding.btnSignup.visibility =
-                                                                View.VISIBLE
-                                                            dialogBinding.progressbar.visibility =
-                                                                View.GONE
-                                                            Toast.makeText(
-                                                                this@HomeScreen,
-                                                                it.exception.toString(),
-                                                                Toast.LENGTH_LONG
-                                                            ).show()
-                                                        }
-                                                    }
-                                            }
+                                useref.child(id).child("passcode")
+                                    .setValue(encrypt(dialogBinding.etPassword.text.toString()))
+                                    .addOnCompleteListener {
+                                        if (it.isSuccessful) {
+                                            navController.navigate(R.id.homeFragment)
+                                            dialogBinding.btnSignup.visibility = View.VISIBLE
+                                            dialogBinding.progressbar.visibility = View.GONE
+                                            dialog.dismiss()
+                                        } else {
+                                            dialogBinding.btnSignup.visibility =
+                                                View.VISIBLE
+                                            dialogBinding.progressbar.visibility =
+                                                View.GONE
+                                            Toast.makeText(
+                                                this@HomeScreen,
+                                                it.exception.toString(),
+                                                Toast.LENGTH_LONG
+                                            ).show()
                                         }
                                     }
-
-                                    override fun onCancelled(error: DatabaseError) {
-                                        TODO("Not yet implemented")
-                                    }
-
-                                })
                             }
                         }
 
                         dialog.show()
                     }
-
+                    R.id.contactAdmin -> {
+                             var intent=Intent(this@HomeScreen,ChatActivity::class.java)
+                            startActivity(intent)
+                    }
                     R.id.report -> {
                         drawerLayout.close()
                         val builder = AlertDialog.Builder(this@HomeScreen)
                         builder.setTitle("Report a Bug")
                         builder.setMessage("Dear valued user, we hope you're enjoying our Android app. We sincerely appreciate your taking the time to let us know if you run into any bugs or problems by sending an email to us.")
                         builder.setPositiveButton("Report") { dialog, which ->
-                            val email = "anticorruptionpunjab75@gmail.com"
+                            val email = "eagleeyevigilance@gmail.com"
                             val emailIntent = Intent(Intent.ACTION_SENDTO)
                             emailIntent.data = Uri.parse("mailto:$email")
                             startActivity(emailIntent)

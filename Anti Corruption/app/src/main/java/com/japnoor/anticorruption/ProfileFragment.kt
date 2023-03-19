@@ -10,6 +10,7 @@ import android.graphics.Typeface
 import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -23,6 +24,8 @@ import com.japnoor.anticorruption.databinding.DialogSelectProfileBinding
 import com.japnoor.anticorruption.databinding.FragmentProfileBinding
 import com.japnoor.anticorruption.databinding.ProfileItemBinding
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.ArrayList
 
 private const val ARG_PARAM1 = "param1"
@@ -44,7 +47,21 @@ class ProfileFragment : Fragment() {
     var profileValue: String = ""
     lateinit var sharedPreferences: SharedPreferences
     lateinit var editor: Editor
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
 
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
     lateinit var database: FirebaseDatabase
     lateinit var profileRef: DatabaseReference
@@ -62,6 +79,9 @@ class ProfileFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         compIdList = ArrayList()
         demIdList = ArrayList()
 
@@ -143,11 +163,11 @@ class ProfileFragment : Fragment() {
                 for (user in snapshot.children) {
                     var info = user.getValue(Users::class.java)
                     if (info != null && info.userId.equals(homeScreen.id)) {
-                        userName = info.name
-                        userEmail = info.email
+                        userName = decrypt(info.name)
+                        userEmail = decrypt(info.email)
                         userProfile = info.profileValue
-                        userPass = info.password
-                        userDate = info.birthdate
+                        userPass = decrypt(info.password)
+                        userDate = decrypt(info.birthdate)
                         println("Yeh " + userName)
                         println("Yeh " + userEmail)
                         binding.name.text = userName
@@ -205,7 +225,7 @@ class ProfileFragment : Fragment() {
                         val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
                         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                         if (isConnected) {
-                            profileRef.child(homeScreen.id).child("birthdate").setValue(newdate)
+                            profileRef.child(homeScreen.id).child("birthdate").setValue(encrypt(newdate))
                         } else {
                             Toast.makeText(
                                 homeScreen,
@@ -340,7 +360,7 @@ class ProfileFragment : Fragment() {
                         val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                         if (isConnected) {
                             profileRef.child(homeScreen.id).child("name")
-                                .setValue(dialogBinding.et.text.toString())
+                                .setValue(encrypt(dialogBinding.et.text.toString()))
                             dialog.dismiss()
                         } else {
                             Toast.makeText(

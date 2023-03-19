@@ -26,6 +26,8 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.storage.FirebaseStorage
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.ItemComplaintBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class MyComplaintsAdapter(var context: HomeScreen, var complaintsList: ArrayList<Complaints>,var userComplaintClick: UserComplaintClick)  : RecyclerView.Adapter<MyComplaintsAdapter.ViewHolder>() {
 
@@ -45,12 +47,12 @@ class MyComplaintsAdapter(var context: HomeScreen, var complaintsList: ArrayList
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.compAgainst.setText(complaintsList[position].complaintAgainst)
-        holder.binding.tvDistrict.setText(complaintsList[position].complaintDistrict)
-        holder.binding.compdetails.setText(complaintsList[position].complaintDetails)
-        holder.binding.date.setText(complaintsList[position].complaintDate)
-        holder.binding.time.setText(complaintsList[position].complaintTime)
-        holder.binding.complaintNumber.setText(complaintsList[position].complaintNumber)
+        holder.binding.compAgainst.setText(decrypt(complaintsList[position].complaintAgainst))
+        holder.binding.tvDistrict.setText(decrypt(complaintsList[position].complaintDistrict))
+        holder.binding.compdetails.setText(decrypt(complaintsList[position].complaintDetails))
+        holder.binding.date.setText(decrypt(complaintsList[position].complaintDate))
+        holder.binding.time.setText(decrypt(complaintsList[position].complaintTime))
+        holder.binding.complaintNumber.setText(decrypt(complaintsList[position].complaintNumber))
         when (complaintsList[position].status) {
             "1" -> {
                 holder.binding.rightline.setBackgroundResource(R.drawable.acceptedback)
@@ -144,11 +146,11 @@ class MyComplaintsAdapter(var context: HomeScreen, var complaintsList: ArrayList
                             intent.putExtra("uid", complaintsList[position].userId)
                             intent.putExtra("profile", it.result.value.toString())
                             intent.putExtra("type", "c")
-                            intent.putExtra("cnumber", complaintsList[position].complaintNumber)
+                            intent.putExtra("cnumber", decrypt(complaintsList[position].complaintNumber))
                             intent.putExtra("status", complaintsList[position].status)
-                            intent.putExtra("against", complaintsList[position].complaintAgainst)
+                            intent.putExtra("against", decrypt(complaintsList[position].complaintAgainst))
                             intent.putExtra("cid", complaintsList[position].complaintId)
-                            intent.putExtra("name", complaintsList[position].userName)
+                            intent.putExtra("name", decrypt(complaintsList[position].userName))
                             context.startActivity(intent)
                         }
                 }
@@ -185,6 +187,15 @@ class MyComplaintsAdapter(var context: HomeScreen, var complaintsList: ArrayList
     fun FilteredList(filteredList: ArrayList<Complaints>) {
            complaintsList=filteredList
         notifyDataSetChanged()
+    }
+    private fun decrypt(input: String): String {
+        var forgot = ForogotPasscode()
+        var encryptionKey=forgot.key()
+        var secretKeySpec = SecretKeySpec(encryptionKey.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(android.util.Base64.decode(input, android.util.Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
     }
 
 }

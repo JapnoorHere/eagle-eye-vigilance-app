@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Base64
 import android.view.*
 import androidx.fragment.app.Fragment
 import android.widget.ArrayAdapter
@@ -33,6 +34,8 @@ import com.japnoor.anticorruption.databinding.FragmentUserDemandLettersBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
 import com.japnoor.anticorruption.databinding.ShowUserDemandDialogBinding
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 import kotlin.collections.ArrayList
 
 
@@ -62,7 +65,22 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
     lateinit var binding: FragmentUserDemandLettersBinding
     lateinit var userDemandAdapter: UserDemandAdapter
     lateinit var homeScreen: HomeScreen
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
 
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         registerActivityforResult()
         super.onCreate(savedInstanceState)
@@ -84,9 +102,13 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
         homeScreen=activity as HomeScreen
         database=FirebaseDatabase.getInstance()
         demRef=database.reference.child("Demand Letter")
-
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         binding = FragmentUserDemandLettersBinding.inflate(layoutInflater, container, false)
-
+binding.refreshlayout.setOnRefreshListener {
+    homeScreen.navController.navigate(R.id.userTotalDemandFragment)
+}
         loadDialog = Dialog(homeScreen)
         loadDialog.setContentView(R.layout.dialog_c_d_loading)
         loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
@@ -167,17 +189,18 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     dialogBind.tvAgainst.visibility=View.GONE
                     dialogBind.stamp.setImageResource(R.drawable.accpeted_stamp)
                     dialogBind.Framelayout.setBackgroundResource(R.color.accepted1)
-                    dialogBind.tvSummary.setText(demandLetter.demandSubject)
-                    dialogBind.tvDetails.setText(demandLetter.demandDetails)
-                    dialogBind.comDate.setText(demandLetter.demandDate)
-                    dialogBind.tvDistrict.setText(demandLetter.demandDistrict)
+                    dialogBind.tvSummary.setText(decrypt(demandLetter.demandSubject))
+                    dialogBind.tvDetails.setText(decrypt(demandLetter.demandDetails))
+                    dialogBind.comDate.setText(decrypt(demandLetter.demandDate))
+                    dialogBind.tvDistrict.setText(decrypt(demandLetter.demandDistrict))
 
                     dialogBind.image.visibility = View.VISIBLE
                     dialogBind.audio.visibility = View.GONE
                     dialogBind.video.visibility = View.GONE
 
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = demandLetter.imageUrl.toUri()
+                        var url=decrypt(demandLetter.imageUrl)
+                        val fileUri: Uri = url.toUri()
 
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
@@ -199,25 +222,27 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
-                    dialogBind.actionsTaken.setText(demandLetter.statusDescription)
+
                     dialogBind.CS.setText("Demand Summary : ")
                     dialogBind.CD.setText("Demand Details : ")
                     dialogBind.CA.visibility=View.GONE
                     dialogBind.stamp.visibility=View.VISIBLE
                     dialogBind.tvAgainst.visibility=View.GONE
+                    dialogBind.actionsTaken.setText(decrypt(demandLetter.statusDescription))
                     dialogBind.stamp.setImageResource(R.drawable.resolved_stamp)
                     dialogBind.Framelayout.setBackgroundResource(R.color.resolved1)
-                    dialogBind.tvSummary.setText(demandLetter.demandSubject)
-                    dialogBind.tvDetails.setText(demandLetter.demandDetails)
-                    dialogBind.comDate.setText(demandLetter.demandDate)
-                    dialogBind.tvDistrict.setText(demandLetter.demandDistrict)
+                    dialogBind.tvSummary.setText(decrypt(demandLetter.demandSubject))
+                    dialogBind.tvDetails.setText(decrypt(demandLetter.demandDetails))
+                    dialogBind.comDate.setText(decrypt(demandLetter.demandDate))
+                    dialogBind.tvDistrict.setText(decrypt(demandLetter.demandDistrict))
 
                     dialogBind.image.visibility = View.VISIBLE
                     dialogBind.audio.visibility = View.GONE
                     dialogBind.video.visibility = View.GONE
 
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = demandLetter.imageUrl.toUri()
+                         var url=decrypt(demandLetter.imageUrl)
+                        val fileUri: Uri = url.toUri()
 
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
@@ -240,7 +265,6 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         WindowManager.LayoutParams.MATCH_PARENT,
                         WindowManager.LayoutParams.WRAP_CONTENT
                     )
-                    dialogBind.actionsTaken.setText(demandLetter.statusDescription)
                     dialogBind.CS.setText("Demand Summary : ")
                     dialogBind.CD.setText("Demand Details : ")
                     dialogBind.CA.visibility=View.GONE
@@ -248,18 +272,19 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     dialogBind.tvAgainst.visibility=View.GONE
                     dialogBind.stamp.setImageResource(R.drawable.rejected_stamp)
                     dialogBind.Framelayout.setBackgroundResource(R.color.rejected1)
-                    dialogBind.tvSummary.setText(demandLetter.demandSubject)
-                    dialogBind.tvDetails.setText(demandLetter.demandDetails)
-                    dialogBind.comDate.setText(demandLetter.demandDate)
-                    dialogBind.tvDistrict.setText(demandLetter.demandDistrict)
+                    dialogBind.actionsTaken.setText(decrypt(demandLetter.statusDescription))
+                    dialogBind.tvSummary.setText(decrypt(demandLetter.demandSubject))
+                    dialogBind.tvDetails.setText(decrypt(demandLetter.demandDetails))
+                    dialogBind.comDate.setText(decrypt(demandLetter.demandDate))
+                    dialogBind.tvDistrict.setText(decrypt(demandLetter.demandDistrict))
 
                     dialogBind.image.visibility = View.VISIBLE
                     dialogBind.audio.visibility = View.GONE
                     dialogBind.video.visibility = View.GONE
 
                     dialogBind.image.setOnClickListener {
-                        val fileUri: Uri = demandLetter.imageUrl.toUri()
-
+                        var url=decrypt(demandLetter.imageUrl)
+                        val fileUri: Uri = url.toUri()
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
                         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION) //DO NOT FORGET THIS EVER
@@ -281,10 +306,10 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                         WindowManager.LayoutParams.MATCH_PARENT
                     )
 
-                    dialogBindEdit.Summ.setText(demandLetter.demandSubject)
-                    dialogBindEdit.Details.setText(demandLetter.demandDetails)
-                    dialogBindEdit.Date.setText(demandLetter.demandDate)
-                    dialogBindEdit.District.setText(demandLetter.demandDistrict)
+                    dialogBindEdit.Summ.setText(decrypt(demandLetter.demandSubject))
+                    dialogBindEdit.Details.setText(decrypt(demandLetter.demandDetails))
+                    dialogBindEdit.Date.setText(decrypt(demandLetter.demandDate))
+                    dialogBindEdit.District.setText(decrypt(demandLetter.demandDistrict))
 
                     var districts = resources.getStringArray(R.array.District)
                     arrayAdapter =
@@ -315,7 +340,8 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                     }
 
                     dialogBindEdit.image.setOnClickListener {
-                        val fileUri: Uri = demandLetter.imageUrl.toUri()
+                        var url=decrypt(demandLetter.imageUrl)
+                        val fileUri: Uri = url.toUri()
 
                         val intent = Intent(Intent.ACTION_VIEW)
                         intent.setDataAndType(fileUri, "image/*")
@@ -421,9 +447,9 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
 
     fun update(demandLetter : DemandLetter,dialogBind : EditUserDemandDialogBinding,dialog : Dialog){
         var demMap= mutableMapOf<String,Any>()
-        demMap["demandSubject"]=dialogBind.Summ.text.toString()
-        demMap["demandDetails"]=dialogBind.Details.text.toString()
-        demMap["demandDistrict"]=dialogBind.District.text.toString()
+        demMap["demandSubject"]=encrypt(dialogBind.Summ.text.toString())
+        demMap["demandDetails"]=encrypt(dialogBind.Details.text.toString())
+        demMap["demandDistrict"]=encrypt(dialogBind.District.text.toString())
         demRef.child(demandLetter.demandId).updateChildren(demMap).addOnCompleteListener {
             if(it.isSuccessful){
                 dialogBind.progressbar.visibility = View.GONE
@@ -453,10 +479,10 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
                 myUploadImageRef.downloadUrl.addOnSuccessListener {
                     imageUrl=it.toString()
                     var demMap= mutableMapOf<String,Any>()
-                    demMap["demandSubject"]=dialogBind.Summ.text.toString()
-                    demMap["demandDetails"]=dialogBind.Details.text.toString()
-                    demMap["demandDistrict"]=dialogBind.District.text.toString()
-                    demMap["imageUrl"]=imageUrl
+                    demMap["demandSubject"]=encrypt(dialogBind.Summ.text.toString())
+                    demMap["demandDetails"]=encrypt(dialogBind.Details.text.toString())
+                    demMap["demandDistrict"]=encrypt(dialogBind.District.text.toString())
+                    demMap["imageUrl"]=encrypt(imageUrl)
                     demMap["imageName"]=imageName
                     demRef.child(demandLetter.demandId).updateChildren(demMap).addOnCompleteListener {
                         if(it.isSuccessful){
@@ -468,14 +494,13 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
 
                         else{
                             Toast.makeText(requireContext(),it.exception.toString(), Toast.LENGTH_LONG).show()
-                            dialogBind.progressbar.visibility = View.GONE
+                            loadDialog.dismiss()
                             dialog.dismiss()
                             imageUri=null
                         }
                     }
                 }
             }.addOnFailureListener{
-
             }
         }
 

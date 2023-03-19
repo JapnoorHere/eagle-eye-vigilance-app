@@ -2,6 +2,7 @@ package com.japnoor.anticorruption
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Base64
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -11,6 +12,8 @@ import com.google.firebase.database.ValueEventListener
 import com.japnoor.anticorruption.databinding.ActivityChatBinding
 import java.text.SimpleDateFormat
 import java.util.Date
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class ComplaintChatActivity : AppCompatActivity() {
     lateinit var binding: ActivityChatBinding
@@ -25,6 +28,22 @@ class ComplaintChatActivity : AppCompatActivity() {
     var type : String? = null
     var status : String = ""
     var against : String = ""
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
     override fun onBackPressed() {
         super.onBackPressed()
@@ -38,7 +57,9 @@ class ComplaintChatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         binding = ActivityChatBinding.inflate(layoutInflater)
         setContentView(binding.root)
         senderUid = FirebaseAuth.getInstance().currentUser?.uid.toString()
@@ -110,29 +131,28 @@ class ComplaintChatActivity : AppCompatActivity() {
             val formatter = SimpleDateFormat("dd/MM/yyyy-HH:mm")
             val dateTime = Date(currentTimeMillis)
             val time = formatter.format(dateTime)
-              var msg=binding.etMessage.text.toString()
-              var chats=Chat(binding.etMessage.text.toString(),time.toString(),FirebaseAuth.getInstance().currentUser?.uid.toString(),"")
+              var msg=binding.etMessage.text.toString().trim()
+              var chats=Chat(encrypt(binding.etMessage.text.toString().trim()),encrypt(time.toString()),FirebaseAuth.getInstance().currentUser?.uid.toString(),"")
             FirebaseDatabase.getInstance().reference.child("ComplaintChats").child(senderRoom).child("messages")
                 .push().setValue(chats).addOnCompleteListener {
                     FirebaseDatabase.getInstance().reference.child("ComplaintChats").child(recieverRoom).child("messages")
                         .push().setValue(chats).addOnCompleteListener {
                             FirebaseDatabase.getInstance().reference.child("Users").child(FirebaseAuth.getInstance().currentUser?.uid.toString()).child("name").get().addOnCompleteListener {
-
                                 if (type.equals("c")) {
                                     var notificationID =
                                         FirebaseDatabase.getInstance().reference.child("NotificationChat")
                                             .push().key.toString()
                                     var notification = NotificationChat(
                                         notificationID,
-                                        against,
-                                        time,
+                                        encrypt(against),
+                                        encrypt(time),
                                         FirebaseAuth.getInstance().currentUser?.uid.toString(),
                                         compId,
                                         it.result.value.toString(),
-                                        status,
-                                        cnumber.toString(),
+                                        encrypt(status),
+                                        encrypt(cnumber.toString()),
                                         "c",
-                                        msg
+                                        encrypt(msg)
                                     )
                                     FirebaseDatabase.getInstance().reference.child("NotificationChat")
                                         .child(notificationID).setValue(notification)
@@ -142,15 +162,15 @@ class ComplaintChatActivity : AppCompatActivity() {
                                             .push().key.toString()
                                     var notification = NotificationChat(
                                         notificationID,
-                                        against,
-                                        time,
+                                        encrypt(against),
+                                        encrypt(time),
                                         FirebaseAuth.getInstance().currentUser?.uid.toString(),
                                         compId,
                                         it.result.value.toString(),
-                                        status,
-                                        cnumber.toString(),
+                                        encrypt(status),
+                                        encrypt(cnumber.toString()),
                                         "d",
-                                        msg
+                                        encrypt(msg)
                                     )
                                     FirebaseDatabase.getInstance().reference.child("NotificationChat")
                                         .child(notificationID).setValue(notification)

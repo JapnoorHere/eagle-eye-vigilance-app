@@ -14,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.text.format.DateFormat
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -36,6 +37,8 @@ import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDemandDialo
 import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
 import java.text.SimpleDateFormat
 import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 private const val ARG_PARAM1 = "param1"
 private const val ARG_PARAM2 = "param2"
@@ -63,8 +66,12 @@ class AddDemandLetterFragment : Fragment() {
     lateinit var demRef: DatabaseReference
 
     var imageUrl: String = ""
-
     var imageUri: Uri? = null
+
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+
+
 
     lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
 
@@ -78,11 +85,26 @@ class AddDemandLetterFragment : Fragment() {
             param2 = it.getString(ARG_PARAM2)
         }
     }
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
 
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         firebaseStorage = FirebaseStorage.getInstance()
         storegeref = firebaseStorage.reference
         homeScreen = activity as HomeScreen
@@ -182,8 +204,8 @@ class AddDemandLetterFragment : Fragment() {
                                 var user = eachUser.getValue(Users::class.java)
                                 println("uSers" + user?.userId)
                                 if (user != null && user.userId.equals(homeScreen.id)) {
-                                    userName = user.name.toString()
-                                    userEmail = user.email.toString()
+                                    userName = decrypt(user.name).toString()
+                                    userEmail = decrypt(user.email).toString()
                                     println("name" + userName)
                                     break
                                 }
@@ -209,7 +231,8 @@ class AddDemandLetterFragment : Fragment() {
                 if(imageUri==null){
                     if (Build.VERSION.RELEASE >= "13") {
                         var intent = Intent()
-                         intent.action= Intent.ACTION_GET_CONTENT
+                        intent.type = "image/*"
+                        intent.action= Intent.ACTION_GET_CONTENT
                         activityResulLauncher.launch(intent)
                     }
                     else{
@@ -247,8 +270,7 @@ class AddDemandLetterFragment : Fragment() {
     }
 
 
-    fun
-            chooseImage() {
+    fun chooseImage() {
         if (ContextCompat.checkSelfPermission(homeScreen, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(homeScreen, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), REQUEST_CAMERA_PERMISSION
             )
@@ -322,10 +344,11 @@ class AddDemandLetterFragment : Fragment() {
                     val format = SimpleDateFormat("HH:mm", Locale.getDefault())
                     var demandTime = format.format(Date())
                     var demands = DemandLetter(
-                        binding.DemandSubject.text.toString(),
-                        binding.DemandDetails.text.toString(),
-                        demDate.toString(), binding.District.text.toString(), homeScreen.id,
-                        did.toString(), imageUrl, imageName, userName, userEmail,userEmail, "",demandNumber,demandTime,"",unionName
+                        encrypt(binding.DemandSubject.text.toString()),
+                        encrypt(binding.DemandDetails.text.toString()),
+                        encrypt(demDate.toString()), encrypt(binding.District.text.toString()), homeScreen.id,
+                        did.toString(), encrypt(imageUrl), imageName, encrypt(userName), encrypt(userEmail),encrypt(userEmail), "",encrypt(demandNumber),
+                        encrypt(demandTime),"",encrypt(unionName)
                     )
 
                     demRef.child(did.toString()).setValue(demands).addOnCompleteListener {

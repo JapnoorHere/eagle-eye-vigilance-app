@@ -23,6 +23,8 @@ import com.google.firebase.storage.FirebaseStorage
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.ItemComplaintBinding
 import com.japnoor.anticorruption.databinding.ItemDemandtBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 class UserDemandAdapter(var context: HomeScreen, var demandlist: ArrayList<DemandLetter>,var userDemandClick: UserDemandClick)  : RecyclerView.Adapter<UserDemandAdapter.ViewHolder>() {
 
@@ -42,11 +44,11 @@ class UserDemandAdapter(var context: HomeScreen, var demandlist: ArrayList<Deman
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.binding.demSubject.setText(demandlist[position].demandSubject)
-        holder.binding.demandDetails.setText(demandlist[position].demandDetails)
-        holder.binding.date.setText(demandlist[position].demandDate)
-        holder.binding.time.setText(demandlist[position].demandTime)
-        holder.binding.demNumber.setText(demandlist[position].demandNumber)
+        holder.binding.demSubject.setText(decrypt(demandlist[position].demandSubject))
+        holder.binding.demandDetails.setText(decrypt(demandlist[position].demandDetails))
+        holder.binding.date.setText(decrypt(demandlist[position].demandDate))
+        holder.binding.time.setText(decrypt(demandlist[position].demandTime))
+        holder.binding.demNumber.setText(decrypt(demandlist[position].demandNumber))
 
         holder.itemView.setOnClickListener{
             userDemandClick.onClick(demandlist[position])
@@ -101,11 +103,11 @@ class UserDemandAdapter(var context: HomeScreen, var demandlist: ArrayList<Deman
                     var intent = Intent(context, ComplaintChatActivity::class.java)
                     intent.putExtra("uid", demandlist[position].userId)
                     intent.putExtra("cid", demandlist[position].demandId)
-                    intent.putExtra("cnumber", demandlist[position].demandNumber)
+                    intent.putExtra("cnumber", decrypt(demandlist[position].demandNumber))
                     intent.putExtra("type", "d")
                     intent.putExtra("status", demandlist[position].status)
-                    intent.putExtra("against", demandlist[position].demandSubject)
-                    intent.putExtra("name", demandlist[position].userName)
+                    intent.putExtra("against", decrypt(demandlist[position].demandSubject))
+                    intent.putExtra("name", decrypt(demandlist[position].userName))
                     context.startActivity(intent)
                 }
                 else{
@@ -153,5 +155,13 @@ class UserDemandAdapter(var context: HomeScreen, var demandlist: ArrayList<Deman
              notifyDataSetChanged()
     }
 
-
+    private fun decrypt(input: String): String {
+        var forgot = ForogotPasscode()
+        var encryptionKey=forgot.key()
+        var secretKeySpec = SecretKeySpec(encryptionKey.toByteArray(), "AES")
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(android.util.Base64.decode(input, android.util.Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 }

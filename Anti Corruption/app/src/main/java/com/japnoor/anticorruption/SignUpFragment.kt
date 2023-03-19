@@ -100,9 +100,7 @@ class SignUpFragment : Fragment() {
                     binding.etEmail.error = "Enter email"
                     binding.etEmail.requestFocus()
 
-                } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString())
-                        .matches()
-                ) {
+                } else if (!Patterns.EMAIL_ADDRESS.matcher(binding.etEmail.text.toString()).matches()) {
                     binding.etEmail.error = "Enter valid email"
                     binding.etEmail.requestFocus()
                 } else if (binding.etPassword.text.toString().isNullOrEmpty()) {

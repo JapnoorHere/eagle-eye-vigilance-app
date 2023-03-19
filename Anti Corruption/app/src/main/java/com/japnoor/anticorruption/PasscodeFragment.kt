@@ -9,6 +9,7 @@ import android.net.ConnectivityManager
 import android.net.NetworkInfo
 import android.os.Bundle
 import android.renderscript.Sampler.Value
+import android.util.Base64
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -21,6 +22,8 @@ import com.hanks.passcodeview.PasscodeView
 import com.japnoor.anticorruption.databinding.ActivityPasscodeBinding
 import com.japnoor.anticorruption.databinding.FragmentPasscodeBinding
 import com.japnoor.anticorruption.databinding.PasscodeDialogBinding
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -42,6 +45,21 @@ class PasscodeFragment : Fragment() {
     lateinit var useref : DatabaseReference
     lateinit var database: FirebaseDatabase
     lateinit var splashScreen: SplashScreen
+    var encryptionKey: String? =null
+    var secretKeySpec: SecretKeySpec? =null
+    private fun encrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec)
+        val encryptedBytes = cipher.doFinal(input.toByteArray(Charsets.UTF_8))
+        return Base64.encodeToString(encryptedBytes, Base64.DEFAULT)
+    }
+
+    private fun decrypt(input: String): String {
+        val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+        cipher.init(Cipher.DECRYPT_MODE, secretKeySpec)
+        val decryptedBytes = cipher.doFinal(Base64.decode(input, Base64.DEFAULT))
+        return String(decryptedBytes, Charsets.UTF_8)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +73,9 @@ class PasscodeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
+        var forgot = ForogotPasscode()
+        encryptionKey=forgot.key()
+        secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         splashScreen=activity as SplashScreen
         var binding = FragmentPasscodeBinding.inflate(layoutInflater,container,false)
 
@@ -151,7 +171,7 @@ class PasscodeFragment : Fragment() {
                                 for(eachUser in snapshot.children){
                                     var userr=eachUser.getValue(Users::class.java)
                                     if(userr!=null && userr.userId.equals(FirebaseAuth.getInstance().currentUser?.uid)){
-                                        useref.child(userr.userId).child("passcode").setValue(dialogBinding.etPassword.text.toString()).addOnCompleteListener{
+                                        useref.child(userr.userId).child("passcode").setValue(encrypt(dialogBinding.etPassword.text.toString())).addOnCompleteListener{
                                             if(it.isSuccessful) {
                                                 dialogBinding.btnSignup.visibility = View.VISIBLE
                                                 dialogBinding.progressbar.visibility = View.GONE

@@ -66,9 +66,6 @@ class HomeFragment : Fragment() {
         objectAnimator.duration = 12000
         objectAnimator.repeatCount = ObjectAnimator.INFINITE
         objectAnimator.start()
-
-
-
         compref.addValueEventListener(object : ValueEventListener{
             override fun onDataChange(snapshot: DataSnapshot) {
                 var resolvedcount=0
