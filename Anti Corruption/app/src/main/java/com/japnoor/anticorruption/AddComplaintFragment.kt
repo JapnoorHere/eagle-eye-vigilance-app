@@ -35,6 +35,7 @@ import androidx.fragment.app.Fragment
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.DialogCDLoadingBinding
 import com.japnoor.anticorruption.databinding.FragmentAddComplaintBinding
 import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
 import java.text.SimpleDateFormat
@@ -68,7 +69,8 @@ class AddComplaintFragment : Fragment() {
     lateinit var database: FirebaseDatabase
     lateinit var compRef: DatabaseReference
     lateinit var userrrRef: DatabaseReference
-    lateinit var loadDialog: Dialog
+    lateinit var    loadDialog: Dialog
+    lateinit var    loadDialogBind : DialogCDLoadingBinding
 
     lateinit var arrayAdapter: ArrayAdapter<String>
 
@@ -132,7 +134,8 @@ class AddComplaintFragment : Fragment() {
 
 
         loadDialog = Dialog(homeScreen)
-        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+         loadDialogBind=DialogCDLoadingBinding.inflate(layoutInflater)
+        loadDialog.setContentView(loadDialogBind.root)
         loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         var checkInstOnce = sharedPreferences.getString("instructionsOnce", null)
@@ -533,7 +536,12 @@ class AddComplaintFragment : Fragment() {
         val audioreference = storegeref.child("audios").child(audioName)
         println("let" + audioUri.toString())
         audioUri?.let { uri ->
-            audioreference.putFile(uri).addOnSuccessListener {
+
+            audioreference.putFile(uri).addOnProgressListener {
+                    val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                    loadDialogBind.progressBar.progress = progress
+                    loadDialogBind.progressTV.setText("$progress%")
+                }.addOnSuccessListener {
                 var myUploadAudioRef = storegeref.child("audios").child(audioName)
                 myUploadAudioRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
@@ -588,15 +596,20 @@ class AddComplaintFragment : Fragment() {
                             }
                         }
                     println("Url 2-> " + audioUrl)
-                }
-            }.addOnFailureListener {
+                }.addOnFailureListener{
 
+                }
             }
+
         }
         videoUri?.let { uri ->
             var videoName = compRef.push().key.toString()
             val videoreference = storegeref.child("videos").child(videoName)
-            videoreference.putFile(uri).addOnSuccessListener {
+            videoreference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
                 var myUploadVideoRef = storegeref.child("videos").child(videoName)
                 myUploadVideoRef.downloadUrl.addOnSuccessListener {
                     var d = Date()
@@ -660,7 +673,11 @@ class AddComplaintFragment : Fragment() {
         imageUri?.let { uri ->
             var imageName = compRef.push().key.toString()
             val imagereference = storegeref.child("cimages").child(imageName)
-            imagereference.putFile(uri).addOnSuccessListener {
+            imagereference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
                 var myUploadImageRef = storegeref.child("cimages").child(imageName)
                 myUploadImageRef.downloadUrl.addOnSuccessListener {
                     var d = Date()

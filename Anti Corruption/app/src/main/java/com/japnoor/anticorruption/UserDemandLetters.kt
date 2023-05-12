@@ -28,6 +28,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.DialogCDLoadingBinding
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.EditUserDemandDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserDemandLettersBinding
@@ -51,6 +52,7 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
 
     lateinit var dialogBindEdit : EditUserDemandDialogBinding
     lateinit var loadDialog : Dialog
+    lateinit var loadDialogBind : DialogCDLoadingBinding
 
     lateinit var firebaseStorage: FirebaseStorage
     lateinit var storegeref: StorageReference
@@ -106,11 +108,10 @@ class UserTotalDemandFragment : Fragment(),UserDemandClick{
         encryptionKey=forgot.key()
         secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
         binding = FragmentUserDemandLettersBinding.inflate(layoutInflater, container, false)
-binding.refreshlayout.setOnRefreshListener {
-    homeScreen.navController.navigate(R.id.userTotalDemandFragment)
-}
+
         loadDialog = Dialog(homeScreen)
-        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialogBind= DialogCDLoadingBinding.inflate(layoutInflater)
+        loadDialog.setContentView(loadDialogBind.root)
         loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         binding.search.setOnTouchListener { v, event ->
@@ -151,10 +152,11 @@ binding.refreshlayout.setOnRefreshListener {
                         override fun afterTextChanged(s: Editable?) {
                             var filteredList = ArrayList<DemandLetter>()
                             for (item in demandList){
-                                if(item.demandSubject.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.demandNumber.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.demandDate.toLowerCase().contains(s.toString().toLowerCase())
-                                    || item.demandTime.toLowerCase().contains(s.toString().toLowerCase())
+                                if(decrypt(item.demandSubject).toLowerCase().contains(s.toString().toLowerCase())
+                                    || decrypt(item.demandNumber).toLowerCase().contains(s.toString().toLowerCase())
+                                    || decrypt(item.demandDate).toLowerCase().contains(s.toString().toLowerCase())
+                                    || decrypt(item.demandTime).toLowerCase().contains(s.toString().toLowerCase())
+                                    || decrypt(item.demandDistrict).toLowerCase().contains(s.toString().toLowerCase())
                                 )
                                     filteredList.add(item)
                             }
@@ -465,15 +467,18 @@ binding.refreshlayout.setOnRefreshListener {
 
     fun uploadDemandLetterAndImage(dialogBind : EditUserDemandDialogBinding,demandLetter: DemandLetter,dialog : Dialog){
 
-
-
-
         var imageName= demandLetter.imageName
 
         val imgreference=storegeref.child("images").child(imageName)
 
         imageUri?.let{ uri ->
-            imgreference.putFile(uri).addOnSuccessListener {
+            imgreference.putFile(uri).addOnProgressListener {
+
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }
+                .addOnSuccessListener {
                 var myUploadImageRef=storegeref.child("images").child(imageName)
 
                 myUploadImageRef.downloadUrl.addOnSuccessListener {

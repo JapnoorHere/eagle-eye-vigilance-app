@@ -24,6 +24,7 @@ import android.os.Environment
 import android.os.Vibrator
 import android.util.Base64
 import android.view.View
+import android.view.Window
 import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.TextView
@@ -42,11 +43,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.database.ktx.getValue
 import com.japnoor.anticorruption.databinding.*
+import papaya.`in`.sendmail.SendMail
 import java.io.File
 import java.lang.Math.sqrt
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 
 class HomeScreen : AppCompatActivity() {
@@ -65,6 +69,7 @@ class HomeScreen : AppCompatActivity() {
     private var sensorManager: SensorManager? = null
     private var acceleration = 0f
     var isRecording = false
+    var random : Int=0
     lateinit var profileBundle: Bundle
     lateinit var compProfileList: ArrayList<String>
     lateinit var demProfileList: ArrayList<String>
@@ -559,12 +564,32 @@ class HomeScreen : AppCompatActivity() {
                         builder.setTitle("Logout")
                         builder.setMessage("Are you sure you want to logout?")
                         builder.setPositiveButton("Yes") { dialog, which ->
+
+                            FirebaseAuth.getInstance().signOut()
                             var intent = Intent(this@HomeScreen, LoginActivity::class.java)
                             startActivity(intent)
                             finish()
-                            FirebaseAuth.getInstance().signOut()
                             Toast.makeText(this@HomeScreen, "Logout Successful", Toast.LENGTH_LONG)
                                 .show()
+
+
+//                            var dialog= Dialog(this@HomeScreen)
+//                            var dialogBinding=OtpCheckBinding.inflate(layoutInflater)
+//                            dialog.setContentView(dialogBinding.root)
+//                            dialog.window?.setLayout(WindowManager.LayoutParams.MATCH_PARENT,WindowManager.LayoutParams.WRAP_CONTENT)
+//                            OTP()
+//                            dialogBinding.btnDone.setOnClickListener {
+//                                if(dialogBinding.etOtp.text.toString().isEmpty()){
+//                                    dialogBinding.etOtp.error="Enter OTP"
+//                                }
+//                                else if(dialogBinding.etOtp.text.toString().equals(random.toString())){
+//
+//                                }
+//                                else{
+//                                    Toast.makeText(this@HomeScreen, "Wrong OTP", Toast.LENGTH_SHORT).show()
+//                                }
+//                            }
+//                            dialog.show()
                         }
                         builder.setNegativeButton("No") { dialog, which ->
                             dialog.dismiss()
@@ -819,5 +844,21 @@ class HomeScreen : AppCompatActivity() {
             }
         }
     }
+
+    fun OTP() {
+        var email=""
+        FirebaseDatabase.getInstance().reference.child("Users").child(FirebaseAuth.getInstance().currentUser?.uid.toString()).child("email").get().addOnCompleteListener{
+            email=decrypt(it.result.value.toString())
+            random = Random.nextInt(100000..999999)
+            val mail = SendMail(
+                "eagleeyevigilance@gmail.com", "kopbxcdsbqqzaldq",
+                email, "Your One Time Password",
+                "Use the following One Time Password (OTP) to log out from Eagle Eye Vigilance App : $random"
+            )
+            mail.execute()
+        }
+        }
+
+
 
 }

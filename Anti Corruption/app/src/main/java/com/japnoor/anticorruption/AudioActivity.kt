@@ -10,107 +10,228 @@ import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
+import android.os.Looper
+import android.view.View
+import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.core.net.toUri
+import com.google.android.exoplayer2.ExoPlaybackException
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.SimpleExoPlayer
+import com.google.firebase.firestore.EventListener
 import com.japnoor.anticorruption.databinding.ActivityAudioBinding
 import com.japnoor.anticorruption.databinding.EditUserDemandDialogBinding
 import java.util.*
 
 class AudioActivity : AppCompatActivity() {
 
+    private lateinit var player: SimpleExoPlayer
+    private lateinit var playPauseButton: ImageView
+    private lateinit var progressBar: ProgressBar
+    private lateinit var seekBar: SeekBar
+    lateinit var positionTextView : TextView
+    var duration : Int=0
 
-    lateinit var binding: ActivityAudioBinding
-    var mediaPlayer: MediaPlayer?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityAudioBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        setContentView(R.layout.activity_audio)
 
-        var offlineAudio = intent.getStringExtra("audioo")?.toUri()
-        var type = intent.getStringExtra("type")?.toString()
 
-        binding.btn.setOnClickListener {
-            mediaPlayer?.stop()
-            finish()
-        }
+        val audio = intent.getStringExtra("audio")?.toUri()
+        val offlineaudio = intent.getStringExtra("audioo")?.toUri()
+        val type = intent.getStringExtra("type")
 
-        if (type.equals("o")) {
-            if (offlineAudio != null) {
-                controlSound(offlineAudio)
-            }
-        } else {
-            val connectivityManager =
-                getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork: NetworkInfo? = connectivityManager.activeNetworkInfo
-            val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
-            if (isConnected) {
-                var audio = intent.getStringExtra("audio")?.toUri()
-                if (audio != null) {
-                    controlSound(audio)
+
+        if(type.toString().equals("o")){
+
+            playPauseButton = findViewById(R.id.playPauseButton)
+            progressBar = findViewById(R.id.progressBar)
+            seekBar = findViewById(R.id.seekBar)
+            positionTextView = findViewById(R.id.positionTextView)
+
+            // Initialize ExoPlayer
+            player = SimpleExoPlayer.Builder(this).build()
+            player.addListener(object : Player.Listener {
+                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                    // Update play/pause button based on player state
+                    if (playbackState == Player.STATE_READY && player.playWhenReady) {
+                        playPauseButton.setImageResource(R.drawable.pause_latest)
+                    } else {
+                        playPauseButton.setImageResource(R.drawable.play_latest)
+                    }
                 }
-            } else {
-                Toast.makeText(this, "Check you internet connection please", Toast.LENGTH_LONG)
-                    .show()
-            }
-
-
-        }
-    }
-
-    fun controlSound(audio : Uri){
-        binding.play.setOnClickListener {
-            if(mediaPlayer==null){
-                mediaPlayer=MediaPlayer.create(this,audio)
-                initialise()
-            }
-            mediaPlayer?.start()
-        }
-
-        binding.pause.setOnClickListener {
-            if (mediaPlayer !== null) {
-                mediaPlayer?.pause()
-            }
-        }
-
-        binding.seekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                if(fromUser)
-                    mediaPlayer?.seekTo(progress)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                mediaPlayer?.seekTo(seekBar!!.progress)
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                mediaPlayer?.seekTo(seekBar!!.progress)
-            }
-        })
-
-
-    }
-    fun initialise(){
-        binding.seekbar.max=mediaPlayer!!.duration
-        var handler=Handler()
-        handler.postDelayed(object : Runnable{
-            override fun run() {
-                try{
-                    binding.seekbar.progress=mediaPlayer!!.currentPosition
-                    handler.postDelayed(this,1000)
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    // Update seek bar and position text view when player starts playing
+                    if (isPlaying) {
+                        duration = player.duration.toInt() / 1000
+                        seekBar.max = duration
+                        positionTextView.text = "0:00 / " + getTimeString(duration)
+                    }
                 }
-                catch (e : java.lang.Exception)
-                {
-                    binding.seekbar.progress=0
-                }                }
+                override fun onPositionDiscontinuity(reason: Int) {
+                    // Update seek bar progress when position changes
+                    val currentPosition = player.currentPosition.toInt() / 1000
+                    seekBar.progress = currentPosition
+                    positionTextView.text = getTimeString(currentPosition) + " / " + getTimeString(player.duration.toInt() / 1000)
 
-        },0)
+                }
+
+            })
+
+            // Prepare audio source
+            val mediaItem = MediaItem.fromUri(offlineaudio!!)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.play()
+
+            // Set click listener for play/pause button
+            playPauseButton.setOnClickListener {
+                player.playWhenReady = !player.playWhenReady
+            }
+
+            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    // Update player position when seek bar changes
+                    if (fromUser) {
+                        player.seekTo(progress.toLong() * 1000)
+                        positionTextView.text = getTimeString(progress) + " / " + getTimeString(duration)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    // Do nothing
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    // Do nothing
+                }
+            })
+
+            // Update seek bar progress periodically
+            val handler = Handler(Looper.getMainLooper())
+            handler.post(object : Runnable {
+                override fun run() {
+                    val currentPosition = player.currentPosition.toInt() / 1000
+                    seekBar.progress = currentPosition
+                    positionTextView.text = getTimeString(currentPosition) + " / " + getTimeString(duration)
+                    handler.postDelayed(this, 1000)
+                }
+            })
+
+            player.addListener(object :  Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_BUFFERING) {
+                        progressBar.visibility = View.VISIBLE
+                    } else {
+                        progressBar.visibility = View.GONE
+                    }
+                }
+            })
+        }
+        else{
+
+            playPauseButton = findViewById(R.id.playPauseButton)
+            progressBar = findViewById(R.id.progressBar)
+            seekBar = findViewById(R.id.seekBar)
+            positionTextView = findViewById(R.id.positionTextView)
+
+
+
+            // Initialize ExoPlayer
+            player = SimpleExoPlayer.Builder(this).build()
+            player.addListener(object : Player.Listener {
+                override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
+                    // Update play/pause button based on player state
+                    if (playbackState == Player.STATE_READY && player.playWhenReady) {
+                        playPauseButton.setImageResource(R.drawable.pause_latest)
+                    } else {
+                        playPauseButton.setImageResource(R.drawable.play_latest)
+                    }
+                }
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    // Update seek bar and position text view when player starts playing
+                    if (isPlaying) {
+                        duration = player.duration.toInt() / 1000
+                        seekBar.max = duration
+                        positionTextView.text = "0:00 / " + getTimeString(duration)
+                    }
+                }
+                override fun onPositionDiscontinuity(reason: Int) {
+                    // Update seek bar progress when position changes
+                    val currentPosition = player.currentPosition.toInt() / 1000
+                    seekBar.progress = currentPosition
+                    positionTextView.text = getTimeString(currentPosition) + " / " + getTimeString(player.duration.toInt() / 1000)
+
+                }
+
+            })
+
+            // Prepare audio source
+            val mediaItem = MediaItem.fromUri(audio!!)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.play()
+
+            // Set click listener for play/pause button
+            playPauseButton.setOnClickListener {
+                player.playWhenReady = !player.playWhenReady
+            }
+
+            seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    // Update player position when seek bar changes
+                    if (fromUser) {
+                        player.seekTo(progress.toLong() * 1000)
+                        positionTextView.text = getTimeString(progress) + " / " + getTimeString(duration)
+                    }
+                }
+
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                    // Do nothing
+                }
+
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                    // Do nothing
+                }
+            })
+
+            // Update seek bar progress periodically
+            val handler = Handler(Looper.getMainLooper())
+            handler.post(object : Runnable {
+                override fun run() {
+                    val currentPosition = player.currentPosition.toInt() / 1000
+                    seekBar.progress = currentPosition
+                    positionTextView.text = getTimeString(currentPosition) + " / " + getTimeString(duration)
+                    handler.postDelayed(this, 1000)
+                }
+            })
+
+            player.addListener(object :  Player.Listener {
+                override fun onPlaybackStateChanged(state: Int) {
+                    if (state == Player.STATE_BUFFERING) {
+                        progressBar.visibility = View.VISIBLE
+                    } else {
+                        progressBar.visibility = View.GONE
+                    }
+                }
+            })
+        }
+
+
     }
 
-    override fun onStart() {
-        super.onStart()
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+    override fun onDestroy() {
+        super.onDestroy()
+        player.release()
     }
-
+    private fun getTimeString(time: Int): String {
+        val minutes = time / 60
+        val seconds = time % 60
+        return String.format("%02d:%02d", minutes, seconds)
+    }
 }

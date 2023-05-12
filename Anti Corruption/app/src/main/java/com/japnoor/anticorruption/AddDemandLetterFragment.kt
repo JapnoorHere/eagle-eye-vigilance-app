@@ -31,10 +31,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
-import com.japnoor.anticorruption.databinding.BlockedUserDialogBinding
-import com.japnoor.anticorruption.databinding.FragmentAddDemandLetterBinding
-import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDemandDialogBinding
-import com.japnoor.anticorruption.databinding.InstructionsBlockedUserDialogBinding
+import com.japnoor.anticorruption.databinding.*
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.crypto.Cipher
@@ -52,6 +49,8 @@ class AddDemandLetterFragment : Fragment() {
     lateinit var homeScreen: HomeScreen
     lateinit var arrayAdapter: ArrayAdapter<String>
     lateinit var binding: FragmentAddDemandLetterBinding
+    lateinit var    loadDialogBind : DialogCDLoadingBinding
+
 
     var userName: String = ""
 
@@ -70,8 +69,6 @@ class AddDemandLetterFragment : Fragment() {
 
     var encryptionKey: String? =null
     var secretKeySpec: SecretKeySpec? =null
-
-
 
     lateinit var activityResulLauncher: ActivityResultLauncher<Intent>
 
@@ -102,6 +99,7 @@ class AddDemandLetterFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        binding= FragmentAddDemandLetterBinding.inflate(layoutInflater,container,false)
         var forgot = ForogotPasscode()
         encryptionKey=forgot.key()
         secretKeySpec = SecretKeySpec(encryptionKey!!.toByteArray(), "AES")
@@ -111,11 +109,11 @@ class AddDemandLetterFragment : Fragment() {
         database = FirebaseDatabase.getInstance()
         demRef = database.reference.child("Demand Letter")
         demuserrRef = database.reference.child("Users")
-        binding = FragmentAddDemandLetterBinding.inflate(layoutInflater, container, false)
 
 
         loadDialog=Dialog(homeScreen)
-        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialogBind= DialogCDLoadingBinding.inflate(layoutInflater)
+        loadDialog.setContentView(loadDialogBind.root)
         loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
         sharedPreferences = homeScreen.getSharedPreferences("Instructions", Context.MODE_PRIVATE)
@@ -284,7 +282,6 @@ class AddDemandLetterFragment : Fragment() {
     }
 
     fun registerActivityforResult() {
-
         activityResulLauncher =
             registerForActivityResult(ActivityResultContracts.StartActivityForResult(),
                 ActivityResultCallback { result ->
@@ -322,7 +319,12 @@ class AddDemandLetterFragment : Fragment() {
         val imgreference = storegeref.child("images").child(imageName)
 
         imageUri?.let { uri ->
-            imgreference.putFile(uri).addOnSuccessListener {
+            imgreference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
+
                 var myUploadImageRef = storegeref.child("images").child(imageName)
 
                 myUploadImageRef.downloadUrl.addOnSuccessListener {

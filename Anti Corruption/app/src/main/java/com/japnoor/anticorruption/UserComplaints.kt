@@ -28,6 +28,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.firebase.database.*
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.StorageReference
+import com.japnoor.anticorruption.databinding.DialogCDLoadingBinding
 import com.japnoor.anticorruption.databinding.EditUserComplaintDialogBinding
 import com.japnoor.anticorruption.databinding.FragmentUserComplaintsBinding
 import com.japnoor.anticorruption.databinding.ShowUserComplaintsDialogBinding
@@ -71,6 +72,7 @@ class UserComplaints : Fragment(), UserComplaintClick {
     lateinit var compRef: DatabaseReference
     var c = 0
     lateinit var loadDialog: Dialog
+    lateinit var loadDialogBind : DialogCDLoadingBinding
 
     var encryptionKey: String? =null
     var secretKeySpec: SecretKeySpec? =null
@@ -121,10 +123,10 @@ class UserComplaints : Fragment(), UserComplaintClick {
         compRef = database.reference.child("Complaints")
 
         binding = FragmentUserComplaintsBinding.inflate(layoutInflater, container, false)
-        binding.refreshlayout.setOnRefreshListener { homeScreen.navController.navigate(R.id.userComplaints) }
 
         loadDialog = Dialog(homeScreen)
-        loadDialog.setContentView(R.layout.dialog_c_d_loading)
+        loadDialogBind= DialogCDLoadingBinding.inflate(layoutInflater)
+        loadDialog.setContentView(loadDialogBind.root)
         loadDialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
 
 //        val notificationManager = homeScreen.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -213,13 +215,15 @@ class UserComplaints : Fragment(), UserComplaintClick {
                         override fun afterTextChanged(s: Editable?) {
                             var filteredList = ArrayList<Complaints>()
                             for (item in complaintsList) {
-                                if (item.complaintAgainst.toLowerCase()
+                                if (decrypt(item.complaintAgainst).toLowerCase()
                                         .contains(s.toString().toLowerCase())
-                                    || item.complaintNumber.toLowerCase()
+                                    || decrypt(item.complaintNumber).toLowerCase()
                                         .contains(s.toString().toLowerCase())
-                                    || item.complaintDate.toLowerCase()
+                                    || decrypt(item.complaintDate).toLowerCase()
                                         .contains(s.toString().toLowerCase())
-                                    || item.complaintTime.toLowerCase()
+                                    || decrypt(item.complaintDistrict).toLowerCase()
+                                        .contains(s.toString().toLowerCase())
+                                    || decrypt(item.complaintTime).toLowerCase()
                                         .contains(s.toString().toLowerCase())
                                 )
                                     filteredList.add(item)
@@ -779,7 +783,11 @@ class UserComplaints : Fragment(), UserComplaintClick {
         audioUri?.let { uri ->
             var audioName = complaints.audioName
             val audioreference = storegeref.child("audios").child(audioName)
-            audioreference.putFile(uri).addOnSuccessListener {
+            audioreference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
                 var myUploadAudioRef = storegeref.child("audios").child(audioName)
 
                 myUploadAudioRef.downloadUrl.addOnSuccessListener {
@@ -838,7 +846,11 @@ class UserComplaints : Fragment(), UserComplaintClick {
         videoUri?.let { uri ->
             var videoName = complaints.videoName
             val videoreference = storegeref.child("videos").child(videoName)
-            videoreference.putFile(uri).addOnSuccessListener {
+            videoreference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
                 var myUploadVideoRef = storegeref.child("videos").child(videoName)
 
                 myUploadVideoRef.downloadUrl.addOnSuccessListener {
@@ -896,7 +908,11 @@ class UserComplaints : Fragment(), UserComplaintClick {
         imageUri?.let { uri ->
             var imageName = complaints.imageName
             val imagereference = storegeref.child("cimages").child(imageName)
-            imagereference.putFile(uri).addOnSuccessListener {
+            imagereference.putFile(uri).addOnProgressListener {
+                val progress = (100.0 * it.bytesTransferred / it.totalByteCount).toInt()
+                loadDialogBind.progressBar.progress = progress
+                loadDialogBind.progressTV.setText("$progress%")
+            }.addOnSuccessListener {
                 var myUploadVideoRef = storegeref.child("cimages").child(imageName)
 
                 myUploadVideoRef.downloadUrl.addOnSuccessListener {
