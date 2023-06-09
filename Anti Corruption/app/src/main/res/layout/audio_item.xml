@@ -5,17 +5,15 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        >
+        android:orientation="vertical">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/CardView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_margin="5dp"
-            app:cardCornerRadius="10dp"
             app:cardBackgroundColor="#9F9C9C"
-            >
+            app:cardCornerRadius="10dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -29,19 +27,22 @@
                     android:layout_gravity="center"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
-                    android:visibility="visible"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
                     android:src="@drawable/play2"
-                    />
+                    android:visibility="visible" />
+
                 <ProgressBar
-                    android:visibility="gone"
-                    android:layout_gravity="center"
                     android:id="@+id/progressbar"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:layout_marginStart="10dp"
                     android:layout_weight="1"
                     android:src="@drawable/play2"
-                    />
+                    android:visibility="gone" />
+
                 <LinearLayout
 
                     android:layout_width="match_parent"
@@ -52,28 +53,29 @@
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_weight="1"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:orientation="vertical">
 
 
                         <TextView
-                            android:layout_marginTop="5dp"
                             android:id="@+id/name"
-                            android:layout_weight="1"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:layout_weight="1"
                             android:ellipsize="end"
                             android:maxLines="1"
                             android:textColor="@color/black"
                             android:textSize="17sp"
                             android:textStyle="bold" />
+
                         <TextView
                             android:id="@+id/Date"
-                            android:layout_marginBottom="5dp"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="5dp"
+                            android:layout_marginBottom="5dp"
                             android:maxLines="1"
                             android:text="17 Ausgust,2022"
                             android:textColor="@color/black"
@@ -81,24 +83,27 @@
                             android:textStyle="bold" />
 
 
-
                     </LinearLayout>
-<LinearLayout
-    android:layout_width="wrap_content"
-    android:orientation="vertical"
-    android:layout_gravity="center"
-    android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:orientation="vertical">
 
                         <ImageView
-                        android:id="@+id/more"
-                        app:tint="@color/black"
-                        android:layout_marginEnd="10dp"
-                        android:src="@drawable/ic_baseline_more_vert_24"
-                        android:layout_width="30dp"
-                        android:layout_height="30dp"
+                            android:id="@+id/more"
+                            android:layout_width="30dp"
+                            android:layout_height="30dp"
+                            android:layout_marginEnd="10dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            android:src="@drawable/ic_baseline_more_vert_24"
+                            app:tint="@color/black"
 
-                        />
-</LinearLayout>
+                            />
+                    </LinearLayout>
 
                 </LinearLayout>
 

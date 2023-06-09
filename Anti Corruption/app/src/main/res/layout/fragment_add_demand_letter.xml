@@ -122,7 +122,11 @@
                     android:drawableEnd="@drawable/ic_baseline_control_point_24" android:padding="20dp"
                     android:text="  Add Image"
                     android:textColor="@color/white"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
+                    />
 
             </LinearLayout>
             <FrameLayout

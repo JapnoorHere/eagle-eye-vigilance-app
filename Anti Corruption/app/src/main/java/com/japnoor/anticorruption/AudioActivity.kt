@@ -204,7 +204,7 @@ class AudioActivity : AppCompatActivity() {
             val handler = Handler(Looper.getMainLooper())
             handler.post(object : Runnable {
                 override fun run() {
-                    val currentPosition = player.currentPosition.toInt() / 1000
+                    val currentPosition      = player.currentPosition.toInt() / 1000
                     seekBar.progress = currentPosition
                     positionTextView.text = getTimeString(currentPosition) + " / " + getTimeString(duration)
                     handler.postDelayed(this, 1000)

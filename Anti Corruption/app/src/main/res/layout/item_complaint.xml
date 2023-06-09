@@ -8,13 +8,13 @@
 
         <androidx.cardview.widget.CardView
             android:id="@+id/CardView"
+            android:foreground="?attr/selectableItemBackground"
             android:background="@drawable/riple"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             app:cardBackgroundColor="#EFEDF4"
             android:layout_margin="7dp"
-
             app:cardCornerRadius="15dp">
 
             <View

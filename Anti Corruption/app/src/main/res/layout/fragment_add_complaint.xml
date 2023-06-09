@@ -117,6 +117,9 @@
 
 
             <TextView
+                android:foreground="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
                 android:id="@+id/addVideo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -136,6 +139,9 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:foreground="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:id="@+id/addAudio"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -158,6 +164,9 @@
                 android:orientation="horizontal">
 
                 <TextView
+                    android:foreground="?attr/selectableItemBackground"
+                    android:clickable="true"
+                    android:focusable="true"
                     android:id="@+id/addImage"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
