@@ -1,5 +1,7 @@
 # EagleEyeVigilanceApp
 
+Link to EagleEyeVigilanceAdminApp -> https://github.com/JapnoorHere/eagle-eye-vigilance-admin-app
+
 1.This is my first Android Project, Eagle Eye Vigilance App for reporting and addressing corruption issues as my Final Year Project in Diploma. 
 
 2.With its intuitive interface and powerful features, Eagle Eye Vigilance puts the power of accountability right at your fingertips.
